@@ -43,7 +43,7 @@ void ClientTableWidget::setupTable()
     setHorizontalHeaderLabels(tableHeaders);
     //this->verticalHeader()->setVisible(false);
 
-    horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setEditTriggers(QAbstractItemView::NoEditTriggers);
 }
@@ -70,7 +70,8 @@ void ClientTableWidget::updateTable()
         else
             item(i, 1)->setBackgroundColor(QColor(0, 240, 100));
 
-        this->setItem(i, 2, new QTableWidgetItem(pClient->getClientConnectTime()));
+        this->setItem(i, 2, new QTableWidgetItem(pClient->getClientConnectTime()
+                                                 .toString(QString("yyyy/MM/dd hh:mm:ss"))));
         this->setItem(i, 3, new QTableWidgetItem(pClient->getClientDisconnectTime()));
         this->setItem(i, 4, new QTableWidgetItem(pClient->getClientUpTime()));
     }
@@ -110,6 +111,12 @@ void ClientTableWidget::showContextMenu(const QPoint& pos) // this is a slot
         connect(pMsgViewAction, SIGNAL(triggered()), this, SLOT(onMessageViewerTriggered()));
         pMenu->addAction(pMsgViewAction);
 
+        //add action to toggle show client in chart dialog
+        QAction *pShowChartAction = new QAction(QString("Show Chart"), pMenu);
+        pShowChartAction->setCheckable(true);
+        pShowChartAction->setChecked(m_pServer->getClient(currentRow())->getShowChart());
+        connect(pShowChartAction, SIGNAL(toggled(bool)), this, SLOT(onShowChartToggled(bool)));
+        pMenu->addAction(pShowChartAction);
 
         pMenu->exec(QCursor::pos());
     }
@@ -141,4 +148,12 @@ void ClientTableWidget::onMessageViewerTriggered()
     } else {
         pSelectedClient->getDataViewer()->show();
     }
+}
+
+//This tells the GUI to add this client to the chart dialog
+void ClientTableWidget::onShowChartToggled(const bool enabled)
+{
+    AClient *pClient = m_pServer->getClient(currentRow());
+    pClient->setShowChart(enabled);
+    emit showChart(enabled, pClient);
 }

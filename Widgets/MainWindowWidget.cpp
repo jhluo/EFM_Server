@@ -4,6 +4,7 @@
 
 #include "Misc/Logger.h"
 #include "Misc/AppSettings.h"
+#include "Chart/ChartDialog.h"
 
 #include <QCheckBox>
 #include <QPushButton>
@@ -19,11 +20,17 @@
 
 MainWindowWidget::MainWindowWidget(TheServer *pApp, QWidget *parent)
     : QWidget(parent),
-      m_pServer(pApp)
+      m_pServer(pApp),
+      m_pChartDialog(NULL)
 {
     setMinimumSize(600, 420);
     createLayout();
     populateWidgets();
+
+    //create chart dialog in the background
+    m_pChartDialog = new ChartDialog(this);
+    //connect signal to add tabs to the widget
+    connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), m_pChartDialog, SLOT(onChartToggled(bool,AClient*)));
 }
 
 MainWindowWidget::~MainWindowWidget()
@@ -48,6 +55,9 @@ void MainWindowWidget::createLayout()
     m_pLogButton = new QPushButton("Show Log Files");
     connect(m_pLogButton, SIGNAL(pressed()), this, SLOT(onLogButtonPushed()));
 
+    m_pChartButton = new QPushButton("Show Chart");
+    connect(m_pChartButton, SIGNAL(pressed()), this, SLOT(onChartButtonPushed()));
+
     m_pWebButton = new QPushButton("Web Interface");
     connect(m_pWebButton, SIGNAL(pressed()), this, SLOT(onWebButtonPushed()));
 
@@ -56,6 +66,7 @@ void MainWindowWidget::createLayout()
     pCommandLayout->addWidget(m_pRawCheckBox);
     pCommandLayout->addWidget(m_pLogCheckBox);
     pCommandLayout->addWidget(m_pLogButton);
+    pCommandLayout->addWidget(m_pChartButton);
     pCommandLayout->addWidget(m_pWebButton);
 
     QGroupBox *pCommandGroupBox = new QGroupBox("Command");
@@ -125,6 +136,13 @@ void MainWindowWidget::onLogButtonPushed()
       QDesktopServices::openUrl(QUrl("log"));
     } else {
       QMessageBox::critical(0,tr("No log files"), tr("No log file exists."));
+    }
+}
+
+void MainWindowWidget::onChartButtonPushed()
+{
+    if (m_pChartDialog!=NULL) {
+        m_pChartDialog->show();
     }
 }
 

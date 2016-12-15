@@ -5,6 +5,7 @@
 #include <QTableWidget>
 
 class TheServer;
+class AClient;
 
 class ClientTableWidget : public QTableWidget
 {
@@ -25,12 +26,16 @@ private:
     //How often we update the table
     QTimer *m_pUpdateTimer;
 
+signals:
+    void showChart(const bool enabled, AClient *pClient);
+
 private slots:
     void showContextMenu(const QPoint&);
     void updateTable();
 
     void onMessageViewerTriggered();
     void onSendCommandTriggered();
+    void onShowChartToggled(const bool enabled);
 };
 
 

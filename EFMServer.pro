@@ -4,11 +4,11 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql
+QT       += widgets core gui sql
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets core gui network
+greaterThan(QT_MAJOR_VERSION, 4): QT += network charts
 
-TARGET = IonServer
+TARGET = EFMServer
 VERSION = 2.0.0
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
@@ -32,7 +32,10 @@ SOURCES += main.cpp\
     Widgets/AboutDialog.cpp \
     Widgets/MainStatusbar.cpp \
     Widgets/ActivationDialog.cpp \
-    Widgets/ClientCommandDialog.cpp
+    Widgets/ClientCommandDialog.cpp \
+    Chart/ClientChart.cpp \
+    Chart/ChartDialog.cpp \
+    Chart/ChartTabWidget.cpp
 
 HEADERS  += mainwindow.h \
     Widgets/MainWindowWidget.h \
@@ -47,6 +50,12 @@ HEADERS  += mainwindow.h \
     Widgets/AboutDialog.h \
     Widgets/MainStatusbar.h \
     Widgets/ActivationDialog.h \
-    Widgets/ClientCommandDialog.h
+    Widgets/ClientCommandDialog.h \
+    Chart/ClientChart.h \
+    Chart/ChartDialog.h \
+    Chart/ChartTabWidget.h
 
 FORMS    += mainwindow.ui
+
+RESOURCES += \
+    resource.qrc

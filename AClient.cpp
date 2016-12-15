@@ -15,7 +15,8 @@ AClient::AClient(QObject *pParent)
     : QObject(pParent),
       m_pSocket(NULL),
       m_ClientId(0),
-      m_pDataViewer(NULL)
+      m_pDataViewer(NULL),
+      m_ShowChart(false)
 {
     m_DataBuffer.clear();
 
@@ -47,7 +48,8 @@ void AClient::setSocket(QTcpSocket *pSocket)
 void AClient::registerDataViewer(QTextEdit *pTextEdit)
 {
     m_pDataViewer = pTextEdit;
-    connect(this, SIGNAL(outputMessage(QString)), m_pDataViewer, SLOT(append(QString)));
+    if(m_pDataViewer!= NULL)
+        connect(this, SIGNAL(outputMessage(QString)), m_pDataViewer, SLOT(append(QString)));
 }
 
 void AClient::closeClient()
@@ -132,7 +134,7 @@ void AClient::handleData(const QByteArray &newData)
                 .arg(currentTime.second());
 
         sendData(command);
-        qDebug() <<command;
+        //qDebug() <<command;
     }
 
     m_ClientId = m_DataBuffer.mid(5, 2).toHex().toInt(&ok, 16);
@@ -213,6 +215,9 @@ void AClient::handleData(const QByteArray &newData)
     int error = 0;  //TBD
     Q_UNUSED(error);
 
+
+    //emits signal for chart dialog
+    emit receivedData(QDateTime::currentDateTime(), clientData.nIon);
 
     //display the data if there's a viewer dialog opened
     if(m_pDataViewer != NULL) {
@@ -439,9 +444,9 @@ QString AClient::getClientState() const
     return str;
 }
 
-QString AClient::getClientConnectTime() const
+QDateTime AClient::getClientConnectTime() const
 {
-    return m_TimeOfConnect.toString(QString("yyyy/MM/dd hh:mm:ss"));
+    return m_TimeOfConnect;
 }
 
 QString AClient::getClientDisconnectTime() const
@@ -497,4 +502,9 @@ double AClient::convertToDecimal(const QByteArray &highByte, const QByteArray &l
         finalValue = high - decimal;
 
     return finalValue;
+}
+
+void AClient::setShowChart(const bool enabled)
+{
+    m_ShowChart = enabled;
 }

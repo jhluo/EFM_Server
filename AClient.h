@@ -55,11 +55,15 @@ public:
     QString getClientState() const;
 
     //return time of connection and disconnection
-    QString getClientConnectTime() const;
+    QDateTime getClientConnectTime() const;
     QString getClientDisconnectTime() const;
 
     //return how long the client has been up in number of seconds;
     QString getClientUpTime() const;
+
+    //chart
+    void setShowChart(const bool enabled);
+    bool getShowChart() const {return m_ShowChart;}
 
 private:
     void handleData(const QByteArray &newData);
@@ -87,6 +91,9 @@ private:
     //this can be used to display data info from a client
     QTextEdit *m_pDataViewer;
 
+    //whether we display the client in chart dialog
+    bool m_ShowChart;
+
     //method used in decode to convert bytes into a double
     double convertToDecimal(const QByteArray &highByte, const QByteArray &lowByte);
 
@@ -94,6 +101,9 @@ signals:
     void error(QTcpSocket::SocketError socketerror);
     void bytesSent(const int size);
     void newClientConnected();
+
+    //signals chart to draw update, only send negative Ion count for now
+    void receivedData(const QDateTime &time, const int nIon);
 
     //this signal notified GUI to ouput message
     void outputMessage(const QString &msg);

@@ -9,7 +9,7 @@
 #include <QTextEdit>
 
 class TheServer;
-class ChartViewer;
+class ChartDialog;
 class ClientTableWidget;
 
 class MainWindowWidget : public QWidget
@@ -24,15 +24,17 @@ private:
     void createLayout();
     void populateWidgets();
 
+    TheServer *m_pServer;
+
     ClientTableWidget *m_pClientTable;
     QTextEdit *m_pLogEdit;
-
-    TheServer *m_pServer;
+    ChartDialog *m_pChartDialog;
 
     QCheckBox *m_pDatabaseCheckBox;
     QCheckBox *m_pLogCheckBox;
     QCheckBox *m_pRawCheckBox;
     QPushButton *m_pLogButton;
+    QPushButton *m_pChartButton;
     QPushButton *m_pWebButton;
 
 private slots:
@@ -40,7 +42,9 @@ private slots:
     void onLoggingChecked(const bool checked);
     void onRawLoggingChecked(const bool checked);
     void onLogButtonPushed();
+    void onChartButtonPushed();
     void onWebButtonPushed();
+
 };
 
 #endif // MAINWINDOWWIDGET_H
