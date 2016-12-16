@@ -25,23 +25,31 @@ void ClientChart::createChart()
     m_pChart= new QChart();
     m_pChart->setTitle(QString("Client %1 Negative Ion").arg(QString::number(m_pClient->getClientId())));
     m_pChart->setAnimationOptions(QChart::GridAxisAnimations);
+    m_pChart->legend()->hide();
     m_pChart->addSeries(m_pDataSeries);
 
-    m_pChart->createDefaultAxes();
+    QDateTimeAxis *pTimeAxisX = new QDateTimeAxis;
+    pTimeAxisX->setTickCount(10);
+    pTimeAxisX->setFormat("MM-dd hh:mm");
+    pTimeAxisX->setTitleText("Time");
+    pTimeAxisX->setRange(QDateTime::currentDateTime(), QDateTime::currentDateTime().addSecs(60*5));
+    m_pChart->addAxis(pTimeAxisX, Qt::AlignBottom);
+    m_pDataSeries->attachAxis(pTimeAxisX);
 
-    QDateTimeAxis *pTimeAxis = new QDateTimeAxis;
-    //pTimeAxis->setFormat("hh:mm");
-    pTimeAxis->setFormat("dd-MM-yyyy h:mm");
-    m_pChart->setAxisX(pTimeAxis, m_pDataSeries);
-    m_pDataSeries->attachAxis(pTimeAxis);
-    m_pChart->axisY()->setRange(0, 1000);;
+    QValueAxis *pCountAxisY = new QValueAxis;
+    pCountAxisY->setLabelFormat("%i");
+    pCountAxisY->setTitleText("N Ion count");
+    pCountAxisY->setRange(0, 1000);
+    m_pChart->addAxis(pCountAxisY, Qt::AlignLeft);
+    m_pDataSeries->attachAxis(pCountAxisY);
 
     this->setChart(m_pChart);
+    this->setRenderHint(QPainter::Antialiasing);
 }
 
 void ClientChart::updateChart(const QDateTime &time, const int value)
 {
-    int seconds = m_pClient->getClientConnectTime().secsTo(time);
-    m_pDataSeries->append(seconds, value);
-    m_pDataSeries->append(time.toMSecsSinceEpoch(), value);
+    Q_UNUSED(time);
+
+    m_pDataSeries->append(QDateTime::currentMSecsSinceEpoch(), value);
 }

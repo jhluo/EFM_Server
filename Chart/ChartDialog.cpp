@@ -9,7 +9,7 @@ ChartDialog::ChartDialog(QWidget *pParent)
 {
     createActions();
     setMinimumSize(640, 480);
-    reisze(1024, 800);
+    resize(1024, 800);
 }
 
 ChartDialog::~ChartDialog()
