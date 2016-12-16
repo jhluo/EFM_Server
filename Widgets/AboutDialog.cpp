@@ -47,11 +47,11 @@ AboutDialog::AboutDialog(QWidget *parent) :
     m_pCompanyLogo(NULL),
     m_pAppInfoLabel(NULL)
 {
-    setWindowTitle("负离子接收服务器");
+    setWindowTitle("关于电场仪接收服务器");
     //setFixedSize(QSize(520, 400));
 
-    QPixmap appLogo(":/pics/resources/pics/480x480.png");
-    m_pCompanyLogo = new LogoLabel(appLogo.scaled(240, 240, Qt::KeepAspectRatio, Qt::SmoothTransformation), this);
+    QPixmap appLogo(":/epex_logo.png");
+    m_pCompanyLogo = new LogoLabel(appLogo.scaled(120, 120, Qt::KeepAspectRatio, Qt::SmoothTransformation), this);
     m_pCompanyLogo->setExternalLink("http://www.baidu.com");
 
     QString infoStr = appInfo();
@@ -80,5 +80,6 @@ QString AboutDialog::appInfo() const
 {
     QString text;
 
+    text += QString("<strong>电场仪接收服务器 (Ver. %1) </strong>\n\n").arg(APP_VERSION);
     return(text);
 }
