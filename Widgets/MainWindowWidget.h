@@ -45,6 +45,7 @@ private slots:
     void onChartButtonPushed();
     void onWebButtonPushed();
 
+
 };
 
 #endif // MAINWINDOWWIDGET_H

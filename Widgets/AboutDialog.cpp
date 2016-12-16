@@ -52,7 +52,7 @@ AboutDialog::AboutDialog(QWidget *parent) :
 
     QPixmap appLogo(":/epex_logo.png");
     m_pCompanyLogo = new LogoLabel(appLogo.scaled(120, 120, Qt::KeepAspectRatio, Qt::SmoothTransformation), this);
-    m_pCompanyLogo->setExternalLink("http://www.baidu.com");
+    m_pCompanyLogo->setExternalLink("http://www.epext.com");
 
     QString infoStr = appInfo();
     m_pAppInfoLabel = new QLabel(this);

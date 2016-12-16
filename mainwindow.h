@@ -51,6 +51,7 @@ private slots:
     void openServerSettingsDialog();
     void openAboutDialog();
     void openRegistrationDialog();
+    void openManualDialog();
 };
 
 #endif // MAINWINDOW_H

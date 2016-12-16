@@ -221,37 +221,78 @@ void AClient::handleData(const QByteArray &newData)
 
     //display the data if there's a viewer dialog opened
     if(m_pDataViewer != NULL) {
-        QString DataStr = QString("ID: %1\n"
+        QString DataStr = QString("ID: %1       "
                                   "Date: %2\n")
                                   .arg(m_ClientId)
                                   .arg(clientData.clientDate);
-        DataStr += QString("Temperature【温度】:  %1\n"
-                           "Humidity【湿度】:  %2\n"
-                           "Negative Ion【负离子】:  %3\n"
-                           "Positive Ion【正离子】:  %4\n"
-                           "Wind Direction【风向】:  %5\n"
-                           "Wind Speed【风速】:  %6\n"
-                           "Rain Fall【雨量】:  %7\n"
-                           "Pressure【气压】:  %8\n"
-                           "Ultra Violet【紫外线】:  %9\n"
-                           "Oxygen Concentration【含氧量】:  %10\n"
-                           "PM 1.0:  %11\n"
-                           "PM 2.5:  %12\n"
-                           "PM 10:  %13\n\n"
-                           )
-                           .arg(clientData.temperature)
-                           .arg(clientData.humidity)
-                           .arg(clientData.nIon)
-                           .arg(clientData.pIon)
-                           .arg(clientData.windDirection)
-                           .arg(clientData.windSpeed)
-                           .arg(clientData.rainfall)
-                           .arg(clientData.pressure)
-                           .arg(clientData.ultraViolet)
-                           .arg(clientData.oxygen)
-                           .arg(clientData.pm1)
-                           .arg(clientData.pm25)
-                           .arg(clientData.pm10);
+
+        if (clientData.temperature!=0){
+                    DataStr += QString("Temperature【温度（℃）】:  %1\n" ).arg(clientData.temperature);
+                }
+        if (clientData.humidity!=0){
+                    DataStr += QString("Humidity【湿度（%）】:  %1\n" ).arg(clientData.humidity);
+                }
+        if (clientData.nIon!=0){
+                    DataStr += QString("Field Intensity【电场强度（伏/米）】:  %1\n" ).arg(clientData.nIon);
+                }
+        if (clientData.pIon!=0){
+                    DataStr += QString("Positive Ion【正离子（个/cm3）】:  %1\n" ).arg(clientData.pIon);
+                }
+        if (clientData.windDirection!=0){
+                    DataStr += QString("Wind Direction【风向（°）】:  %1\n" ).arg(clientData.windDirection);
+                }
+        if (clientData.windSpeed!=0){
+                    DataStr += QString("Wind Speed【风速（m/s）】:  %1\n" ).arg(clientData.windSpeed);
+                }
+        if (clientData.rainfall!=0){
+                    DataStr += QString("Rainfall【雨量（ml）】: %1\n" ).arg(clientData.rainfall);
+                }
+        if (clientData.pressure!=0){
+                    DataStr += QString("Pressure【气压（Pa）】:  %1\n" ).arg(clientData.pressure);
+                }
+        if (clientData.ultraViolet!=0){
+                    DataStr += QString("Ultraviolet【总辐射（W/m2）】:  %1\n" ).arg(clientData.ultraViolet);
+                }
+        if (clientData.oxygen!=0){
+                    DataStr += QString("Oxygen Content【蒸发（mm）】: %1\n" ).arg(clientData.oxygen);
+                }
+        if (clientData.pm1!=0){
+                    DataStr += QString("PM 1.0:  %1\n" ).arg(clientData.pm1);
+                }
+        if (clientData.pm25!=0){
+                    DataStr += QString("PM 2.5:  %1\n" ).arg(clientData.pm25);
+                }
+        if (clientData.pm10!=0){
+                    DataStr += QString("PM 10:  %1\n" ).arg(clientData.pm10);
+                }
+
+//        DataStr += QString("Temperature【温度】:  %1\n"
+//                           "Humidity【湿度】:  %2\n"
+//                           "Negative Ion【负离子】:  %3\n"
+//                           "Positive Ion【正离子】:  %4\n"
+//                           "Wind Direction【风向】:  %5\n"
+//                           "Wind Speed【风速】:  %6\n"
+//                           "Rain Fall【雨量】:  %7\n"
+//                           "Pressure【气压】:  %8\n"
+//                           "Ultra Violet【紫外线】:  %9\n"
+//                           "Oxygen Concentration【含氧量】:  %10\n"
+//                           "PM 1.0:  %11\n"
+//                           "PM 2.5:  %12\n"
+//                           "PM 10:  %13\n\n"
+//                           )
+//                           .arg(clientData.temperature)
+//                           .arg(clientData.humidity)
+//                           .arg(clientData.nIon)
+//                           .arg(clientData.pIon)
+//                           .arg(clientData.windDirection)
+//                           .arg(clientData.windSpeed)
+//                           .arg(clientData.rainfall)
+//                           .arg(clientData.pressure)
+//                           .arg(clientData.ultraViolet)
+//                           .arg(clientData.oxygen)
+//                           .arg(clientData.pm1)
+//                           .arg(clientData.pm25)
+//                           .arg(clientData.pm10);
 
         emit outputMessage(DataStr);
 //        m_pDataViewer->append(DataStr);
@@ -371,6 +412,30 @@ bool AClient::writeDatabase(const ClientData &data)
 
         QSqlQuery query(db);
         result = query.exec(queryStr);
+
+        QString queryStr2;
+        queryStr2 = QString("UPDATE equipment "
+                           "SET data_date='%1', 浓度=%2, 湿度=%3, 温度=%4, 正离子数=%5, 风向=%6, 风速=%7, 雨量=%8, 气压=%9, 紫外线=%10, 氧气含量=%11, PM1=%12, PM25=%13, PM10=%14"
+                           "WHERE StationID='%15';"
+                           )
+                .arg(data.clientDate)
+                .arg(data.nIon)
+                .arg(data.humidity)
+                .arg(data.temperature)
+                .arg(data.pIon)
+                .arg(data.windDirection)
+                .arg(data.windSpeed)
+                .arg(data.rainfall)
+                .arg(data.pressure)
+                .arg(data.ultraViolet)
+                .arg(data.oxygen)
+                .arg(data.pm1)
+                .arg(data.pm25)
+                .arg(data.pm10)
+                .arg(m_ClientId);
+
+        result = query.exec(queryStr2);
+
         db.close();
     }
 

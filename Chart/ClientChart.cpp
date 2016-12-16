@@ -39,7 +39,7 @@ void ClientChart::createChart()
     QValueAxis *pCountAxisY = new QValueAxis;
     pCountAxisY->setLabelFormat("%i");
     pCountAxisY->setTitleText("N Ion count");
-    pCountAxisY->setRange(0, 1000);
+    pCountAxisY->setRange(0, 10000);
     m_pChart->addAxis(pCountAxisY, Qt::AlignLeft);
     m_pDataSeries->attachAxis(pCountAxisY);
 

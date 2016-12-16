@@ -9,6 +9,7 @@
 #include "Misc/AppSettings.h"
 #include "TheServer.h"
 #include "Misc/Logger.h"
+#include <QDesktopServices>
 #include <QMessageBox>
 
 #define NOTIFY_TIMER 3600 * 1000 * 2  //every 2 hours
@@ -152,6 +153,10 @@ void MainWindow::populateMenuBar(QMenuBar *pMenuBar)
     QAction* pAboutAct = new QAction(QString("About..."), this);
     connect(pAboutAct, SIGNAL(triggered()),this,SLOT(openAboutDialog()));
     pHelpMenu->addAction(pAboutAct);
+
+    QAction* pManualAct = new QAction(QString("User's Manual..."), this);
+    connect(pManualAct, SIGNAL(triggered()),this,SLOT(openManualDialog()));
+    pHelpMenu->addAction(pManualAct);
 }
 
 void MainWindow::onNotificationTimer()
@@ -184,6 +189,12 @@ void MainWindow::openAboutDialog()
 {
     AboutDialog dialog(this);
     dialog.exec();
+}
+
+void MainWindow::openManualDialog()
+{
+    QUrl link(QString("http://www.epext.com/manual/EFM-manual-v1.pdf"));
+    QDesktopServices::openUrl(link);
 }
 
 void MainWindow::saveAppSettings()
