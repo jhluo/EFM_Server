@@ -13,7 +13,7 @@
 DatabaseSettingsDialog::DatabaseSettingsDialog(QWidget *pParent) :
     QDialog(pParent)
 {
-    setWindowTitle(tr("Database Settings"));
+    setWindowTitle(QString(tr("Database Settings")));
     createActions();
 }
 
@@ -27,7 +27,7 @@ void DatabaseSettingsDialog::createActions()
     m_pPasswordEdit = new QLineEdit(this);
     m_pPasswordEdit->setEchoMode(QLineEdit::Password);
 
-    m_pTestButton = new QPushButton("Test Connection", this);
+    m_pTestButton = new QPushButton(QString(tr("Test Connection")), this);
     connect(m_pTestButton, SIGNAL(pressed()), this, SLOT(onTestConnection()));
 
     m_pButtonBox = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel,Qt::Horizontal);
@@ -35,10 +35,10 @@ void DatabaseSettingsDialog::createActions()
     connect(m_pButtonBox, SIGNAL(rejected()),this, SLOT(reject()));
 
     QFormLayout *pLayout = new QFormLayout(this);
-    pLayout->addRow("DB Name", m_pDBNameEdit);
-    pLayout->addRow("Host", m_pHostEdit);
-    pLayout->addRow("User", m_pUserEdit);
-    pLayout->addRow("Password", m_pPasswordEdit);
+    pLayout->addRow(QString(tr("Database Name")), m_pDBNameEdit);
+    pLayout->addRow(QString(tr("Host")), m_pHostEdit);
+    pLayout->addRow(QString(tr("User")), m_pUserEdit);
+    pLayout->addRow(QString(tr("Password")), m_pPasswordEdit);
     pLayout->addRow(m_pTestButton);
     pLayout->addRow(m_pButtonBox);
 
@@ -100,10 +100,10 @@ void DatabaseSettingsDialog::onTestConnection()
     //QString dsn = QString("Driver={SQL server};server=XIEZHOUBJ-PC\JOESQLSERVER;database=BJ_epex_DC_2016;uid=sa;Port=1433;pwd=asdf123;");
     db.setDatabaseName(dsn);
     if(!db.open()) {
-        QMessageBox::critical(0,tr("Database Error:"),db.lastError().text());
+        QMessageBox::critical(0,QString(tr("Database Error:")),db.lastError().text());
     } else {
-        QMessageBox::information(0, qApp->tr("Connection Succeed"),
-            qApp->tr("Database connection is successful.\n"),
+        QMessageBox::information(0, QString(tr("Connection Succeed")),
+            QString(tr("Database connection is successful.\n")),
             QMessageBox::Ok);
         db.close();
     }

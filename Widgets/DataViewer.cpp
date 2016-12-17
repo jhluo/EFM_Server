@@ -26,7 +26,7 @@ DataViewer::~DataViewer()
 
 void DataViewer::createActions()
 {
-    QLabel *pDescriptionLabel = new QLabel("Data input from client is displayed below:  ");
+    QLabel *pDescriptionLabel = new QLabel(QString(tr("Data input from client is displayed below:  ")));
 
     m_pMessageDisplay = new QTextEdit();
     m_pMessageDisplay->setReadOnly(true);
@@ -41,6 +41,6 @@ void DataViewer::createActions()
 void DataViewer::populateDialog()
 {
     //set the window title
-    setWindowTitle(QString("Client %1").arg(QString::number(m_pClient->getClientId())));
+    setWindowTitle(QString("设备 %1").arg(QString::number(m_pClient->getClientId())));
     resize(640, 640);
 }

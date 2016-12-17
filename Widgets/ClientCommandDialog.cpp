@@ -13,13 +13,13 @@ ClientCommandDialog::ClientCommandDialog(AClient *pClient, QWidget *parent) :
     connect(this, SIGNAL(writeCommand(QString)), m_pClient, SLOT(sendData(QString)));
     connect(m_pClient, SIGNAL(bytesSent(int)), this, SLOT(onCommandSent(int)));
 
-    setWindowTitle(tr("Send Client Command"));
+    setWindowTitle(QString(tr("Send Client Command")));
     createActions();
 }
 
 void ClientCommandDialog::createActions()
 {
-    QLabel *pCommandLabel = new QLabel("Select command below:", this);
+    QLabel *pCommandLabel = new QLabel(QString(tr("Select command below:")), this);
 
     m_pCommandComboBox = new QComboBox(this);
     m_pCommandComboBox->addItem("dxsj02: 设置电场仪时间", eSetTime);
@@ -34,7 +34,7 @@ void ClientCommandDialog::createActions()
 
     m_pCommandEdit = new QLineEdit(this);
 
-    m_pSendButton = new QPushButton("Send", this);
+    m_pSendButton = new QPushButton(QString(tr("Send")), this);
     connect(m_pSendButton, SIGNAL(pressed()), this, SLOT(onSendButtonClicked()));
 
     m_pResultLabel = new QLabel;
@@ -45,10 +45,10 @@ void ClientCommandDialog::createActions()
     pCommandLayout->addWidget(m_pCommandEdit);
     pCommandLayout->addWidget(m_pSendButton);
     pCommandLayout->addWidget(m_pResultLabel);
-    QGroupBox *pCommandGroupBox = new QGroupBox("Command", this);
+    QGroupBox *pCommandGroupBox = new QGroupBox(QString(tr("Command")), this);
     pCommandGroupBox->setLayout(pCommandLayout);
 
-    QGroupBox *pCommandDescriptionBox = new QGroupBox("Description", this);
+    QGroupBox *pCommandDescriptionBox = new QGroupBox(QString(tr("Description")), this);
     m_pCommandDescription = new QLabel;
     m_pCommandDescription->setWordWrap(true);
     QHBoxLayout *pCommandDescriptionLayout = new QHBoxLayout;
@@ -161,7 +161,7 @@ void ClientCommandDialog::onCommandComboChanged()
 void ClientCommandDialog::onCommandSent(const int bytesWritten)
 {
     if(bytesWritten == m_pCommandEdit->text().toLocal8Bit().size())
-        m_pResultLabel->setText("Command was sent");
+        m_pResultLabel->setText(QString(tr("Command was sent")));
     else
-        m_pResultLabel->setText("Command not sent correctly.  Please retry.");
+        m_pResultLabel->setText(QString(tr("Command was not sent correctly.  Please retry.")));
 }

@@ -18,6 +18,8 @@ QTPLUGIN += qsqlodbc
 
 RC_ICONS = epex_logo.ico
 
+TRANSLATIONS = EFMServer_ch.ts
+
 SOURCES += main.cpp\
         mainwindow.cpp \
     Widgets/MainWindowWidget.cpp \

@@ -60,7 +60,7 @@ bool MainWindow::validateApp(const QString &key)
 
     //check the key, if key is good, activate the program
     if (key == "asdf123") {
-        LOG_SYS(QString("Product is now running on a valid key %1").arg(key));
+        LOG_SYS(QString(tr("Product is now running with a valid key %1")).arg(key));
 
         m_NotificationTimer.stop();
         //enable all GUI
@@ -76,7 +76,7 @@ bool MainWindow::validateApp(const QString &key)
 
         return true;
     } else if (key != ""){
-        LOG_SYS("Product key is invalid.");
+        LOG_SYS(QString(tr("Product key is invalid.")));
     }
 
     //otherwise we check the trial period
@@ -92,7 +92,7 @@ bool MainWindow::validateApp(const QString &key)
     int days = appDate.daysTo(QDateTime::currentDateTime());
     //shut the guy down if pass trial period
     if (days >= TRIAL_PERIOD) {
-        LOG_SYS("Trial period expired.  Shutting down server...");
+        LOG_SYS(QString(tr("Trial period has expired.  Shutting down server...")));
         //shutdown the server and disable settings
         if(m_pServer->isListening())
             m_pServer->shutdownServer();
@@ -100,14 +100,14 @@ bool MainWindow::validateApp(const QString &key)
         QMenuBar *pMenuBar = this->menuBar();
         QList<QAction*> pActionList = pMenuBar->actions();
         foreach(QAction *pAction, pActionList) {
-            if(pAction->text() != "Register..." || pAction->text() != "Help...") {
+            if(pAction->text() != QString(tr("Register...")) || pAction->text() != QString(tr("Help..."))) {
                 pAction->setDisabled(true);
             }
         }
     } else { //if not yet pass trial period, simply display a dialog
-        QMessageBox::information(this, "Trial Period",
-            QString("You have %1 days remaining on your trial period.\n"
-                    "Input your product key in Help->Register...").arg(TRIAL_PERIOD-days),
+        QMessageBox::information(this, QString(tr("Trial Period")),
+            QString(tr("You have %1 days remained on your trial period.\n"
+                    "Enter your product key in Help->Register...")).arg(TRIAL_PERIOD-days),
             QMessageBox::Ok);
 
         //we can still start the server
@@ -134,23 +134,23 @@ void MainWindow::setupGui()
 
 void MainWindow::populateMenuBar(QMenuBar *pMenuBar)
 {
-    QMenu *pSettingsMenu = pMenuBar->addMenu("Settings");
+    QMenu *pSettingsMenu = pMenuBar->addMenu(QString(tr("Settings")));
 
-    QAction* pDatabaseSettingsAct = new QAction(QString("Database Settings"), this);
+    QAction* pDatabaseSettingsAct = new QAction(QString(tr("Database Settings")), this);
     connect(pDatabaseSettingsAct, SIGNAL(triggered()),this,SLOT(openDatabaseSettingsDialog()));
     pSettingsMenu->addAction(pDatabaseSettingsAct);
 
-    QAction* pServerSettingsAct = new QAction(QString("Server Settings"), this);
+    QAction* pServerSettingsAct = new QAction(QString(tr("Server Settings")), this);
     connect(pServerSettingsAct, SIGNAL(triggered()),this,SLOT(openServerSettingsDialog()));
     pSettingsMenu->addAction(pServerSettingsAct);
 
-    QMenu *pHelpMenu = pMenuBar->addMenu("Help");
+    QMenu *pHelpMenu = pMenuBar->addMenu(QString(tr("Help")));
 
-    QAction* pRegistrationAct = new QAction(QString("Register..."), this);
+    QAction* pRegistrationAct = new QAction(QString(tr("Register...")), this);
     connect(pRegistrationAct, SIGNAL(triggered()),this,SLOT(openRegistrationDialog()));
     pHelpMenu->addAction(pRegistrationAct);
 
-    QAction* pAboutAct = new QAction(QString("About..."), this);
+    QAction* pAboutAct = new QAction(QString(tr("About...")), this);
     connect(pAboutAct, SIGNAL(triggered()),this,SLOT(openAboutDialog()));
     pHelpMenu->addAction(pAboutAct);
 

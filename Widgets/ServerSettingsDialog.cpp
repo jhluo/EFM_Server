@@ -27,7 +27,7 @@ void ServerSettingsDialog::createActions()
     m_pHostEdit = new QLineEdit(this);
     m_pPortEdit = new QLineEdit(this);
 
-    m_pRestartButton = new QPushButton("Restart Server", this);
+    m_pRestartButton = new QPushButton(tr("Restart Server"), this);
     connect(m_pRestartButton, SIGNAL(pressed()), this, SLOT(onRestartServer()));
 
     m_pButtonBox = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel,Qt::Horizontal);
@@ -35,8 +35,8 @@ void ServerSettingsDialog::createActions()
     connect(m_pButtonBox, SIGNAL(rejected()),this, SLOT(reject()));
 
     QFormLayout *pLayout = new QFormLayout(this);
-    pLayout->addRow("Host", m_pHostEdit);
-    pLayout->addRow("Port", m_pPortEdit);
+    pLayout->addRow(tr("Host"), m_pHostEdit);
+    pLayout->addRow(tr("Port"), m_pPortEdit);
     pLayout->addRow(m_pRestartButton);
     pLayout->addRow(m_pButtonBox);
 

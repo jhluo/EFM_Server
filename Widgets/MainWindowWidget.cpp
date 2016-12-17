@@ -43,22 +43,22 @@ void MainWindowWidget::createLayout()
     m_pClientTable = new ClientTableWidget(m_pServer, this);
     //m_pClientTableView = new ClientTableView(m_pServer->getClientList(), this);
 
-    m_pDatabaseCheckBox = new QCheckBox("Write to Database");
+    m_pDatabaseCheckBox = new QCheckBox(tr("Write to Database"));
     connect(m_pDatabaseCheckBox, SIGNAL(toggled(bool)), this, SLOT(onDatabaseChecked(bool)));
 
-    m_pLogCheckBox = new QCheckBox("Log client data");
+    m_pLogCheckBox = new QCheckBox(tr("Log client data"));
     connect(m_pLogCheckBox, SIGNAL(toggled(bool)), this, SLOT(onLoggingChecked(bool)));
 
-    m_pRawCheckBox = new QCheckBox("Log raw client data");
+    m_pRawCheckBox = new QCheckBox(tr("Log raw client data"));
     connect(m_pRawCheckBox, SIGNAL(toggled(bool)), this, SLOT(onRawLoggingChecked(bool)));
 
-    m_pLogButton = new QPushButton("Show Log Files");
+    m_pLogButton = new QPushButton(tr("Show Log Files"));
     connect(m_pLogButton, SIGNAL(pressed()), this, SLOT(onLogButtonPushed()));
 
-    m_pChartButton = new QPushButton("Show Chart");
+    m_pChartButton = new QPushButton(tr("Show Chart"));
     connect(m_pChartButton, SIGNAL(pressed()), this, SLOT(onChartButtonPushed()));
 
-    m_pWebButton = new QPushButton("Web Interface");
+    m_pWebButton = new QPushButton(tr("Web Interface"));
     connect(m_pWebButton, SIGNAL(pressed()), this, SLOT(onWebButtonPushed()));
 
     QVBoxLayout *pCommandLayout = new QVBoxLayout;
@@ -69,7 +69,7 @@ void MainWindowWidget::createLayout()
     pCommandLayout->addWidget(m_pChartButton);
     pCommandLayout->addWidget(m_pWebButton);
 
-    QGroupBox *pCommandGroupBox = new QGroupBox("Command");
+    QGroupBox *pCommandGroupBox = new QGroupBox(tr("Command"));
     pCommandGroupBox->setLayout(pCommandLayout);
 
     QHBoxLayout *pTopLayout = new QHBoxLayout;

@@ -37,7 +37,7 @@ ClientTableWidget::~ClientTableWidget()
 void ClientTableWidget::setupTable()
 {
     QStringList tableHeaders;
-    tableHeaders <<"ID"<<"Status"<<"Time Online" << "  Time Offline  " << "Up Time";
+    tableHeaders <<QString(tr("ID"))<<QString(tr("Status"))<<QString(tr("Time Online")) << QString(tr("Time Offline")) << QString(tr("Up Time"));
 
     setColumnCount(tableHeaders.count());
     setHorizontalHeaderLabels(tableHeaders);
@@ -102,17 +102,17 @@ void ClientTableWidget::showContextMenu(const QPoint& pos) // this is a slot
         QMenu *pMenu = new QMenu(this);
 
         //send command dialog action
-        QAction *pSendCommandAction = new QAction(QString("Send Command..."), pMenu);
+        QAction *pSendCommandAction = new QAction(QString(tr("Send Command...")), pMenu);
         connect(pSendCommandAction, SIGNAL(triggered()), this, SLOT(onSendCommandTriggered()));
         pMenu->addAction(pSendCommandAction);
 
         //open data viewer action
-        QAction *pMsgViewAction = new QAction(QString("View Data..."), pMenu);
+        QAction *pMsgViewAction = new QAction(QString(tr("View Data...")), pMenu);
         connect(pMsgViewAction, SIGNAL(triggered()), this, SLOT(onMessageViewerTriggered()));
         pMenu->addAction(pMsgViewAction);
 
         //add action to toggle show client in chart dialog
-        QAction *pShowChartAction = new QAction(QString("Show Chart"), pMenu);
+        QAction *pShowChartAction = new QAction(QString(tr("Show Chart")), pMenu);
         pShowChartAction->setCheckable(true);
         pShowChartAction->setChecked(m_pServer->getClient(currentRow())->getShowChart());
         connect(pShowChartAction, SIGNAL(toggled(bool)), this, SLOT(onShowChartToggled(bool)));
