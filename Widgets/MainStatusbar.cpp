@@ -23,6 +23,7 @@ void MainStatusbar::createLayout()
 
 void MainStatusbar::timerEvent(QTimerEvent *event)
 {
+    Q_UNUSED(event);
     updateLabels();
 }
 

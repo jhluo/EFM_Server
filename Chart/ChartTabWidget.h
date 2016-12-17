@@ -1,23 +1,4 @@
-﻿/*******************************************************************************
-*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*
-* (c) 2015~2016 SubCarrier Systems Corporation (SCSC)                               *
-* Contract No.:                                                                *
-* Contractor Name:                                                             *
-* Contractor Address:                                                          *
-*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*
-* File Name:           ChartDialog.h                                           *
-* Dependencies:        None                                                    *
-* Operating System(s): 64-bit Windows 7, 64-bit Linux (K)Ubuntu 15             *
-* Compiler(s):         Qt C++ 5.5.0                                            *
-*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*
-* Revision History:                                                            *
-* Author           Date      Comments                                          *
-* ---------------  --------  ------------------------------------------------- *
-* Fabio Estupinan  11/19/15  Initial release.                                  *
-*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*
-*******************************************************************************/
-
-#pragma once
+﻿#pragma once
 
 #include <QTabWidget>
 #include <QVector>
@@ -42,7 +23,6 @@ public:
     bool hasClient(const int id);
 
 private:
-    QVector<ClientChart*> m_pChartList;
 
 
 signals:

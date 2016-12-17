@@ -8,8 +8,9 @@ ChartDialog::ChartDialog(QWidget *pParent)
     m_pTabWidget(NULL)
 {
     createActions();
+    setWindowFlags(windowFlags() & ~Qt::WindowStaysOnTopHint);
     setMinimumSize(640, 480);
-    resize(1024, 800);
+    resize(800, 600);
 }
 
 ChartDialog::~ChartDialog()
