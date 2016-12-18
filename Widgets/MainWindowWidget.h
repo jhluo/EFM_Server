@@ -33,6 +33,7 @@ private:
     QCheckBox *m_pDatabaseCheckBox;
     QCheckBox *m_pLogCheckBox;
     QCheckBox *m_pRawCheckBox;
+    QPushButton *m_pAddSerialButton;
     QPushButton *m_pLogButton;
     QPushButton *m_pChartButton;
     QPushButton *m_pWebButton;
@@ -41,6 +42,7 @@ private slots:
     void onDatabaseChecked(const bool checked);
     void onLoggingChecked(const bool checked);
     void onRawLoggingChecked(const bool checked);
+    void onAddSerialPushed();
     void onLogButtonPushed();
     void onChartButtonPushed();
     void onWebButtonPushed();

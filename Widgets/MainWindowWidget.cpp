@@ -4,6 +4,7 @@
 
 #include "Misc/Logger.h"
 #include "Misc/AppSettings.h"
+#include "Widgets/SerialSettingsDialog.h"
 #include "Chart/ChartDialog.h"
 
 #include <QCheckBox>
@@ -52,6 +53,9 @@ void MainWindowWidget::createLayout()
     m_pRawCheckBox = new QCheckBox(tr("Log raw client data"));
     connect(m_pRawCheckBox, SIGNAL(toggled(bool)), this, SLOT(onRawLoggingChecked(bool)));
 
+    m_pAddSerialButton = new QPushButton(tr("Add Serial Client"));
+    connect(m_pAddSerialButton, SIGNAL(pressed()), this, SLOT(onAddSerialPushed()));
+
     m_pLogButton = new QPushButton(tr("Show Log Files"));
     connect(m_pLogButton, SIGNAL(pressed()), this, SLOT(onLogButtonPushed()));
 
@@ -65,6 +69,7 @@ void MainWindowWidget::createLayout()
     pCommandLayout->addWidget(m_pDatabaseCheckBox);
     pCommandLayout->addWidget(m_pRawCheckBox);
     pCommandLayout->addWidget(m_pLogCheckBox);
+    pCommandLayout->addWidget(m_pAddSerialButton);
     pCommandLayout->addWidget(m_pLogButton);
     pCommandLayout->addWidget(m_pChartButton);
     pCommandLayout->addWidget(m_pWebButton);
@@ -130,12 +135,27 @@ void MainWindowWidget::onRawLoggingChecked(const bool checked)
     settings.writeMiscSettings("rawLog", checked);
 }
 
+void MainWindowWidget::onAddSerialPushed()
+{
+    SerialSettingsDialog dialog(this);
+    connect(&dialog, SIGNAL(newSerialPort(QSerialPort*)), m_pServer, SLOT(addSerialClient(QSerialPort*)));
+    dialog.exec();
+
+//    if (dialog.exec() == QDialog::Accepted)  {
+//        // Pass dia values into class and try to open the port
+//        m_pServer-
+
+//        //AppSettings settings;
+//        //settings.writeSerialSettings(QString::number(pSB->mountPt.getInstance())+"/COM", pSerialConfigDlg->settings().name);
+//    }
+}
+
 void MainWindowWidget::onLogButtonPushed()
 {
     if(QDir("log").exists()) {
       QDesktopServices::openUrl(QUrl("log"));
     } else {
-      QMessageBox::critical(0,tr("No log files"), tr("No log file exists."));
+      QMessageBox::critical(this,tr("No log files"), tr("No log file exists."));
     }
 }
 

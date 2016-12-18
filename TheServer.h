@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QTcpServer>
+#include <QSerialPort>
 #include <QList>
 
 class AClient;
@@ -27,6 +28,10 @@ signals:
 private:
     //all client connections are added to this list
     QList<AClient*> m_ClientList;
+
+public slots:
+    //add client from serial port connection
+    void addSerialClient(QSerialPort *pPort);
 
 private slots:
     void onNewConnection();

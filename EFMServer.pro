@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += widgets core gui sql
+QT       += widgets core gui sql serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += network charts
 
@@ -37,7 +37,8 @@ SOURCES += main.cpp\
     Widgets/ClientCommandDialog.cpp \
     Chart/ClientChart.cpp \
     Chart/ChartDialog.cpp \
-    Chart/ChartTabWidget.cpp
+    Chart/ChartTabWidget.cpp \
+    Widgets/SerialSettingsDialog.cpp
 
 HEADERS  += mainwindow.h \
     Widgets/MainWindowWidget.h \
@@ -55,7 +56,8 @@ HEADERS  += mainwindow.h \
     Widgets/ClientCommandDialog.h \
     Chart/ClientChart.h \
     Chart/ChartDialog.h \
-    Chart/ChartTabWidget.h
+    Chart/ChartTabWidget.h \
+    Widgets/SerialSettingsDialog.h
 
 FORMS    += mainwindow.ui
 

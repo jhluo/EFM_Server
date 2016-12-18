@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QTcpSocket>
+#include <QSerialPort>
+#include <QIODevice>
 #include <QTimer>
 #include <QDateTime>
 #include <QTextEdit>
@@ -19,6 +21,12 @@ public:
         eOnline,
         eNoData,
         eOffline
+    };
+
+    enum eClientType {
+        eTcp,
+        eSerial,
+        eUnknown
     };
 
     typedef struct {
@@ -41,7 +49,8 @@ public:
     AClient(QObject *pParent = 0);
     ~AClient();
 
-    void setSocket(QTcpSocket *pSocket);
+    //void setSocket(QTcpSocket *pSocket);
+    void setInputDevice(QIODevice *pInputDevice, const eClientType type);
 
     void closeClient();
 
@@ -51,8 +60,9 @@ public:
 
     //getter functions to fetch information about the client
     int getClientId() const { return m_ClientId; }
-    QString getClientIp() const { return m_pSocket->peerAddress().toString(); }
+    QString getClientAddress() const;
     QString getClientState() const;
+    eClientType getClientType() const { return m_ClientType; }
 
     //return time of connection and disconnection
     QDateTime getClientConnectTime() const;
@@ -72,7 +82,8 @@ private:
     void writeRawLog(const QString &fileName, const QByteArray &rawData);
     bool writeDatabase(const ClientData &data);
 
-    QTcpSocket *m_pSocket;
+    //QTcpSocket *m_pSocket;
+    QIODevice *m_pInputDevice;
 
     QByteArray m_DataBuffer;
 
@@ -85,6 +96,9 @@ private:
 
     //current state of the client
     eClientState m_ClientState;
+
+    //type of this client
+    eClientType m_ClientType;
 
     int m_ClientId; //ID number of the client;
 

@@ -13,7 +13,8 @@
 
 AClient::AClient(QObject *pParent)
     : QObject(pParent),
-      m_pSocket(NULL),
+      m_pInputDevice(NULL),
+      m_ClientType(eUnknown),
       m_ClientId(0),
       m_pDataViewer(NULL),
       m_ShowChart(false)
@@ -21,8 +22,9 @@ AClient::AClient(QObject *pParent)
     m_DataBuffer.clear();
 
     m_TimeOfConnect = QDateTime::currentDateTime();
-    //Once DATA_TIMEOUT millsecond is reached, disconnect the client
-    m_ClientState = eOnline;
+
+
+    m_ClientState = eOffline;
 
     //Time out the client if stop sending data
     m_pDataStarvedTimer = new QTimer(this);
@@ -36,13 +38,16 @@ AClient::~AClient()
     m_DataBuffer.clear();
 }
 
-void AClient::setSocket(QTcpSocket *pSocket)
+void AClient::setInputDevice(QIODevice *pInputDevice, const eClientType type)
 {
     //assign the socket to this client and connnect the slots
-    m_pSocket = pSocket;
-    m_pSocket->setParent(this);
-    connect(m_pSocket, SIGNAL(readyRead()), this, SLOT(onDataReceived()));
-    connect(m_pSocket, SIGNAL(disconnected()), this, SLOT(onSocketDisconnected()));
+    m_pInputDevice = pInputDevice;
+    m_pInputDevice->setParent(this);
+    m_ClientType = type;
+    connect(m_pInputDevice, SIGNAL(readyRead()), this, SLOT(onDataReceived()));
+
+    if(type == eTcp)
+        connect(m_pInputDevice, SIGNAL(disconnected()), this, SLOT(onSocketDisconnected()));
 }
 
 void AClient::registerDataViewer(QTextEdit *pTextEdit)
@@ -70,7 +75,7 @@ void AClient::onDataReceived()
     m_ClientState = eOnline;
 
     //read the incoming data
-    QByteArray newData = m_pSocket->readAll();
+    QByteArray newData = m_pInputDevice->readAll();
 
     if(newData.isEmpty())
         return;
@@ -83,7 +88,7 @@ void AClient::onDataReceived()
 
 void AClient::sendData(const QString &data)
 {
-    int bytes = m_pSocket->write(data.toLocal8Bit());
+    int bytes = m_pInputDevice->write(data.toLocal8Bit());
     //qDebug() << QString("%1 bytes in buffer, %2 bytes are written").arg(data.toLocal8Bit().size()).arg(bytes);
     emit bytesSent(bytes);
 }
@@ -343,7 +348,7 @@ void AClient::onDataTimeout()
 
 void AClient::onSocketDisconnected()
 {
-    LOG_SYS(QString("Client %1 at %2 disconnected").arg(m_ClientId).arg(m_pSocket->peerAddress().toString()));
+    LOG_SYS(QString("Client %1 at %2 disconnected").arg(m_ClientId).arg(getClientAddress()));
 
     if(m_pDataStarvedTimer->isActive()) {
         m_pDataStarvedTimer->stop();
@@ -353,21 +358,12 @@ void AClient::onSocketDisconnected()
 
     m_TimeOfDisconnect = QDateTime::currentDateTime();
 
-
     //end the thread
     this->thread()->quit();
 }
 
 bool AClient::writeDatabase(const ClientData &data)
 {
-//    if(!m_Database.connectToDB(QString::number(m_ClientId))) {  //if not, try opening it
-//        LOG_SYS(QString("Client %1 could not open database.  Please check configuration").arg(QString::number(m_ClientId)));
-//        return;
-//    }
-
-//    if(!m_Database.writeData(m_ClientId, date, temperature, humidity, nIonCount, pIonCount, windDirection,
-//                     windSpeed, rainfall, pressure, ultraViolet, oxygen, PM1, PM25, PM10, error))
-//        LOG_SYS(QString("Client %1 could not execute query.").arg(QString::number(m_ClientId)));
     bool result = false;
 
     AppSettings settings;
@@ -507,6 +503,20 @@ QString AClient::getClientState() const
         str = "Offline";
 
     return str;
+}
+
+QString AClient::getClientAddress() const
+{
+    QString address = "";
+
+    if(m_ClientType == eTcp) {
+        QTcpSocket *pSocket = qobject_cast<QTcpSocket*>(m_pInputDevice);
+        address = pSocket->peerAddress().toString();
+    } else if (m_ClientType == eSerial) {
+        ;
+    }
+
+    return address;
 }
 
 QDateTime AClient::getClientConnectTime() const

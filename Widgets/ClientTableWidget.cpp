@@ -37,7 +37,7 @@ ClientTableWidget::~ClientTableWidget()
 void ClientTableWidget::setupTable()
 {
     QStringList tableHeaders;
-    tableHeaders <<QString(tr("ID"))<<QString(tr("Status"))<<QString(tr("Time Online")) << QString(tr("Time Offline")) << QString(tr("Up Time"));
+    tableHeaders <<QString(tr("ID"))<<QString(tr("Status"))<<QString(tr("Source"))<<QString(tr("Time Online")) << QString(tr("Time Offline")) << QString(tr("Up Time"));
 
     setColumnCount(tableHeaders.count());
     setHorizontalHeaderLabels(tableHeaders);
@@ -70,10 +70,11 @@ void ClientTableWidget::updateTable()
         else
             item(i, 1)->setBackgroundColor(QColor(0, 240, 100));
 
-        this->setItem(i, 2, new QTableWidgetItem(pClient->getClientConnectTime()
+        this->setItem(i, 2, new QTableWidgetItem(pClient->getClientAddress()));
+        this->setItem(i, 3, new QTableWidgetItem(pClient->getClientConnectTime()
                                                  .toString(QString("yyyy/MM/dd hh:mm:ss"))));
-        this->setItem(i, 3, new QTableWidgetItem(pClient->getClientDisconnectTime()));
-        this->setItem(i, 4, new QTableWidgetItem(pClient->getClientUpTime()));
+        this->setItem(i, 4, new QTableWidgetItem(pClient->getClientDisconnectTime()));
+        this->setItem(i, 5, new QTableWidgetItem(pClient->getClientUpTime()));
     }
 }
 

@@ -71,6 +71,26 @@ void TheServer::shutdownServer()
     this->close();
 }
 
+void TheServer::addSerialClient(QSerialPort *pPort)
+{
+    //a new client has connected, we want to create a new client object and put it into its own thread
+    LOG_SYS(QString("New client from %1 has connected").arg(pPort->portName()));
+
+    AClient *pClient = new AClient;
+
+    //put the socket(connection) into the client object
+    pClient->setInputDevice(pPort, AClient::eSerial);
+
+    QThread *pClientThread = new QThread(this);
+
+    pClient->moveToThread(pClientThread);
+
+    //stop the thread and clean up when pClient is disconnected
+    connect(pClient, SIGNAL(newClientConnected()), this, SLOT(onNewClientConnected()));
+    connect(pClientThread, SIGNAL(finished()), pClientThread, SLOT(deleteLater()));
+
+    pClientThread->start();
+}
 
 void TheServer::onNewConnection()
 {
@@ -82,7 +102,7 @@ void TheServer::onNewConnection()
     AClient *pClient = new AClient;
 
     //put the socket(connection) into the client object
-    pClient->setSocket(pSocket);
+    pClient->setInputDevice(pSocket, AClient::eTcp);
 
     QThread *pClientThread = new QThread(this);
 
