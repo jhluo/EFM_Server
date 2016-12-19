@@ -1,6 +1,8 @@
 #include "ClientChart.h"
 #include "AClient.h"
 
+#define MAX_CHART_POINTS 3600 * 1 //1 hour
+
 ClientChart::ClientChart(AClient *pClient, QWidget *pParent)
     :QChartView(pParent),
       m_pClient(pClient),
@@ -115,6 +117,11 @@ void ClientChart::updateChart(const QDateTime &time, const int value)
     Q_UNUSED(time);
 
     m_pDataSeries->append(QDateTime::currentMSecsSinceEpoch(), value);
+
+    //limit total number of points in chart
+    if(m_pDataSeries->pointsVector().size() >= MAX_CHART_POINTS) {
+        m_pDataSeries->remove(0);
+    }
 
     if(m_CenterChart) {
         QPointF oldCenter = m_pChart->plotArea().center();
