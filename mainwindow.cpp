@@ -21,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    setWindowTitle("电场仪接收服务器");
+    setWindowTitle("负离子接收服务器");
     m_pServer = new TheServer(this);
 
     setupGui();
