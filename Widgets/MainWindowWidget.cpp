@@ -32,6 +32,7 @@ MainWindowWidget::MainWindowWidget(TheServer *pApp, QWidget *parent)
     m_pChartDialog = new ChartDialog(this);
     //connect signal to add tabs to the widget
     connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), m_pChartDialog, SLOT(onChartToggled(bool,AClient*)));
+    connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), this, SLOT(onChartToggled(bool)));
 }
 
 MainWindowWidget::~MainWindowWidget()
@@ -56,11 +57,11 @@ void MainWindowWidget::createLayout()
     m_pAddSerialButton = new QPushButton(tr("Add Serial Client"));
     connect(m_pAddSerialButton, SIGNAL(pressed()), this, SLOT(onAddSerialPushed()));
 
+    //m_pChartButton = new QPushButton(tr("Show Chart"));
+    //connect(m_pChartButton, SIGNAL(pressed()), this, SLOT(onChartButtonPushed()));
+
     m_pLogButton = new QPushButton(tr("Show Log Files"));
     connect(m_pLogButton, SIGNAL(pressed()), this, SLOT(onLogButtonPushed()));
-
-    m_pChartButton = new QPushButton(tr("Show Chart"));
-    connect(m_pChartButton, SIGNAL(pressed()), this, SLOT(onChartButtonPushed()));
 
     m_pWebButton = new QPushButton(tr("Web Interface"));
     connect(m_pWebButton, SIGNAL(pressed()), this, SLOT(onWebButtonPushed()));
@@ -71,7 +72,7 @@ void MainWindowWidget::createLayout()
     pCommandLayout->addWidget(m_pLogCheckBox);
     pCommandLayout->addWidget(m_pAddSerialButton);
     pCommandLayout->addWidget(m_pLogButton);
-    pCommandLayout->addWidget(m_pChartButton);
+    //pCommandLayout->addWidget(m_pChartButton);
     pCommandLayout->addWidget(m_pWebButton);
 
     QGroupBox *pCommandGroupBox = new QGroupBox(tr("Command"));
@@ -159,6 +160,13 @@ void MainWindowWidget::onLogButtonPushed()
     }
 }
 
+void MainWindowWidget::onChartToggled(const bool enabled)
+{
+    if (enabled) {
+        onChartButtonPushed();
+    }
+}
+
 void MainWindowWidget::onChartButtonPushed()
 {
     if (m_pChartDialog!=NULL) {
@@ -168,6 +176,6 @@ void MainWindowWidget::onChartButtonPushed()
 
 void MainWindowWidget::onWebButtonPushed()
 {
-    QUrl link(QString("http://bjepex.oicp.net:60086/flztest4/4SManager.aspx"));
+    QUrl link(QString("http://bjepex.oicp.net:60086/newdcy/4SManager.aspx"));
     QDesktopServices::openUrl(link);
 }
