@@ -33,7 +33,7 @@ void ClientChart::createChart()
 
     m_pChart= new QChart();
     m_pChart->setTitle(QString("Client %1 Negative Ion").arg(QString::number(m_pClient->getClientId())));
-    m_pChart->setAnimationOptions(QChart::GridAxisAnimations);
+    m_pChart->setAnimationOptions(QChart::NoAnimation);
     m_pChart->legend()->hide();
     m_pChart->addSeries(m_pDataSeries);
 
@@ -124,7 +124,7 @@ void ClientChart::updateChart(const QDateTime &time, const int value)
     }
 
     if(m_CenterChart) {
-        QPointF oldCenter = m_pChart->plotArea().center();
+        QPointF oldCenter = QPointF(m_pChart->plotArea().right(), m_pChart->plotArea().center().y());
         QPointF newCenter = m_pChart->mapToPosition(QPointF(QDateTime::currentMSecsSinceEpoch(), value), m_pDataSeries);
         QPointF diff = newCenter-oldCenter;
         m_pChart->scroll(diff.x(), -diff.y());
