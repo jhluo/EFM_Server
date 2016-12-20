@@ -16,11 +16,11 @@ ActivationDialog::ActivationDialog(QWidget *parent) :
 
 void ActivationDialog::createActions()
 {
-    QLabel *pRegistrationLabel = new QLabel("Enter your registration code below:", this);
+    QLabel *pRegistrationLabel = new QLabel(tr("Enter your registration code below:"), this);
 
     m_pPasswordEdit = new QLineEdit(this);
 
-    m_pConfirmButton = new QPushButton("Confirm", this);
+    m_pConfirmButton = new QPushButton(tr("Confirm"), this);
     connect(m_pConfirmButton, SIGNAL(pressed()), this, SLOT(onConfirmButtonClicked()));
 
     QDialogButtonBox *pDialogButtons = new QDialogButtonBox(Qt::Horizontal);
@@ -31,7 +31,7 @@ void ActivationDialog::createActions()
     QFormLayout *pMainLayout = new QFormLayout;
 
     pMainLayout->addRow(pRegistrationLabel);
-    pMainLayout->addRow("Code:", m_pPasswordEdit);
+    pMainLayout->addRow(tr("Code:"), m_pPasswordEdit);
     pMainLayout->addRow(pDialogButtons);
 
     setLayout(pMainLayout);
@@ -40,7 +40,7 @@ void ActivationDialog::createActions()
 void ActivationDialog::onConfirmButtonClicked()
 {
     AppSettings settings;
-    settings.writeMiscSettings("productKey", m_pPasswordEdit->text());
+    settings.writeMiscSettings(tr("productKey"), m_pPasswordEdit->text());
     emit productKeyConfirmed(m_pPasswordEdit->text());
 
     accept();
