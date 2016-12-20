@@ -44,6 +44,7 @@ private slots:
     void onRawLoggingChecked(const bool checked);
     void onAddSerialPushed();
     void onLogButtonPushed();
+    void onChartToggled(const bool enabled);
     void onChartButtonPushed();
     void onWebButtonPushed();
 
