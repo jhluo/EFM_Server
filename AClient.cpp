@@ -238,7 +238,7 @@ void AClient::handleData(const QByteArray &newData)
                     DataStr += QString("Humidity【湿度（%）】:  %1\n" ).arg(clientData.humidity);
                 }
         if (clientData.nIon!=0){
-                    DataStr += QString("Field Intensity【电场强度（伏/米）】:  %1\n" ).arg(clientData.nIon);
+                    DataStr += QString("Negative Ion【负离子（个/cm3）】:  %1\n" ).arg(clientData.nIon);
                 }
         if (clientData.pIon!=0){
                     DataStr += QString("Positive Ion【正离子（个/cm3）】:  %1\n" ).arg(clientData.pIon);
@@ -431,7 +431,6 @@ bool AClient::writeDatabase(const ClientData &data)
                 .arg(m_ClientId);
 
         result = query.exec(queryStr2);
-
         db.close();
     }
 
