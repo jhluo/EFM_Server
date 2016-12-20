@@ -23,6 +23,7 @@ void ClientTableModel::setClientList(AClientList *pClientList)
     m_pClientList = pClientList;
     connect(m_pClientList, SIGNAL(clientAdded()), this, SLOT(onNewClientAdded()));
     connect(m_pClientList, SIGNAL(clientRemoved(int)), this, SLOT(onClientRemoved(int)));
+    connect(m_pClientList, SIGNAL(clientDataChanged(int)), this, SLOT(onClientDataUpdated(int)));
 }
 
 int ClientTableModel::rowCount(const QModelIndex & /*parent*/) const
@@ -56,6 +57,9 @@ QVariant ClientTableModel::headerData(int section, Qt::Orientation orientation, 
                     return QString(tr("Up Time"));
             }
         }
+
+        if(orientation==Qt::Vertical)
+            return QString::number(section+1);
     }
 
     return QVariant();
@@ -68,21 +72,27 @@ QVariant ClientTableModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole)
     {
-        for (int i=0; i<m_pClientList->size(); i++) {
-            if(row == i) {
-                if(col == 0) {
-                    return m_pClientList->getClient(i)->getClientId();
-                } else if (col == 1) {
-                    return m_pClientList->getClient(i)->getClientAddress();
-                } else if (col == 2) {
-                    return m_pClientList->getClient(i)->getClientState();
-                } else if (col == 3) {
-                    return m_pClientList->getClient(i)->getClientConnectTime();
-                } else if (col == 4) {
-                    return m_pClientList->getClient(i)->getClientDisconnectTime();
-                } else if (col == 5) {
-                    return m_pClientList->getClient(i)->getClientUpTime();
-                }
+        if(col == 0) return m_pClientList->getClient(row)->getClientId();
+        if(col == 1) return m_pClientList->getClient(row)->getClientAddress();
+        if(col == 2) return m_pClientList->getClient(row)->getClientState();
+        if(col == 3) return m_pClientList->getClient(row)->getClientConnectTime();
+        if(col == 4) return m_pClientList->getClient(row)->getClientDisconnectTime();
+        if(col == 5) return m_pClientList->getClient(row)->getClientUpTime();
+    }
+
+    if(role == Qt::BackgroundRole)
+    {
+        if (col==2) {
+            QString state = m_pClientList->getClient(row)->getClientState();
+            if(state == "Offline") {
+                QBrush background(QColor(255, 0, 0));
+                return background;
+            } else if(state == "No Data") {
+                QBrush background(QColor(245, 245, 100));
+                return background;
+            } else {
+                QBrush background(QColor(0, 240, 100));
+                return background;
             }
         }
     }
@@ -93,7 +103,7 @@ QVariant ClientTableModel::data(const QModelIndex &index, int role) const
 void ClientTableModel::onUpdateTimer()
 {
     //we identify the top left cell
-    QModelIndex topLeft = createIndex(0,0);
+    QModelIndex topLeft = createIndex(0,columnCount()-1);
     QModelIndex bottomRight = createIndex(rowCount()-1, columnCount()-1);
     //emit a signal to make the view reread identified data
     emit dataChanged(topLeft, bottomRight);
@@ -101,12 +111,6 @@ void ClientTableModel::onUpdateTimer()
 
 void ClientTableModel::onNewClientAdded()
 {
-    //int row = m_data.count();
-    //beginInsertRows(QModelIndex(), row, row);
-    //m_data.append(tableData);
-    //endInsertRows();
-
-    //emit dataChanged(begin, end);   // emitting dataChanged signal --> blank rows still getting added
     //insert a row at the end
     int row = rowCount();
     beginInsertRows(QModelIndex(), row, row);
@@ -120,5 +124,21 @@ void ClientTableModel::onNewClientAdded()
 
 void ClientTableModel::onClientRemoved(const int index)
 {
+    //insert a row at the end
+    beginRemoveRows(QModelIndex(), index, index);
+    removeRow(index);
+    endRemoveRows();
 
+    QModelIndex topLeft = createIndex(index, 0);
+    QModelIndex bottomRight = createIndex(index, columnCount()-1);
+    emit dataChanged(topLeft, bottomRight);
+}
+
+void ClientTableModel::onClientDataUpdated(const int index)
+{
+    //we identify the top left cell
+    QModelIndex topLeft = createIndex(index,0);
+    QModelIndex bottomRight = createIndex(index, columnCount()-2);
+    //emit a signal to make the view reread identified data
+    emit dataChanged(topLeft, bottomRight);
 }

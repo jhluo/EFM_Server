@@ -1,16 +1,18 @@
 #include "ClientTableView.h"
-#include "Misc/Logger.h"
-#include "Widgets/DataViewer.h"
+#include "TheServer.h"
 #include "AClient.h"
-#include "AClientList.h"
-
+#include "Widgets/DataViewer.h"
+#include "Widgets/ClientCommandDialog.h"
+#include "Misc/Logger.h"
 #include <QHeaderView>
+#include <QTimer>
 #include <QAction>
 #include <QInputEvent>
 #include <QMenu>
 
 ClientTableView::ClientTableView(AClientList *pClientList, QWidget *pParent)
-    : QTableView(pParent)
+    : QTableView(pParent),
+      m_pClientList(pClientList)
 {
     setupTable();
 
@@ -56,12 +58,37 @@ void ClientTableView::mousePressEvent(QMouseEvent *event)
 void ClientTableView::showContextMenu(const QPoint& pos) // this is a slot
 {
     Q_UNUSED(pos);
+    //make sure there is someting to be selected
+    if(this->model()->rowCount() != 0 && !selectedIndexes().isEmpty()) {
+        QMenu *pMenu = new QMenu(this);
 
-    QMenu *pMenu = new QMenu(this);
-    QAction *pMsgViewAction = new QAction(QString("View Data..."), pMenu);
-    connect(pMsgViewAction, SIGNAL(triggered()), this, SLOT(onMessageViewerTriggered()));
-    pMenu->addAction(pMsgViewAction);
-    pMenu->exec(QCursor::pos());
+        //send command dialog action
+        QAction *pSendCommandAction = new QAction(QString(tr("Send Command...")), pMenu);
+        connect(pSendCommandAction, SIGNAL(triggered()), this, SLOT(onSendCommandTriggered()));
+        pMenu->addAction(pSendCommandAction);
+
+        //open data viewer action
+        QAction *pMsgViewAction = new QAction(QString(tr("View Data...")), pMenu);
+        connect(pMsgViewAction, SIGNAL(triggered()), this, SLOT(onMessageViewerTriggered()));
+        pMenu->addAction(pMsgViewAction);
+
+        //add action to toggle show client in chart dialog
+        QAction *pShowChartAction = new QAction(QString(tr("Show Chart")), pMenu);
+        pShowChartAction->setCheckable(true);
+        pShowChartAction->setChecked(m_pClientList->getClient(selectedIndexes().first().row())->getShowChart());
+        connect(pShowChartAction, SIGNAL(toggled(bool)), this, SLOT(onShowChartToggled(bool)));
+        pMenu->addAction(pShowChartAction);
+
+        pMenu->exec(QCursor::pos());
+    }
+}
+
+//open a dialog to send command to client
+void ClientTableView::onSendCommandTriggered()
+{
+    //modaless
+    ClientCommandDialog dialog(m_pClientList->getClient(selectedIndexes().first().row()), this);
+    dialog.exec();
 }
 
 //Open a message viewer dialg when option selected
@@ -74,7 +101,20 @@ void ClientTableView::onMessageViewerTriggered()
     //viewer.exec();
 
     //modal
-    //DataViewer *pViewer = new DataViewer(m_pServer->getClient(currentRow()), this);
-    //pViewer->setAttribute( Qt::WA_DeleteOnClose, true);
-    //pViewer->show();
+    AClient* pSelectedClient = m_pClientList->getClient(selectedIndexes().first().row());
+    if(pSelectedClient->getDataViewer() == NULL) {
+        DataViewer *pViewer = new DataViewer(pSelectedClient, this);
+        pViewer->setAttribute( Qt::WA_DeleteOnClose, true);
+        pViewer->show();
+    } else {
+        pSelectedClient->getDataViewer()->show();
+    }
+}
+
+//This tells the GUI to add this client to the chart dialog
+void ClientTableView::onShowChartToggled(const bool enabled)
+{
+    AClient *pClient = m_pClientList->getClient(selectedIndexes().first().row());
+    pClient->setShowChart(enabled);
+    emit showChart(enabled, pClient);
 }

@@ -114,7 +114,7 @@ private:
 signals:
     void error(QTcpSocket::SocketError socketerror);
     void bytesSent(const int size);
-    void newClientConnected();
+    void clientIDAssigned();
     void clientDataChanged();
 
 

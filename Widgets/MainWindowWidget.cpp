@@ -31,8 +31,8 @@ MainWindowWidget::MainWindowWidget(TheServer *pApp, QWidget *parent)
     //create chart dialog in the background
     m_pChartDialog = new ChartDialog(this);
     //connect signal to add tabs to the widget
-    //connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), m_pChartDialog, SLOT(onChartToggled(bool,AClient*)));
-    //connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), this, SLOT(onChartToggled(bool)));
+    connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), m_pChartDialog, SLOT(onChartToggled(bool,AClient*)));
+    connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), this, SLOT(onChartToggled(bool)));
 }
 
 MainWindowWidget::~MainWindowWidget()

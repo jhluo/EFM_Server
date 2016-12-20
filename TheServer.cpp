@@ -79,7 +79,7 @@ void TheServer::addSerialClient(QSerialPort *pPort)
     pClient->moveToThread(pClientThread);
 
     //stop the thread and clean up when pClient is disconnected
-    connect(pClient, SIGNAL(newClientConnected()), this, SLOT(onNewClientConnected()));
+    connect(pClient, SIGNAL(clientIDAssigned()), this, SLOT(onClientIDAssigned()));
     connect(pClientThread, SIGNAL(finished()), pClientThread, SLOT(deleteLater()));
 
     pClientThread->start();
@@ -97,20 +97,31 @@ void TheServer::onNewConnection()
     //put the socket(connection) into the client object
     pClient->setInputDevice(pSocket, AClient::eTcp);
 
+    m_pClientList->addClient(pClient);
+
     QThread *pClientThread = new QThread(this);
 
     pClient->moveToThread(pClientThread);
 
     //stop the thread and clean up when pClient is disconnected
-    connect(pClient, SIGNAL(newClientConnected()), this, SLOT(onNewClientConnected()));
+    connect(pClient, SIGNAL(clientIDAssigned()), this, SLOT(onClientIDAssigned()));
     connect(pClientThread, SIGNAL(finished()), pClientThread, SLOT(deleteLater()));
 
     pClientThread->start();
 }
 
 
-void TheServer::onNewClientConnected()
+void TheServer::onClientIDAssigned()
 {
     AClient* pClient = static_cast<AClient*>(QObject::sender());
-    m_pClientList->addClient(pClient);
+    //check to see if this device was previously connected and was in "offline" state
+    for(int i=0; i<m_pClientList->size(); i++) {
+        if(m_pClientList->getClient(i)->getClientId() == pClient->getClientId()
+           && m_pClientList->getClient(i)->getClientState() != "Online") {
+            AClient* pOldClient = m_pClientList->getClient(i);
+            delete pOldClient->thread();
+            delete pOldClient;
+            m_pClientList->removeClient(i);
+        }
+    }
 }

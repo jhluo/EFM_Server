@@ -32,7 +32,7 @@ public slots:
 
 private slots:
     void onNewConnection();
-    void onNewClientConnected();
+    void onClientIDAssigned();
 };
 
 #endif // THESERVER_H

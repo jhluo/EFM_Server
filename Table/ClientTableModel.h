@@ -30,4 +30,5 @@ private slots:
     void onUpdateTimer();
     void onNewClientAdded();
     void onClientRemoved(const int index);
+    void onClientDataUpdated(const int index);
 };

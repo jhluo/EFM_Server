@@ -107,7 +107,7 @@ void AClient::handleData(const QByteArray &newData)
     if(m_DataBuffer.size() < DATA_SIZE) {    //not full packet, we wait till next iteration
         return;
     } else {
-        m_DataBuffer.left(50);
+        m_DataBuffer.left(DATA_SIZE);
     }
 
     //qDebug() <<"Data to be decoded is:  " << m_Data.toHex()<<endl << endl;
@@ -124,7 +124,9 @@ void AClient::handleData(const QByteArray &newData)
 
     bool ok = false;
     if(m_ClientId == "Pending") {//this is the first packet we get in this client, so tell server a new client has connected
-        emit newClientConnected();
+        //this line is needed so that the slot knows what the ID is
+        m_ClientId = QString::number(m_DataBuffer.mid(5, 2).toHex().toInt(&ok, 16));
+        emit clientIDAssigned();
 
         //send an initial command to calibrate date
         QDateTime currentDateTime = QDateTime::currentDateTime();
@@ -225,6 +227,9 @@ void AClient::handleData(const QByteArray &newData)
     //emits signal for chart dialog
     emit receivedData(QDateTime::currentDateTime(), clientData.nIon);
 
+    //emit signal to notify model
+    emit clientDataChanged();
+
     //display the data if there's a viewer dialog opened
     if(m_pDataViewer != NULL) {
         QString DataStr = QString("ID: %1       "
@@ -301,10 +306,6 @@ void AClient::handleData(const QByteArray &newData)
 //                           .arg(clientData.pm10);
 
         emit outputMessage(DataStr);
-//        m_pDataViewer->append(DataStr);
-//        //put scroll at bottom to show newest message
-//        if(m_pDataViewer->verticalScrollBar() != NULL)
-//            m_pDataViewer->verticalScrollBar()->setSliderPosition(m_pDataViewer->verticalScrollBar()->maximum());
     }
 
     //write to log file, only do it if we have this enabled
@@ -345,6 +346,8 @@ void AClient::onDataTimeout()
 {
     m_pDataStarvedTimer->stop();
     m_ClientState = eNoData;
+    //emit signal to notify model
+    emit clientDataChanged();
 }
 
 void AClient::onSocketDisconnected()
@@ -358,6 +361,9 @@ void AClient::onSocketDisconnected()
     m_ClientState = eOffline;
 
     m_TimeOfDisconnect = QDateTime::currentDateTime();
+
+    //emit signal to notify model
+    emit clientDataChanged();
 
     //end the thread
     this->thread()->quit();

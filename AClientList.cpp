@@ -15,20 +15,8 @@ AClientList::~AClientList()
 
 void AClientList::addClient(AClient *pClient)
 {
-    //check to see if this device was previously connected and was in "offline" state
-    for(int i=0; i<m_ClientList.size(); i++) {
-        if(m_ClientList.at(i)->getClientId() == pClient->getClientId()
-           && m_ClientList.at(i)->getClientState() != "Online") {
-            AClient* pOldClient = m_ClientList[i];
-            delete pOldClient->thread();
-            delete pOldClient;
-            m_ClientList.removeAt(i);
-        }
-    }
-
     //put the next client into the list
     m_ClientList.append(pClient);
-
     emit clientAdded();
 }
 
@@ -60,4 +48,15 @@ int AClientList::size() const
 AClient* AClientList::getClient(const int index)
 {
     return m_ClientList[index];
+}
+
+void AClientList::onClientDataChanged()
+{
+    AClient* pClient = static_cast<AClient*>(QObject::sender());
+    for(int i=0; i<m_ClientList.size(); i++) {
+        if(m_ClientList.at(i)->getClientId() == pClient->getClientId()) {
+            emit clientDataChanged(i);
+            break;
+        }
+    }
 }

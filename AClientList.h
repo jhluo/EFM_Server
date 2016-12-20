@@ -29,4 +29,7 @@ signals:
     void clientAdded();
     void clientRemoved(const int index);
     void clientDataChanged(const int index);
+
+public slots:
+    void onClientDataChanged();
 };

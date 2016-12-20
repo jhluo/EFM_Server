@@ -19,8 +19,14 @@ private:
     void mousePressEvent(QMouseEvent *event);
 
     ClientTableModel *m_pClientTableModel;
+    AClientList *m_pClientList;
+
+signals:
+    void showChart(const bool enabled, AClient *pClient);
 
 private slots:
     void showContextMenu(const QPoint&);
     void onMessageViewerTriggered();
+    void onSendCommandTriggered();
+    void onShowChartToggled(const bool enabled);
 };
