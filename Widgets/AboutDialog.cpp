@@ -47,7 +47,7 @@ AboutDialog::AboutDialog(QWidget *parent) :
     m_pCompanyLogo(NULL),
     m_pAppInfoLabel(NULL)
 {
-    setWindowTitle("关于电场仪接收服务器");
+    setWindowTitle("关于负离子接收服务器");
     //setFixedSize(QSize(520, 400));
 
     QPixmap appLogo(":/epex_logo.png");
@@ -80,6 +80,6 @@ QString AboutDialog::appInfo() const
 {
     QString text;
 
-    text += QString("<strong>电场仪接收服务器 (Ver. %1) </strong>\n\n").arg(APP_VERSION);
+    text += QString("<strong>负离子接收服务器 (Ver. %1) </strong>\n\n").arg(APP_VERSION);
     return(text);
 }
