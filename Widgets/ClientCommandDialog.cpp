@@ -22,12 +22,12 @@ void ClientCommandDialog::createActions()
     QLabel *pCommandLabel = new QLabel(QString(tr("Select command below:")), this);
 
     m_pCommandComboBox = new QComboBox(this);
-    m_pCommandComboBox->addItem("dxsj02: 设置电场仪时间", eSetTime);
+    m_pCommandComboBox->addItem("dxsj02: 设置设备时间", eSetTime);
     m_pCommandComboBox->addItem("dxsj04: 传送采集数", eSendCount);
     m_pCommandComboBox->addItem("dxsj05: 清零", eReset);
-    m_pCommandComboBox->addItem("dxsj06: 设置仪器的ID号", eSetId);
-    m_pCommandComboBox->addItem("dxsj11: 设置电场仪底数", eSetLimit);
-    m_pCommandComboBox->addItem("dxsj16: 设置电场仪倍率", eSetMultiplier);
+    m_pCommandComboBox->addItem("dxsj06: 设置设备的ID号", eSetId);
+    //m_pCommandComboBox->addItem("dxsj11: 设置电场仪底数", eSetLimit);
+    //m_pCommandComboBox->addItem("dxsj16: 设置电场仪倍率", eSetMultiplier);
 
     m_pCommandComboBox->setCurrentIndex(-1);
     connect(m_pCommandComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onCommandComboChanged()));
@@ -86,7 +86,7 @@ void ClientCommandDialog::onCommandComboChanged()
                     .arg(currentTime.second());
             m_pCommandEdit->setText(command);
 
-            QString description = "设置电场仪的时间。\n";
+            QString description = "设置设备的时间。\n";
             m_pCommandDescription->setText(description);
         break;
         }
