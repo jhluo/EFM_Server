@@ -15,7 +15,7 @@ AClient::AClient(QObject *pParent)
     : QObject(pParent),
       m_pInputDevice(NULL),
       m_ClientType(eUnknown),
-      m_ClientId(0),
+      m_ClientId("Pending"),
       m_pDataViewer(NULL),
       m_ShowChart(false)
 {
@@ -123,9 +123,10 @@ void AClient::handleData(const QByteArray &newData)
     }
 
     bool ok = false;
-    if(m_ClientId == 0) {//this is the first packet we get in this client, so tell server a new client has connected
-        m_ClientId = m_DataBuffer.mid(5, 2).toHex().toInt(&ok, 16);
+    if(m_ClientId == "Pending") {//this is the first packet we get in this client, so tell server a new client has connected
         emit newClientConnected();
+
+        //send an initial command to calibrate date
         QDateTime currentDateTime = QDateTime::currentDateTime();
         QDate currentDate = currentDateTime.date();
         QTime currentTime = currentDateTime.time();
@@ -142,7 +143,7 @@ void AClient::handleData(const QByteArray &newData)
         //qDebug() <<command;
     }
 
-    m_ClientId = m_DataBuffer.mid(5, 2).toHex().toInt(&ok, 16);
+    m_ClientId = QString::number(m_DataBuffer.mid(5, 2).toHex().toInt(&ok, 16));
 
     int msgCount = m_DataBuffer.mid(7, 2).toHex().toInt(&ok, 16);
     Q_UNUSED(msgCount);
@@ -314,7 +315,7 @@ void AClient::handleData(const QByteArray &newData)
         if(!QDir("log").exists())
             QDir().mkdir("log");
 
-        QString fileName = "log//" + QString::number(m_ClientId) + "_log.csv";
+        QString fileName = "log//" + m_ClientId + "_log.csv";
         writeDataLog(fileName, clientData);
     }
 
@@ -323,7 +324,7 @@ void AClient::handleData(const QByteArray &newData)
         if(!QDir("log").exists())
             QDir().mkdir("log");
 
-        QString fileName = "log//" + QString::number(m_ClientId) + "_raw.txt";
+        QString fileName = "log//" + m_ClientId + "_raw.txt";
         writeRawLog(fileName, m_DataBuffer);
     }
 
@@ -368,7 +369,7 @@ bool AClient::writeDatabase(const ClientData &data)
 
     AppSettings settings;
     QSqlDatabase db;
-    QString connectionName = QString::number(m_ClientId);
+    QString connectionName = m_ClientId;
     if(!QSqlDatabase::contains(connectionName)) {
         QSqlDatabase db = QSqlDatabase::addDatabase("QODBC", connectionName);
         QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
@@ -456,7 +457,7 @@ void AClient::writeDataLog(const QString &fileName, const ClientData &data)
 
     QString currentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:MM:ss");
     QString dataStr = QString("%1, %2, %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15\n")
-                            .arg(QString::number(m_ClientId))
+                            .arg(m_ClientId)
                             .arg(currentTime)
                             .arg(data.temperature)
                             .arg(data.humidity)

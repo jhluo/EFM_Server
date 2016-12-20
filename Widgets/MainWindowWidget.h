@@ -10,7 +10,7 @@
 
 class TheServer;
 class ChartDialog;
-class ClientTableWidget;
+class ClientTableView;
 
 class MainWindowWidget : public QWidget
 {
@@ -26,7 +26,7 @@ private:
 
     TheServer *m_pServer;
 
-    ClientTableWidget *m_pClientTable;
+    ClientTableView *m_pClientTable;
     QTextEdit *m_pLogEdit;
     ChartDialog *m_pChartDialog;
 

@@ -41,6 +41,6 @@ void DataViewer::createActions()
 void DataViewer::populateDialog()
 {
     //set the window title
-    setWindowTitle(QString("设备 %1").arg(QString::number(m_pClient->getClientId())));
+    setWindowTitle(QString("设备 %1").arg(m_pClient->getClientId()));
     resize(640, 640);
 }

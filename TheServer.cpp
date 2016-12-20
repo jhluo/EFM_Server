@@ -9,6 +9,7 @@
 TheServer::TheServer(QObject *pParent)
     : QTcpServer(pParent)
 {
+    m_pClientList = new AClientList(this);
     connect(this, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
 }
 
@@ -58,16 +59,8 @@ void TheServer::shutdownServer()
 {
     LOG_SYS("Stopping all clients and shutting down the server...");
 
-    //disconnect all clients first
-    for(int i=0; i<m_ClientList.size(); i++){
-        if(m_ClientList.at(i)->getClientState()=="Online")
-            m_ClientList.at(i)->closeClient();
-            AClient* pClient = m_ClientList[i];
-            delete pClient->thread();
-            delete pClient;
-    }
-
-    m_ClientList.clear();
+    //remove all clients and close the server
+    m_pClientList->removeAll();
     this->close();
 }
 
@@ -119,36 +112,5 @@ void TheServer::onNewConnection()
 void TheServer::onNewClientConnected()
 {
     AClient* pClient = static_cast<AClient*>(QObject::sender());
-
-    //check to see if this device was previously connected and was in "offline" state
-    for(int i=0; i<m_ClientList.size(); i++) {
-        if(m_ClientList.at(i)->getClientId() == pClient->getClientId()
-           && m_ClientList.at(i)->getClientState() != "Online") {
-            AClient* pOldClient = m_ClientList[i];
-            delete pOldClient->thread();
-            delete pOldClient;
-            m_ClientList.removeAt(i);
-        }
-    }
-
-    //put the next client into the list
-    m_ClientList.append(pClient);
-}
-
-int TheServer::getTotalClient() const
-{
-    return m_ClientList.size();
-}
-
-QList<AClient*> *TheServer::getClientList()
-{
-    return &m_ClientList;
-}
-
-AClient* TheServer::getClient(const int index)
-{
-    if(index >= m_ClientList.size())
-        return NULL;
-
-    return m_ClientList.at(index);
+    m_pClientList->addClient(pClient);
 }

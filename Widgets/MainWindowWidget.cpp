@@ -1,6 +1,6 @@
 #include "MainWindowWidget.h"
 #include "TheServer.h"
-#include "ClientTableWidget.h"
+#include "Table/ClientTableView.h"
 
 #include "Misc/Logger.h"
 #include "Misc/AppSettings.h"
@@ -31,8 +31,8 @@ MainWindowWidget::MainWindowWidget(TheServer *pApp, QWidget *parent)
     //create chart dialog in the background
     m_pChartDialog = new ChartDialog(this);
     //connect signal to add tabs to the widget
-    connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), m_pChartDialog, SLOT(onChartToggled(bool,AClient*)));
-    connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), this, SLOT(onChartToggled(bool)));
+    //connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), m_pChartDialog, SLOT(onChartToggled(bool,AClient*)));
+    //connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), this, SLOT(onChartToggled(bool)));
 }
 
 MainWindowWidget::~MainWindowWidget()
@@ -42,8 +42,7 @@ MainWindowWidget::~MainWindowWidget()
 
 void MainWindowWidget::createLayout()
 {
-    m_pClientTable = new ClientTableWidget(m_pServer, this);
-    //m_pClientTableView = new ClientTableView(m_pServer->getClientList(), this);
+    m_pClientTable = new ClientTableView(m_pServer->getClientList(), this);
 
     m_pDatabaseCheckBox = new QCheckBox(tr("Write to Database"));
     connect(m_pDatabaseCheckBox, SIGNAL(toggled(bool)), this, SLOT(onDatabaseChecked(bool)));

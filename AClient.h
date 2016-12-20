@@ -59,7 +59,7 @@ public:
     QTextEdit *getDataViewer() {return m_pDataViewer;}
 
     //getter functions to fetch information about the client
-    int getClientId() const { return m_ClientId; }
+    QString getClientId() const { return m_ClientId; }
     QString getClientAddress() const;
     QString getClientState() const;
     eClientType getClientType() const { return m_ClientType; }
@@ -100,7 +100,7 @@ private:
     //type of this client
     eClientType m_ClientType;
 
-    int m_ClientId; //ID number of the client;
+    QString m_ClientId; //ID number of the client;
 
     //this can be used to display data info from a client
     QTextEdit *m_pDataViewer;
@@ -115,6 +115,8 @@ signals:
     void error(QTcpSocket::SocketError socketerror);
     void bytesSent(const int size);
     void newClientConnected();
+    void clientDataChanged();
+
 
     //signals chart to draw update, only send negative Ion count for now
     void receivedData(const QDateTime &time, const int nIon);
