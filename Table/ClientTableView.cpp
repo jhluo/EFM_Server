@@ -1,6 +1,7 @@
 #include "ClientTableView.h"
 #include "TheServer.h"
-#include "AClient.h"
+#include "Client/AClient.h"
+#include "Client/AClientList.h"
 #include "Widgets/DataViewer.h"
 #include "Widgets/ClientCommandDialog.h"
 #include "Widgets/SerialSettingsDialog.h"
@@ -148,15 +149,12 @@ void ClientTableView::onShowChartToggled(const bool enabled)
 //for connecting serial client
 void ClientTableView::onSerialConnectTriggered()
 {
-    bool on = false;
     AClient *pCurrentClient = m_pClientList->getClient(selectedIndexes().first().row());
     if(pCurrentClient->getClientState()=="Offline") {
-        on = true;
+        QMetaObject::invokeMethod(pCurrentClient, "connectClient", Qt::QueuedConnection);
     } else {
-        on = false;
+        QMetaObject::invokeMethod(pCurrentClient, "disconnectClient", Qt::QueuedConnection);
     }
-
-    emit serialPortToggled(on);
 }
 
 void ClientTableView::onSerialEditTriggered()

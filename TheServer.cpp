@@ -1,8 +1,9 @@
 #include <QThread>
 #include <QSqlDatabase>
 #include "TheServer.h"
-#include "AClient.h"
-#include "QTcpSocket"
+#include "Client/TcpClient.h"
+#include "Client/SerialClient.h"
+#include "Client/AClientList.h"
 #include "Misc/Logger.h"
 #include "Misc/AppSettings.h"
 
@@ -10,7 +11,7 @@ TheServer::TheServer(QObject *pParent)
     : QTcpServer(pParent)
 {
     m_pClientList = new AClientList(this);
-    connect(this, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
+    connect(this, SIGNAL(newConnection()), this, SLOT(onNewTcpClientConnected()));
 }
 
 TheServer::~TheServer()
@@ -64,15 +65,16 @@ void TheServer::shutdownServer()
     this->close();
 }
 
+//for adding serial client
 void TheServer::addSerialClient(QSerialPort *pPort)
 {
     //a new client has connected, we want to create a new client object and put it into its own thread
     LOG_SYS(QString("New client from %1 has connected").arg(pPort->portName()));
 
-    AClient *pClient = new AClient;
+    SerialClient *pClient = new SerialClient(pPort);
 
     //put the socket(connection) into the client object
-    pClient->setInputDevice(pPort, AClient::eSerial);
+    pClient->setDataSource(pPort, AClient::eSerial);
 
     QThread *pClientThread = new QThread(this);
 
@@ -84,23 +86,18 @@ void TheServer::addSerialClient(QSerialPort *pPort)
 
     pClientThread->start();
 
-    //we add the serial client as they are created, different than the tcpip client
     m_pClientList->addClient(pClient);
 }
 
-void TheServer::onNewConnection()
+//for adding tcp client
+void TheServer::onNewTcpClientConnected()
 {
     QTcpSocket *pSocket = this->nextPendingConnection();
 
     //a new client has connected, we want to create a new client object and put it into its own thread
     LOG_SYS(QString("New client from %1 has connected").arg(pSocket->peerAddress().toString()));
 
-    AClient *pClient = new AClient;
-
-    //put the socket(connection) into the client object
-    pClient->setInputDevice(pSocket, AClient::eTcp);
-
-    m_pClientList->addClient(pClient);
+    TcpClient *pClient = new TcpClient(pSocket);
 
     QThread *pClientThread = new QThread(this);
 
@@ -108,23 +105,48 @@ void TheServer::onNewConnection()
 
     //stop the thread and clean up when pClient is disconnected
     connect(pClient, SIGNAL(clientIDAssigned()), this, SLOT(onClientIDAssigned()));
+    connect(pClient, SIGNAL(clientDisconnected()), pClientThread, SLOT(quit()));
     connect(pClientThread, SIGNAL(finished()), pClientThread, SLOT(deleteLater()));
+    connect(pClient, SIGNAL(clientDisconnected()), this, SLOT(onTcpClientDisconnected()));
 
     pClientThread->start();
+
+    m_pClientList->addClient(pClient);
 }
 
+void TheServer::onTcpClientDisconnected()
+{
+    TcpClient* pClient = static_cast<TcpClient*>(QObject::sender());
+    //If this client was connected without ever giving an id, just remove it from list
+    for(int i=0; i<m_pClientList->size(); i++) {
+        if(pClient->getClientId() == "Unknown"
+           && m_pClientList->getClient(i)->getClientId() == pClient->getClientId()
+           && m_pClientList->getClient(i)->getClientAddress() == pClient->getClientAddress()
+           && m_pClientList->getClient(i)->getClientState() == "Offline") {
+            AClient* pOldClient = m_pClientList->getClient(i);
+            delete pOldClient;
+            m_pClientList->removeClient(i);
+        }
+    }
+}
 
 void TheServer::onClientIDAssigned()
 {
     AClient* pClient = static_cast<AClient*>(QObject::sender());
-    //check to see if this device was previously connected and was in "offline" state
+    //check to see if there is already a client with the same id
+    int count = 0;
     for(int i=0; i<m_pClientList->size(); i++) {
-        if(m_pClientList->getClient(i)->getClientId() == pClient->getClientId()
-           && m_pClientList->getClient(i)->getClientState() != "Online") {
+        if(m_pClientList->getClient(i)->getClientId() == pClient->getClientId()) {
+            //if there was one that's previously connected but offline, remove it
             AClient* pOldClient = m_pClientList->getClient(i);
-            delete pOldClient->thread();
-            delete pOldClient;
-            m_pClientList->removeClient(i);
+            if(pOldClient->getClientState() == "Offline") {
+                //delete pOldClient->thread();
+                delete pOldClient;
+                m_pClientList->removeClient(i);
+            } else {
+                //count how many identical device
+                count++;
+            }
         }
     }
 }

@@ -27,7 +27,6 @@ SOURCES += main.cpp\
     Misc/AppSettings.cpp \
     Widgets/DatabaseSettingsDialog.cpp \
     TheServer.cpp \
-    AClient.cpp \
     Widgets/DataViewer.cpp \
     Widgets/ServerSettingsDialog.cpp \
     Widgets/AboutDialog.cpp \
@@ -38,9 +37,12 @@ SOURCES += main.cpp\
     Chart/ChartDialog.cpp \
     Chart/ChartTabWidget.cpp \
     Widgets/SerialSettingsDialog.cpp \
-    AClientList.cpp \
     Table/ClientTableModel.cpp \
-    Table/ClientTableView.cpp
+    Table/ClientTableView.cpp \
+    Client/AClient.cpp \
+    Client/AClientList.cpp \
+    Client/SerialClient.cpp \
+    Client/TcpClient.cpp
 
 HEADERS  += mainwindow.h \
     Widgets/MainWindowWidget.h \
@@ -48,7 +50,6 @@ HEADERS  += mainwindow.h \
     Misc/AppSettings.h \
     Widgets/DatabaseSettingsDialog.h \
     TheServer.h \
-    AClient.h \
     Widgets/DataViewer.h \
     Widgets/ServerSettingsDialog.h \
     Widgets/AboutDialog.h \
@@ -59,9 +60,12 @@ HEADERS  += mainwindow.h \
     Chart/ChartDialog.h \
     Chart/ChartTabWidget.h \
     Widgets/SerialSettingsDialog.h \
-    AClientList.h \
     Table/ClientTableModel.h \
-    Table/ClientTableView.h
+    Table/ClientTableView.h \
+    Client/AClient.h \
+    Client/AClientList.h \
+    Client/SerialClient.h \
+    Client/TcpClient.h
 
 FORMS    += mainwindow.ui
 

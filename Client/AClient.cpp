@@ -8,14 +8,15 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 
-#define DATA_TIMEOUT 60000  //auto disconnect after no data for 60 seconds
-#define DATA_SIZE 50    //size of data frame in bytes
+#define DATA_TIMEOUT 60000  //swith to no data state after 60 seconds
+#define FULL_DATA_SIZE 50    //size of data frame in bytes
+#define PARTIAL_DATA_SIZE 37    //this is for the older version of data that only has 37 bytes
 
 AClient::AClient(QObject *pParent)
     : QObject(pParent),
+      m_ClientId("Unknown"),
       m_pInputDevice(NULL),
       m_ClientType(eUnknown),
-      m_ClientId("Pending"),
       m_pDataViewer(NULL),
       m_ShowChart(false)
 {
@@ -34,21 +35,14 @@ AClient::~AClient()
     m_DataBuffer.clear();
 }
 
-void AClient::setInputDevice(QIODevice *pInputDevice, const eClientType type)
+void AClient::setDataSource(QIODevice *pInputDevice, const eClientType type)
 {
     //assign the socket to this client and connnect the slots
     m_pInputDevice = pInputDevice;
     m_pInputDevice->setParent(this);
     m_ClientType = type;
+
     connect(m_pInputDevice, SIGNAL(readyRead()), this, SLOT(onDataReceived()));
-
-    if(type == eTcp) {
-        connect(m_pInputDevice, SIGNAL(disconnected()), this, SLOT(onSocketDisconnected()));
-
-        //tcp client will connect immediately so we do these here, serial client we delay till COM port connects
-        m_TimeOfConnect = QDateTime::currentDateTime();
-        m_pDataStarvedTimer->start();
-    }
 }
 
 void AClient::registerDataViewer(QTextEdit *pTextEdit)
@@ -58,15 +52,14 @@ void AClient::registerDataViewer(QTextEdit *pTextEdit)
         connect(this, SIGNAL(outputMessage(QString)), m_pDataViewer, SLOT(append(QString)));
 }
 
-void AClient::closeClient()
+void AClient::connectClient()
 {
-    //end the thread
-    this->thread()->quit();
-    if(!this->thread()->wait(2000)) //Wait until it actually has terminated (max. 3 sec)
-    {
-        this->thread()->terminate(); //Thread didn't exit in time, probably deadlocked, terminate it!
-        this->thread()->wait(); //We have to wait again here!
-    }
+
+}
+
+void AClient::disconnectClient()
+{
+
 }
 
 void AClient::setSerialConnect(const bool on)
@@ -127,23 +120,24 @@ void AClient::sendData(const QString &data)
 void AClient::handleData(const QByteArray &newData)
 {
     if(newData.left(1) == "J" //it's a new packet
-       || m_DataBuffer.size() >= 37 // buffer is holding more than it should for some reason
+       || m_DataBuffer.size() >= FULL_DATA_SIZE // buffer is holding more than it should for some reason
        )
     {
         m_DataBuffer.clear(); //clear previous data
     }
 
     m_DataBuffer.append(newData);
-        if(m_DataBuffer.size() == 37) {    //old data format 37bit，add 13 bit make it 50
-            m_DataBuffer.append("0000000000000");
+
+    if(m_DataBuffer.size() == PARTIAL_DATA_SIZE) {    //old data format 37bit，add 13 bit make it 50
+        for(int i=0; i<13; i++) {
+            m_DataBuffer.append("0");
         }
+    }
 
-    m_DataBuffer.append(newData);
-
-    if(m_DataBuffer.size() < 36) {    //not full packet, we wait till next iteration
+    if(m_DataBuffer.size() < FULL_DATA_SIZE) {    //not full packet, we wait till next iteration
         return;
     } else {
-        m_DataBuffer.left(DATA_SIZE);
+        m_DataBuffer.left(FULL_DATA_SIZE);
     }
 
     //qDebug() <<"Data to be decoded is:  " << m_Data.toHex()<<endl << endl;
@@ -159,7 +153,7 @@ void AClient::handleData(const QByteArray &newData)
     }
 
     bool ok = false;
-    if(m_ClientId == "Pending") {//this is the first packet we get in this client, so tell server a new client has connected
+    if(m_ClientId == "Unknown") {//this is the first packet we get in this client, so tell server a new client has connected
         //this line is needed so that the slot knows what the ID is
         m_ClientId = QString::number(m_DataBuffer.mid(5, 2).toHex().toInt(&ok, 16));
         emit clientIDAssigned();

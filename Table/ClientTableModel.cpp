@@ -1,5 +1,5 @@
 #include "ClientTableModel.h"
-#include "AClientList.h"
+#include "Client/AClientList.h"
 
 #define UPDATE_INTERVAL 1000
 

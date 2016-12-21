@@ -1,5 +1,5 @@
 #include "ClientChart.h"
-#include "AClient.h"
+#include "Client/AClient.h"
 
 #define MAX_CHART_POINTS 3600 * 1 //1 hour
 

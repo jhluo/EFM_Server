@@ -23,7 +23,6 @@ private:
 
 signals:
     void showChart(const bool enabled, AClient *pClient);
-    void serialPortToggled(const bool on);
 
 private slots:
     void showContextMenu(const QPoint&);    

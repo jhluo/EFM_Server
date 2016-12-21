@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QAbstractTableModel>
-#include <AClient.h>
+#include <Client/AClient.h>
 
 class AClientList;
 

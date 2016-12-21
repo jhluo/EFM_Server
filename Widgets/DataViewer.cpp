@@ -1,5 +1,5 @@
 ﻿#include "DataViewer.h"
-#include "AClient.h"
+#include "Client/AClient.h"
 #include "misc/Logger.h"
 
 #include <QGroupBox>

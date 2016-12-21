@@ -47,13 +47,10 @@ public:
     } ClientData;
 
     AClient(QObject *pParent = 0);
-    ~AClient();
+    virtual ~AClient();
 
     //void setSocket(QTcpSocket *pSocket);
-    void setInputDevice(QIODevice *pInputDevice, const eClientType type);
-
-    //shut off the client
-    void closeClient();
+    void setDataSource(QIODevice *pInputDevice, const eClientType type);
 
     QSerialPort *getClientSerialPort();
 
@@ -62,6 +59,8 @@ public:
     QTextEdit *getDataViewer() {return m_pDataViewer;}
 
     //getter functions to fetch information about the client
+    //set displayed client ID only, will not change the ID in the device itself
+    void setClientId(const QString &id) {m_ClientId = id;}
     QString getClientId() const { return m_ClientId; }
     QString getClientAddress() const;
     QString getClientState() const;
@@ -78,6 +77,19 @@ public:
     void setShowChart(const bool enabled);
     bool getShowChart() const {return m_ShowChart;}
 
+protected:
+    QString m_ClientId; //ID number of the client;
+
+    //Time stamp when client was connected and disconnected;
+    QDateTime m_TimeOfConnect;
+    QDateTime m_TimeOfDisconnect;
+
+    //Use to timeout client when no data is coming
+    QTimer *m_pDataStarvedTimer;
+
+    //current state of the client
+    eClientState m_ClientState;
+
 private:
     void handleData(const QByteArray &newData);
 
@@ -90,20 +102,8 @@ private:
 
     QByteArray m_DataBuffer;
 
-    //Time stamp when client was connected and disconnected;
-    QDateTime m_TimeOfConnect;
-    QDateTime m_TimeOfDisconnect;
-
-    //Use to timeout client when no data is coming
-    QTimer *m_pDataStarvedTimer;
-
-    //current state of the client
-    eClientState m_ClientState;
-
     //type of this client
     eClientType m_ClientType;
-
-    QString m_ClientId; //ID number of the client;
 
     //this can be used to display data info from a client
     QTextEdit *m_pDataViewer;
@@ -115,9 +115,10 @@ private:
     double convertToDecimal(const QByteArray &highByte, const QByteArray &lowByte);
 
 signals:
-    void error(QTcpSocket::SocketError socketerror);
+    void error(QString err);
     void bytesSent(const int size);
     void clientIDAssigned();
+    void clientDisconnected();
     void clientDataChanged();
 
 
@@ -128,6 +129,10 @@ signals:
     void outputMessage(const QString &msg);
 
 public slots:
+    //connect and disconnect client
+    Q_INVOKABLE virtual void connectClient();
+    Q_INVOKABLE virtual void disconnectClient();
+
     void sendData(const QString &data);
 
     //slots that turns a serial port off and on

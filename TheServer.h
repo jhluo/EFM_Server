@@ -4,8 +4,8 @@
 #include <QObject>
 #include <QTcpServer>
 #include <QSerialPort>
-#include <QList>
-#include "AClientList.h"
+
+class AClientList;
 
 class TheServer : public QTcpServer
 {
@@ -33,7 +33,8 @@ public slots:
 
 
 private slots:
-    void onNewConnection();
+    void onNewTcpClientConnected();
+    void onTcpClientDisconnected();
     void onClientIDAssigned();
 };
 

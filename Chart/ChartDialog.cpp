@@ -1,6 +1,6 @@
 #include "ChartDialog.h"
 #include "ChartTabWidget.h"
-#include "AClient.h"
+#include "Client/AClient.h"
 #include <QHBoxLayout>
 
 ChartDialog::ChartDialog(QWidget *pParent)

@@ -31,8 +31,9 @@ void AClientList::removeAll()
     for(int i=0; i<m_ClientList.size(); i++){
         AClient* pClient = m_ClientList.at(i);
         if(pClient->getClientState()=="Online") {
-            pClient->closeClient();
-            delete pClient->thread();
+            //use invokemethod to interact with object in different thread
+            QMetaObject::invokeMethod(pClient, "disconnectClient", Qt::BlockingQueuedConnection);
+            //delete pClient->thread();
             delete pClient;
         }
     }

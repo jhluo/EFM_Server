@@ -1,5 +1,5 @@
 #include "ClientCommandDialog.h"
-#include "AClient.h"
+#include "Client/AClient.h"
 #include "Misc/AppSettings.h"
 #include <QMessageBox>
 #include <QGroupBox>

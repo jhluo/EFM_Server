@@ -1,6 +1,6 @@
 ﻿#include "ChartTabWidget.h"
 #include "ClientChart.h"
-#include "AClient.h"
+#include "Client/AClient.h"
 
 
 ChartTabWidget::ChartTabWidget(QWidget *pParent)
