@@ -36,5 +36,8 @@ void ChartDialog::onChartToggled(const bool enabled, AClient *pClient)
         }
     } else {
         m_pTabWidget->removeClientChart(pClient->getClientId());
+        if(m_pTabWidget->count()==0) {
+            this->close();
+        }
     }
 }

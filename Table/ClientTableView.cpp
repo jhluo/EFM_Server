@@ -86,7 +86,9 @@ void ClientTableView::showContextMenu(const QPoint& pos) // this is a slot
 
         //open data viewer action
         QAction *pMsgViewAction = new QAction(QString(tr("View Data...")), pMenu);
-        connect(pMsgViewAction, SIGNAL(triggered()), this, SLOT(onMessageViewerTriggered()));
+        pMsgViewAction->setCheckable(true);
+        pMsgViewAction->setChecked(m_pClientList->getClient(selectedIndexes().first().row())->getDataViewer() != NULL);
+        connect(pMsgViewAction, SIGNAL(toggled(bool)), this, SLOT(onMessageViewerToggled(bool)));
         pMenu->addAction(pMsgViewAction);
 
         //add action to toggle show client in chart dialog
@@ -109,7 +111,7 @@ void ClientTableView::onSendCommandTriggered()
 }
 
 //Open a message viewer dialg when option selected
-void ClientTableView::onMessageViewerTriggered()
+void ClientTableView::onMessageViewerToggled(const bool enabled)
 {
     //use this dialog to show client data
 
@@ -119,12 +121,19 @@ void ClientTableView::onMessageViewerTriggered()
 
     //modal
     AClient* pSelectedClient = m_pClientList->getClient(selectedIndexes().first().row());
-    if(pSelectedClient->getDataViewer() == NULL) {
-        DataViewer *pViewer = new DataViewer(pSelectedClient, this);
-        pViewer->setAttribute( Qt::WA_DeleteOnClose, true);
-        pViewer->show();
+
+    if(enabled) {
+        if(pSelectedClient->getDataViewer() == NULL) {
+            DataViewer *pViewer = new DataViewer(pSelectedClient, this);
+            pViewer->setAttribute( Qt::WA_DeleteOnClose, true);
+            pViewer->show();
+        } else {
+            qobject_cast<QWidget*>(pSelectedClient->getDataViewer()->parent())->show();
+        }
     } else {
-        pSelectedClient->getDataViewer()->show();
+        if(pSelectedClient->getDataViewer() != NULL) {
+            qobject_cast<QWidget*>(pSelectedClient->getDataViewer()->parent())->close();
+        }
     }
 }
 

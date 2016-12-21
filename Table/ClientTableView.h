@@ -26,9 +26,9 @@ signals:
     void serialPortToggled(const bool on);
 
 private slots:
-    void showContextMenu(const QPoint&);
-    void onMessageViewerTriggered();
+    void showContextMenu(const QPoint&);    
     void onSendCommandTriggered();
+    void onMessageViewerToggled(const bool enabled);
     void onShowChartToggled(const bool enabled);
     void onSerialConnectTriggered();
     void onSerialEditTriggered();
