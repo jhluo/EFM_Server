@@ -127,15 +127,20 @@ void AClient::sendData(const QString &data)
 void AClient::handleData(const QByteArray &newData)
 {
     if(newData.left(1) == "J" //it's a new packet
-       || m_DataBuffer.size() >= DATA_SIZE // buffer is holding more than it should for some reason
+       || m_DataBuffer.size() >= 37 // buffer is holding more than it should for some reason
        )
     {
         m_DataBuffer.clear(); //clear previous data
     }
 
     m_DataBuffer.append(newData);
+        if(m_DataBuffer.size() == 37) {    //old data format 37bit，add 13 bit make it 50
+            m_DataBuffer.append("0000000000000");
+        }
 
-    if(m_DataBuffer.size() < DATA_SIZE) {    //not full packet, we wait till next iteration
+    m_DataBuffer.append(newData);
+
+    if(m_DataBuffer.size() < 36) {    //not full packet, we wait till next iteration
         return;
     } else {
         m_DataBuffer.left(DATA_SIZE);
@@ -467,6 +472,7 @@ bool AClient::writeDatabase(const ClientData &data)
                 .arg(data.pm25)
                 .arg(data.pm10)
                 .arg(m_ClientId);
+
 
         result = query.exec(queryStr2);
         db.close();

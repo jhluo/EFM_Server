@@ -109,6 +109,11 @@ void ClientTableWidget::showContextMenu(const QPoint& pos) // this is a slot
 
         //open data viewer action
         QAction *pMsgViewAction = new QAction(QString(tr("View Data...")), pMenu);
+        pMsgViewAction->setCheckable(true);
+        if(m_pServer->getClient(currentRow())->getDataViewer() != NULL){
+            pMsgViewAction->setChecked(true);
+        }
+//      pMsgViewAction->setChecked(m_pServer->getClient(currentRow())->getDataViewer());
         connect(pMsgViewAction, SIGNAL(triggered()), this, SLOT(onMessageViewerTriggered()));
         pMenu->addAction(pMsgViewAction);
 
