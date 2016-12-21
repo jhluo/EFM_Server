@@ -2,11 +2,10 @@
 #include <QGroupBox>
 #include <QFormLayout>
 
-SerialSettingsDialog::SerialSettingsDialog(QWidget *parent) :
-    QDialog(parent)
+SerialSettingsDialog::SerialSettingsDialog(QSerialPort *pPort, QWidget *parent) :
+    QDialog(parent),
+    m_pSerialPort(pPort)
 {
-    m_pSerialPort = new QSerialPort;
-
     createActions();
     populateDialog();
 }
@@ -25,37 +24,43 @@ void SerialSettingsDialog::createActions()
     m_pPortDescriptionLabel = new QLabel;
     m_pPortManufacturerLabel = new QLabel;
     QFormLayout *pPortLayout = new QFormLayout;
-    pPortLayout->addRow("COM Port:", m_pPortCombo);
-    pPortLayout->addRow("Description:", m_pPortDescriptionLabel);
-    pPortLayout->addRow("Manufacturer:", m_pPortManufacturerLabel);
+    pPortLayout->addRow(tr("COM Port:"), m_pPortCombo);
+    pPortLayout->addRow(tr("Description:"), m_pPortDescriptionLabel);
+    pPortLayout->addRow(tr("Manufacturer:"), m_pPortManufacturerLabel);
     pPortGroupBox->setLayout(pPortLayout);
 
     QGroupBox *pSettingsGroupBox = new QGroupBox(tr("Choose Port Settings"));
     m_pBaudRateCombo = new QComboBox;
-    QStringList baudRateList;
-    baudRateList << "9600" << "19200" << "38400" << "57600" << "76800" << "115200";
-    m_pBaudRateCombo->addItems(baudRateList);
+    m_pBaudRateCombo->addItem("9600", QSerialPort::Baud9600);
+    m_pBaudRateCombo->addItem("19200", QSerialPort::Baud19200);
+    m_pBaudRateCombo->addItem("38400", QSerialPort::Baud38400);
+    m_pBaudRateCombo->addItem("57600", QSerialPort::Baud57600);
+    m_pBaudRateCombo->addItem("115200", QSerialPort::Baud115200);
 
     m_pDataBitsCombo = new QComboBox;
-    QStringList databitList;
-    databitList << "5" << "6" << "7" << "8";
-    m_pDataBitsCombo->addItems(databitList);
+    m_pDataBitsCombo->addItem("5", QSerialPort::Data5);
+    m_pDataBitsCombo->addItem("6", QSerialPort::Data6);
+    m_pDataBitsCombo->addItem("7", QSerialPort::Data7);
+    m_pDataBitsCombo->addItem("8", QSerialPort::Data8);
+
     m_pDataBitsCombo->setCurrentIndex(3); //default
 
     m_pParityCombo = new QComboBox;
-    QStringList parityList;
-    parityList << "None" << "Even" << "Odd" << "Mark" << "Space";
-    m_pParityCombo->addItems(parityList);
+    m_pParityCombo->addItem("None", QSerialPort::NoParity);
+    m_pParityCombo->addItem("Even", QSerialPort::EvenParity);
+    m_pParityCombo->addItem("Odd", QSerialPort::OddParity);
+    m_pParityCombo->addItem("Mark", QSerialPort::MarkParity);
+    m_pParityCombo->addItem("Space", QSerialPort::SpaceParity);
 
     m_pStopBitsCombo = new QComboBox;
-    QStringList stopbitList;
-    stopbitList << "1" << "1.5" << "2";
-    m_pStopBitsCombo->addItems(stopbitList);
+    m_pStopBitsCombo->addItem("1", QSerialPort::OneStop);
+    m_pStopBitsCombo->addItem("1.5", QSerialPort::OneAndHalfStop);
+    m_pStopBitsCombo->addItem("2", QSerialPort::TwoStop);
 
     m_pFlowControlCombo = new QComboBox;
-    QStringList flowList;
-    flowList << "None" << "RTS/CTS" << "XON/XOFF";
-    m_pFlowControlCombo->addItems(flowList);
+    m_pFlowControlCombo->addItem("None", QSerialPort::NoFlowControl);
+    m_pFlowControlCombo->addItem("RTS/CTS", QSerialPort::HardwareControl);
+    m_pFlowControlCombo->addItem("XON/XOFF", QSerialPort::SoftwareControl);
 
     m_pButtonBox = new QDialogButtonBox(Qt::Horizontal);
     m_pButtonBox->addButton(QDialogButtonBox::Ok);
@@ -98,30 +103,42 @@ void SerialSettingsDialog::populateDialog()
     if (m_pPortCombo->count() == 0)
         m_pPortDescriptionLabel->setText(tr("Description: <b>NO PORTS WERE FOUND</b>"));
 
-    m_pPortCombo->setCurrentIndex(-1);
+    //load the current port settings
+    int index = -1;
+    index = m_pPortCombo->findData(m_pSerialPort->portName());
+    m_pPortCombo->setCurrentIndex(index);
+
+    index = m_pBaudRateCombo->findData(m_pSerialPort->baudRate());
+    m_pBaudRateCombo->setCurrentIndex(index);
+
+    index = m_pDataBitsCombo->findData(m_pSerialPort->dataBits());
+    m_pDataBitsCombo->setCurrentIndex(index);
+
+    index = m_pParityCombo->findData(m_pSerialPort->parity());
+    m_pParityCombo->setCurrentIndex(index);
+
+    index = m_pStopBitsCombo->findData(m_pSerialPort->stopBits());
+    m_pStopBitsCombo->setCurrentIndex(index);
+
+    index = m_pFlowControlCombo->findData(m_pSerialPort->flowControl());
+    m_pFlowControlCombo->setCurrentIndex(index);
 }
 
 void SerialSettingsDialog::apply()
 {
     if (!m_pPortCombo->currentText().isEmpty()) {
         m_pSerialPort->setPortName(m_pPortCombo->currentText());
-        m_pSerialPort->setBaudRate(m_pBaudRateCombo->currentText().toInt());
 
-        m_pSerialPort->setDataBits(static_cast<QSerialPort::DataBits>(m_pBaudRateCombo->currentText().toInt()));
+        m_pSerialPort->setBaudRate(static_cast<QSerialPort::BaudRate>(m_pBaudRateCombo->currentData().toInt()));
 
-        if(m_pParityCombo->currentIndex() == 0)
-            m_pSerialPort->setParity(QSerialPort::NoParity);
-        else
-            m_pSerialPort->setParity(static_cast<QSerialPort::Parity>(m_pBaudRateCombo->currentIndex()+1));
+        m_pSerialPort->setDataBits(static_cast<QSerialPort::DataBits>(m_pDataBitsCombo->currentData().toInt()));
 
-        if(m_pStopBitsCombo->currentText() == "1.5")
-            m_pSerialPort->setStopBits(QSerialPort::OneAndHalfStop);
-        else
-            m_pSerialPort->setStopBits(static_cast<QSerialPort::StopBits>(m_pBaudRateCombo->currentText().toInt()));
+        m_pSerialPort->setParity(static_cast<QSerialPort::Parity>(m_pParityCombo->currentData().toInt()));
 
-        m_pSerialPort->setFlowControl(static_cast<QSerialPort::FlowControl>(m_pBaudRateCombo->currentIndex()));
+        m_pSerialPort->setStopBits(static_cast<QSerialPort::StopBits>(m_pBaudRateCombo->currentData().toInt()));
 
-        emit newSerialPort(m_pSerialPort);
+        m_pSerialPort->setFlowControl(static_cast<QSerialPort::FlowControl>(m_pBaudRateCombo->currentData().toInt()));
+
         accept();
     } else {
         reject();

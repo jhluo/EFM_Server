@@ -10,7 +10,7 @@
 #include <QInputEvent>
 #include <QMenu>
 
-#define UPDATE_INTERVAL 100000
+#define UPDATE_INTERVAL 1000
 
 ClientTableWidget::ClientTableWidget(TheServer *pServer, QWidget *pParent)
     : QTableWidget(pParent),
@@ -38,9 +38,9 @@ void ClientTableWidget::setupTable()
 {
     QStringList tableHeaders;
     tableHeaders <<QString(tr("ID"))<<QString(tr("Status"))<<QString(tr("Source"))<<QString(tr("Time Online")) << QString(tr("Time Offline")) << QString(tr("Up Time"));
+
     setColumnCount(tableHeaders.count());
     setHorizontalHeaderLabels(tableHeaders);
-    ClientTableWidget::setRowHeight(tableHeaders.count(),4);
     //this->verticalHeader()->setVisible(false);
 
     horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -52,6 +52,7 @@ void ClientTableWidget::setupTable()
 void ClientTableWidget::updateTable()
 {
     setRowCount(m_pServer->getTotalClient());
+
     //List out the clients one by one in a loop
     for(int i=0; i<m_pServer->getTotalClient(); i++) {
         AClient *pClient = m_pServer->getClient(i);
@@ -59,8 +60,8 @@ void ClientTableWidget::updateTable()
 
         //draw all the texts
         this->setItem(i, 0, new QTableWidgetItem(QString::number(pClient->getClientId())));
-        QString state = pClient->getClientState();
 
+        QString state = pClient->getClientState();
         this->setItem(i, 1, new QTableWidgetItem(state));
         if(state == "Offline")
             item(i, 1)->setBackgroundColor(QColor(255, 0, 0));

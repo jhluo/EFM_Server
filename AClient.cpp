@@ -15,14 +15,11 @@ AClient::AClient(QObject *pParent)
     : QObject(pParent),
       m_pInputDevice(NULL),
       m_ClientType(eUnknown),
-      m_ClientId(0),
+      m_ClientId("Pending"),
       m_pDataViewer(NULL),
       m_ShowChart(false)
 {
     m_DataBuffer.clear();
-
-    m_TimeOfConnect = QDateTime::currentDateTime();
-
 
     m_ClientState = eOffline;
 
@@ -30,7 +27,6 @@ AClient::AClient(QObject *pParent)
     m_pDataStarvedTimer = new QTimer(this);
     m_pDataStarvedTimer->setInterval(DATA_TIMEOUT);
     connect(m_pDataStarvedTimer, SIGNAL(timeout()), this, SLOT(onDataTimeout()));
-    m_pDataStarvedTimer->start();
 }
 
 AClient::~AClient()
@@ -46,8 +42,13 @@ void AClient::setInputDevice(QIODevice *pInputDevice, const eClientType type)
     m_ClientType = type;
     connect(m_pInputDevice, SIGNAL(readyRead()), this, SLOT(onDataReceived()));
 
-    if(type == eTcp)
+    if(type == eTcp) {
         connect(m_pInputDevice, SIGNAL(disconnected()), this, SLOT(onSocketDisconnected()));
+
+        //tcp client will connect immediately so we do these here, serial client we delay till COM port connects
+        m_TimeOfConnect = QDateTime::currentDateTime();
+        m_pDataStarvedTimer->start();
+    }
 }
 
 void AClient::registerDataViewer(QTextEdit *pTextEdit)
@@ -66,6 +67,36 @@ void AClient::closeClient()
         this->thread()->terminate(); //Thread didn't exit in time, probably deadlocked, terminate it!
         this->thread()->wait(); //We have to wait again here!
     }
+}
+
+void AClient::setSerialConnect(const bool on)
+{
+    if(m_ClientType == eSerial) {
+        if(on) {
+            if(m_pInputDevice->open(QIODevice::ReadWrite)) {
+                    m_ClientState = eNoData;
+                    m_TimeOfConnect = QDateTime::currentDateTime();
+                    m_pDataStarvedTimer->start();
+                    emit clientDataChanged();
+            } else {
+                qDebug() << m_pInputDevice->errorString();
+            }
+        } else {
+            m_pInputDevice->close();
+            m_ClientState = eOffline;
+            m_TimeOfDisconnect = QDateTime::currentDateTime();
+            m_pDataStarvedTimer->stop();
+            emit clientDataChanged();
+        }
+    }
+}
+
+QSerialPort* AClient::getClientSerialPort()
+{
+    if(m_ClientType==eSerial)
+        return qobject_cast<QSerialPort*>(m_pInputDevice);
+
+    return NULL;
 }
 
 void AClient::onDataReceived()
@@ -107,7 +138,7 @@ void AClient::handleData(const QByteArray &newData)
     if(m_DataBuffer.size() < DATA_SIZE) {    //not full packet, we wait till next iteration
         return;
     } else {
-        m_DataBuffer.left(50);
+        m_DataBuffer.left(DATA_SIZE);
     }
 
     //qDebug() <<"Data to be decoded is:  " << m_Data.toHex()<<endl << endl;
@@ -123,9 +154,12 @@ void AClient::handleData(const QByteArray &newData)
     }
 
     bool ok = false;
-    if(m_ClientId == 0) {//this is the first packet we get in this client, so tell server a new client has connected
-        m_ClientId = m_DataBuffer.mid(5, 2).toHex().toInt(&ok, 16);
-        emit newClientConnected();
+    if(m_ClientId == "Pending") {//this is the first packet we get in this client, so tell server a new client has connected
+        //this line is needed so that the slot knows what the ID is
+        m_ClientId = QString::number(m_DataBuffer.mid(5, 2).toHex().toInt(&ok, 16));
+        emit clientIDAssigned();
+
+        //send an initial command to calibrate date
         QDateTime currentDateTime = QDateTime::currentDateTime();
         QDate currentDate = currentDateTime.date();
         QTime currentTime = currentDateTime.time();
@@ -142,7 +176,7 @@ void AClient::handleData(const QByteArray &newData)
         //qDebug() <<command;
     }
 
-    m_ClientId = m_DataBuffer.mid(5, 2).toHex().toInt(&ok, 16);
+    m_ClientId = QString::number(m_DataBuffer.mid(5, 2).toHex().toInt(&ok, 16));
 
     int msgCount = m_DataBuffer.mid(7, 2).toHex().toInt(&ok, 16);
     Q_UNUSED(msgCount);
@@ -224,6 +258,9 @@ void AClient::handleData(const QByteArray &newData)
     //emits signal for chart dialog
     emit receivedData(QDateTime::currentDateTime(), clientData.nIon);
 
+    //emit signal to notify model
+    emit clientDataChanged();
+
     //display the data if there's a viewer dialog opened
     if(m_pDataViewer != NULL) {
         QString DataStr = QString("ID: %1       "
@@ -300,10 +337,6 @@ void AClient::handleData(const QByteArray &newData)
 //                           .arg(clientData.pm10);
 
         emit outputMessage(DataStr);
-//        m_pDataViewer->append(DataStr);
-//        //put scroll at bottom to show newest message
-//        if(m_pDataViewer->verticalScrollBar() != NULL)
-//            m_pDataViewer->verticalScrollBar()->setSliderPosition(m_pDataViewer->verticalScrollBar()->maximum());
     }
 
     //write to log file, only do it if we have this enabled
@@ -314,7 +347,7 @@ void AClient::handleData(const QByteArray &newData)
         if(!QDir("log").exists())
             QDir().mkdir("log");
 
-        QString fileName = "log//" + QString::number(m_ClientId) + "_log.csv";
+        QString fileName = "log//" + m_ClientId + "_log.csv";
         writeDataLog(fileName, clientData);
     }
 
@@ -323,7 +356,7 @@ void AClient::handleData(const QByteArray &newData)
         if(!QDir("log").exists())
             QDir().mkdir("log");
 
-        QString fileName = "log//" + QString::number(m_ClientId) + "_raw.txt";
+        QString fileName = "log//" + m_ClientId + "_raw.txt";
         writeRawLog(fileName, m_DataBuffer);
     }
 
@@ -344,6 +377,8 @@ void AClient::onDataTimeout()
 {
     m_pDataStarvedTimer->stop();
     m_ClientState = eNoData;
+    //emit signal to notify model
+    emit clientDataChanged();
 }
 
 void AClient::onSocketDisconnected()
@@ -358,6 +393,9 @@ void AClient::onSocketDisconnected()
 
     m_TimeOfDisconnect = QDateTime::currentDateTime();
 
+    //emit signal to notify model
+    emit clientDataChanged();
+
     //end the thread
     this->thread()->quit();
 }
@@ -368,7 +406,7 @@ bool AClient::writeDatabase(const ClientData &data)
 
     AppSettings settings;
     QSqlDatabase db;
-    QString connectionName = QString::number(m_ClientId);
+    QString connectionName = m_ClientId;
     if(!QSqlDatabase::contains(connectionName)) {
         QSqlDatabase db = QSqlDatabase::addDatabase("QODBC", connectionName);
         QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
@@ -456,7 +494,7 @@ void AClient::writeDataLog(const QString &fileName, const ClientData &data)
 
     QString currentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:MM:ss");
     QString dataStr = QString("%1, %2, %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15\n")
-                            .arg(QString::number(m_ClientId))
+                            .arg(m_ClientId)
                             .arg(currentTime)
                             .arg(data.temperature)
                             .arg(data.humidity)
@@ -512,7 +550,8 @@ QString AClient::getClientAddress() const
         QTcpSocket *pSocket = qobject_cast<QTcpSocket*>(m_pInputDevice);
         address = pSocket->peerAddress().toString();
     } else if (m_ClientType == eSerial) {
-        ;
+        QSerialPort *pPort = qobject_cast<QSerialPort*>(m_pInputDevice);
+        address = pPort->portName();
     }
 
     return address;

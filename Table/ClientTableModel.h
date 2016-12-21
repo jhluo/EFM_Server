@@ -3,6 +3,8 @@
 #include <QAbstractTableModel>
 #include <AClient.h>
 
+class AClientList;
+
 class ClientTableModel : public QAbstractTableModel
 {
     Q_OBJECT
@@ -17,14 +19,16 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role) const Q_DECL_OVERRIDE;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
 
-    void setClientList(QList<AClient *> *pClientList);
+    void setClientList(AClientList *pClientList);
 
 private:
-    QList<AClient*> *m_pClientList;
-
     //How often we update the table
     QTimer *m_pUpdateTimer;
+    AClientList *m_pClientList;
 
 private slots:
-    void updateModel();
+    void onUpdateTimer();
+    void onNewClientAdded();
+    void onClientRemoved(const int index);
+    void onClientDataUpdated(const int index);
 };

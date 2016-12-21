@@ -32,7 +32,7 @@ void ClientChart::createChart()
     m_pDataSeries->setPen(red);
 
     m_pChart= new QChart();
-    m_pChart->setTitle(QString("Client %1 Negative Ion").arg(QString::number(m_pClient->getClientId())));
+    m_pChart->setTitle(QString("Client %1 Negative Ion").arg(m_pClient->getClientId()));
     m_pChart->setAnimationOptions(QChart::NoAnimation);
     m_pChart->legend()->hide();
     m_pChart->addSeries(m_pDataSeries);

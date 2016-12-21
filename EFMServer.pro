@@ -24,7 +24,6 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     Widgets/MainWindowWidget.cpp \
     Misc/Logger.cpp \
-    Widgets/ClientTableWidget.cpp \
     Misc/AppSettings.cpp \
     Widgets/DatabaseSettingsDialog.cpp \
     TheServer.cpp \
@@ -38,12 +37,14 @@ SOURCES += main.cpp\
     Chart/ClientChart.cpp \
     Chart/ChartDialog.cpp \
     Chart/ChartTabWidget.cpp \
-    Widgets/SerialSettingsDialog.cpp
+    Widgets/SerialSettingsDialog.cpp \
+    AClientList.cpp \
+    Table/ClientTableModel.cpp \
+    Table/ClientTableView.cpp
 
 HEADERS  += mainwindow.h \
     Widgets/MainWindowWidget.h \
     Misc/Logger.h \
-    Widgets/ClientTableWidget.h \
     Misc/AppSettings.h \
     Widgets/DatabaseSettingsDialog.h \
     TheServer.h \
@@ -57,7 +58,10 @@ HEADERS  += mainwindow.h \
     Chart/ClientChart.h \
     Chart/ChartDialog.h \
     Chart/ChartTabWidget.h \
-    Widgets/SerialSettingsDialog.h
+    Widgets/SerialSettingsDialog.h \
+    AClientList.h \
+    Table/ClientTableModel.h \
+    Table/ClientTableView.h
 
 FORMS    += mainwindow.ui
 

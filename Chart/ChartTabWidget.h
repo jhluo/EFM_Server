@@ -18,9 +18,9 @@ public:
     ~ChartTabWidget();
 
     void addClientChart(AClient *pClient);
-    void removeClientChart(const int id);
+    void removeClientChart(const QString &id);
 
-    bool hasClient(const int id);
+    bool hasClient(const QString &id);
 
 private:
 

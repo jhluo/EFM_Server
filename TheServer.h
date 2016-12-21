@@ -5,8 +5,7 @@
 #include <QTcpServer>
 #include <QSerialPort>
 #include <QList>
-
-class AClient;
+#include "AClientList.h"
 
 class TheServer : public QTcpServer
 {
@@ -19,23 +18,23 @@ public:
     void startServer();
     void shutdownServer();
 
-    int getTotalClient() const;
-    QList<AClient *> *getClientList();
-    AClient *getClient(const int index);
+    //add client from serial port connection
+    void addSerialClient(QSerialPort *pPort);
+
+    AClientList *getClientList() {return m_pClientList;}
 
 signals:
 
 private:
     //all client connections are added to this list
-    QList<AClient*> m_ClientList;
+    AClientList *m_pClientList;
 
 public slots:
-    //add client from serial port connection
-    void addSerialClient(QSerialPort *pPort);
+
 
 private slots:
     void onNewConnection();
-    void onNewClientConnected();
+    void onClientIDAssigned();
 };
 
 #endif // THESERVER_H
