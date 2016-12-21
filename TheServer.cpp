@@ -83,6 +83,9 @@ void TheServer::addSerialClient(QSerialPort *pPort)
     connect(pClientThread, SIGNAL(finished()), pClientThread, SLOT(deleteLater()));
 
     pClientThread->start();
+
+    //we add the serial client as they are created, different than the tcpip client
+    m_pClientList->addClient(pClient);
 }
 
 void TheServer::onNewConnection()

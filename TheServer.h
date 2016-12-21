@@ -18,6 +18,9 @@ public:
     void startServer();
     void shutdownServer();
 
+    //add client from serial port connection
+    void addSerialClient(QSerialPort *pPort);
+
     AClientList *getClientList() {return m_pClientList;}
 
 signals:
@@ -27,8 +30,7 @@ private:
     AClientList *m_pClientList;
 
 public slots:
-    //add client from serial port connection
-    void addSerialClient(QSerialPort *pPort);
+
 
 private slots:
     void onNewConnection();

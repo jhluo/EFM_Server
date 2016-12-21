@@ -52,7 +52,10 @@ public:
     //void setSocket(QTcpSocket *pSocket);
     void setInputDevice(QIODevice *pInputDevice, const eClientType type);
 
+    //shut off the client
     void closeClient();
+
+    QSerialPort *getClientSerialPort();
 
     //we use this to register a dialog that will show client data
     void registerDataViewer(QTextEdit *pTextEdit);
@@ -126,6 +129,9 @@ signals:
 
 public slots:
     void sendData(const QString &data);
+
+    //slots that turns a serial port off and on
+    void setSerialConnect(const bool on);
 
 private slots:
     void onDataReceived();

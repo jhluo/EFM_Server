@@ -137,17 +137,16 @@ void MainWindowWidget::onRawLoggingChecked(const bool checked)
 
 void MainWindowWidget::onAddSerialPushed()
 {
-    SerialSettingsDialog dialog(this);
-    connect(&dialog, SIGNAL(newSerialPort(QSerialPort*)), m_pServer, SLOT(addSerialClient(QSerialPort*)));
-    dialog.exec();
+    QSerialPort *pSerialPort = new QSerialPort;
+    SerialSettingsDialog dialog(pSerialPort, this);
 
-//    if (dialog.exec() == QDialog::Accepted)  {
-//        // Pass dia values into class and try to open the port
-//        m_pServer-
+    if (dialog.exec() == QDialog::Accepted)  {
+        // Pass dialog values into class and try to open the port
+        m_pServer->addSerialClient(pSerialPort);
 
 //        //AppSettings settings;
 //        //settings.writeSerialSettings(QString::number(pSB->mountPt.getInstance())+"/COM", pSerialConfigDlg->settings().name);
-//    }
+    }
 }
 
 void MainWindowWidget::onLogButtonPushed()

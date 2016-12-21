@@ -22,7 +22,7 @@ public:
         QSerialPort::FlowControl flowControl;
     };
 
-    explicit SerialSettingsDialog(QWidget *parent = 0);
+    explicit SerialSettingsDialog(QSerialPort *pPort, QWidget *parent = 0);
     ~SerialSettingsDialog();
 
 
@@ -43,7 +43,6 @@ private:
     QDialogButtonBox *m_pButtonBox;
 
 signals:
-    void newSerialPort(QSerialPort *pPort);
 
 private slots:
     void apply();

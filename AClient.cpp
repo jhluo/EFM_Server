@@ -21,16 +21,12 @@ AClient::AClient(QObject *pParent)
 {
     m_DataBuffer.clear();
 
-    m_TimeOfConnect = QDateTime::currentDateTime();
-
-
     m_ClientState = eOffline;
 
     //Time out the client if stop sending data
     m_pDataStarvedTimer = new QTimer(this);
     m_pDataStarvedTimer->setInterval(DATA_TIMEOUT);
     connect(m_pDataStarvedTimer, SIGNAL(timeout()), this, SLOT(onDataTimeout()));
-    m_pDataStarvedTimer->start();
 }
 
 AClient::~AClient()
@@ -46,8 +42,13 @@ void AClient::setInputDevice(QIODevice *pInputDevice, const eClientType type)
     m_ClientType = type;
     connect(m_pInputDevice, SIGNAL(readyRead()), this, SLOT(onDataReceived()));
 
-    if(type == eTcp)
+    if(type == eTcp) {
         connect(m_pInputDevice, SIGNAL(disconnected()), this, SLOT(onSocketDisconnected()));
+
+        //tcp client will connect immediately so we do these here, serial client we delay till COM port connects
+        m_TimeOfConnect = QDateTime::currentDateTime();
+        m_pDataStarvedTimer->start();
+    }
 }
 
 void AClient::registerDataViewer(QTextEdit *pTextEdit)
@@ -66,6 +67,36 @@ void AClient::closeClient()
         this->thread()->terminate(); //Thread didn't exit in time, probably deadlocked, terminate it!
         this->thread()->wait(); //We have to wait again here!
     }
+}
+
+void AClient::setSerialConnect(const bool on)
+{
+    if(m_ClientType == eSerial) {
+        if(on) {
+            if(m_pInputDevice->open(QIODevice::ReadWrite)) {
+                    m_ClientState = eNoData;
+                    m_TimeOfConnect = QDateTime::currentDateTime();
+                    m_pDataStarvedTimer->start();
+                    emit clientDataChanged();
+            } else {
+                qDebug() << m_pInputDevice->errorString();
+            }
+        } else {
+            m_pInputDevice->close();
+            m_ClientState = eOffline;
+            m_TimeOfDisconnect = QDateTime::currentDateTime();
+            m_pDataStarvedTimer->stop();
+            emit clientDataChanged();
+        }
+    }
+}
+
+QSerialPort* AClient::getClientSerialPort()
+{
+    if(m_ClientType==eSerial)
+        return qobject_cast<QSerialPort*>(m_pInputDevice);
+
+    return NULL;
 }
 
 void AClient::onDataReceived()
@@ -519,7 +550,8 @@ QString AClient::getClientAddress() const
         QTcpSocket *pSocket = qobject_cast<QTcpSocket*>(m_pInputDevice);
         address = pSocket->peerAddress().toString();
     } else if (m_ClientType == eSerial) {
-        ;
+        QSerialPort *pPort = qobject_cast<QSerialPort*>(m_pInputDevice);
+        address = pPort->portName();
     }
 
     return address;

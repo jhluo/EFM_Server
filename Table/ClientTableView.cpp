@@ -3,6 +3,7 @@
 #include "AClient.h"
 #include "Widgets/DataViewer.h"
 #include "Widgets/ClientCommandDialog.h"
+#include "Widgets/SerialSettingsDialog.h"
 #include "Misc/Logger.h"
 #include <QHeaderView>
 #include <QTimer>
@@ -61,6 +62,22 @@ void ClientTableView::showContextMenu(const QPoint& pos) // this is a slot
     //make sure there is someting to be selected
     if(this->model()->rowCount() != 0 && !selectedIndexes().isEmpty()) {
         QMenu *pMenu = new QMenu(this);
+        AClient *pCurrentClient = m_pClientList->getClient(selectedIndexes().first().row());
+
+        //add a connect/disconnect option for serial client
+        if(pCurrentClient->getClientType()==AClient::eSerial) {
+            QAction *pConnectAction = new QAction(pMenu);
+            if(pCurrentClient->getClientState()=="Offline") pConnectAction->setText(tr("Connect"));
+            else pConnectAction->setText(tr("Disconnect"));
+            connect(pConnectAction, SIGNAL(triggered()), this, SLOT(onSerialConnectTriggered()));
+            pMenu->addAction(pConnectAction);
+
+            QAction *pEditAction = new QAction(tr("Edit"), pMenu);
+            if(pCurrentClient->getClientState()=="Offline") pEditAction->setEnabled(true);
+            else pEditAction->setEnabled(false);
+            connect(pEditAction, SIGNAL(triggered()), this, SLOT(onSerialEditTriggered()));
+            pMenu->addAction(pEditAction);
+        }
 
         //send command dialog action
         QAction *pSendCommandAction = new QAction(QString(tr("Send Command...")), pMenu);
@@ -117,4 +134,33 @@ void ClientTableView::onShowChartToggled(const bool enabled)
     AClient *pClient = m_pClientList->getClient(selectedIndexes().first().row());
     pClient->setShowChart(enabled);
     emit showChart(enabled, pClient);
+}
+
+//for connecting serial client
+void ClientTableView::onSerialConnectTriggered()
+{
+    bool on = false;
+    AClient *pCurrentClient = m_pClientList->getClient(selectedIndexes().first().row());
+    if(pCurrentClient->getClientState()=="Offline") {
+        on = true;
+    } else {
+        on = false;
+    }
+
+    emit serialPortToggled(on);
+}
+
+void ClientTableView::onSerialEditTriggered()
+{
+    AClient *pCurrentClient = m_pClientList->getClient(selectedIndexes().first().row());
+    SerialSettingsDialog dialog(pCurrentClient->getClientSerialPort(), this);
+    dialog.exec();
+
+//    if (dialog.exec() == QDialog::Accepted)  {
+//        // Pass dialog values into class and try to open the port
+//        m_pServer->addSerialClient(pSerialPort);
+
+//        //AppSettings settings;
+//        //settings.writeSerialSettings(QString::number(pSB->mountPt.getInstance())+"/COM", pSerialConfigDlg->settings().name);
+//    }
 }

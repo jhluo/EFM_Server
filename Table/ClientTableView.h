@@ -23,10 +23,13 @@ private:
 
 signals:
     void showChart(const bool enabled, AClient *pClient);
+    void serialPortToggled(const bool on);
 
 private slots:
     void showContextMenu(const QPoint&);
     void onMessageViewerTriggered();
     void onSendCommandTriggered();
     void onShowChartToggled(const bool enabled);
+    void onSerialConnectTriggered();
+    void onSerialEditTriggered();
 };
