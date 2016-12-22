@@ -48,10 +48,14 @@ void AClientList::sort(const int column, Qt::SortOrder order)
         qDebug() << m_ClientList.at(i)->getClientId() << endl;
     }
 
-//    if(column == 0) {
-//        if(order == Qt::AscendingOrder)
-//            std::sort(m_ClientList.begin(), m_ClientList.end(), sortByName);
-//    }
+    if(column == 0) {
+        if(order == Qt::AscendingOrder)
+            std::sort(m_ClientList.begin(), m_ClientList.end(),
+                      [](AClient* a, AClient* b) -> bool { return a->getClientId().toInt() < b->getClientId().toInt(); });
+        else
+            std::sort(m_ClientList.begin(), m_ClientList.end(),
+                      [](AClient* a, AClient* b) -> bool { return a->getClientId().toInt() > b->getClientId().toInt(); });
+    }
 
     qDebug() << "After sort:\n";
     for(int i=0; i<m_ClientList.size(); i++) {
