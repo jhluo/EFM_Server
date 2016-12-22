@@ -123,9 +123,8 @@ void TheServer::onTcpClientDisconnected()
            && m_pClientList->getClient(i)->getClientId() == pClient->getClientId()
            && m_pClientList->getClient(i)->getClientAddress() == pClient->getClientAddress()
            && m_pClientList->getClient(i)->getClientState() == "Offline") {
-            AClient* pOldClient = m_pClientList->getClient(i);
-            delete pOldClient;
             m_pClientList->removeClient(i);
+            break;
         }
     }
 }
@@ -141,8 +140,7 @@ void TheServer::onClientIDAssigned()
             AClient* pOldClient = m_pClientList->getClient(i);
             if(pOldClient->getClientState() == "Offline") {
                 //delete pOldClient->thread();
-                delete pOldClient;
-                m_pClientList->removeClient(i);
+                m_pClientList->removeAClient(pOldClient);
             } else {
                 //count how many identical device
                 count++;

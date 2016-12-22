@@ -77,6 +77,12 @@ public:
     void setShowChart(const bool enabled);
     bool getShowChart() const {return m_ShowChart;}
 
+    inline bool operator==(const AClient &rhs){
+        return (this->getClientId()==rhs.getClientId()
+                && this->getClientAddress() == rhs.getClientAddress()
+                && this->getClientState() == rhs.getClientState() );
+    }
+
 protected:
     QString m_ClientId; //ID number of the client;
 

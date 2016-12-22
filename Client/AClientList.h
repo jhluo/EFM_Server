@@ -18,6 +18,10 @@ public:
 
     void addClient(AClient *pClient);
     void removeClient(const int index);
+
+    //remove all instance of this client
+    void removeAClient(AClient *pClient);
+
     void removeAll();
     void sort(const int column, Qt::SortOrder order);
 

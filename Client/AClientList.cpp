@@ -22,8 +22,29 @@ void AClientList::addClient(AClient *pClient)
 
 void AClientList::removeClient(const int index)
 {
+    delete m_ClientList[index];
     m_ClientList.remove(index);
     emit clientRemoved(index);
+}
+
+void AClientList::removeAClient(AClient *pClient)
+{
+    QList<AClient*> clientList;
+    QList<int> indexList;
+
+    for(int i=0; i<m_ClientList.size(); i++) {
+        if(m_ClientList[i]==pClient){
+            indexList.append(i);
+            clientList.append(m_ClientList[i]);
+        }
+    }
+
+    qDeleteAll(clientList.begin(), clientList.end());
+    m_ClientList.removeAll(pClient);
+
+    for(int i=0; i<indexList.size(); i++) {
+        emit clientRemoved(indexList.at(i));
+    }
 }
 
 void AClientList::removeAll()
@@ -48,13 +69,15 @@ void AClientList::sort(const int column, Qt::SortOrder order)
         qDebug() << m_ClientList.at(i)->getClientId() << endl;
     }
 
-    if(column == 0) {
+    if(column == 0) {   //sort by name
         if(order == Qt::AscendingOrder)
             std::sort(m_ClientList.begin(), m_ClientList.end(),
                       [](AClient* a, AClient* b) -> bool { return a->getClientId().toInt() < b->getClientId().toInt(); });
         else
             std::sort(m_ClientList.begin(), m_ClientList.end(),
                       [](AClient* a, AClient* b) -> bool { return a->getClientId().toInt() > b->getClientId().toInt(); });
+    } else if (column == 1) { //sort by source
+
     }
 
     qDebug() << "After sort:\n";
