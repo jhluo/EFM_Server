@@ -12,6 +12,7 @@ ClientCommandDialog::ClientCommandDialog(AClient *pClient, QWidget *parent) :
 {
     connect(this, SIGNAL(writeCommand(QString)), m_pClient, SLOT(sendData(QString)));
     connect(m_pClient, SIGNAL(bytesSent(int)), this, SLOT(onCommandSent(int)));
+    connect(m_pClient, SIGNAL(clientAcknowledge(bool)), this, SLOT(onCommandAcknowledged(bool)));
 
     setWindowTitle(QString(tr("Send Client Command")));
     createActions();
@@ -161,7 +162,15 @@ void ClientCommandDialog::onCommandComboChanged()
 void ClientCommandDialog::onCommandSent(const int bytesWritten)
 {
     if(bytesWritten == m_pCommandEdit->text().toLocal8Bit().size())
-        m_pResultLabel->setText(QString(tr("Command was sent")));
+        m_pResultLabel->setText(QString(tr("Command was sent, awaiting acknowledgment from client.")));
     else
         m_pResultLabel->setText(QString(tr("Command was not sent correctly.  Please retry.")));
+}
+
+void ClientCommandDialog::onCommandAcknowledged(const bool ok)
+{
+    if(ok)
+        m_pResultLabel->setText(QString(tr("Client acknowledge command.")));
+    else
+        m_pResultLabel->setText(QString(tr("Client could not execute command.  Please retry.")));
 }

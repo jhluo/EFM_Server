@@ -21,9 +21,9 @@ ClientTableModel::~ClientTableModel()
 void ClientTableModel::setClientList(AClientList *pClientList)
 {
     m_pClientList = pClientList;
-    connect(m_pClientList, SIGNAL(clientAdded()), this, SLOT(onNewClientAdded()));
-    connect(m_pClientList, SIGNAL(clientRemoved(int)), this, SLOT(onClientRemoved(int)));
-    connect(m_pClientList, SIGNAL(clientDataChanged(int)), this, SLOT(onClientDataUpdated(int)));
+    connect(m_pClientList, SIGNAL(clientAdded()), this, SLOT(onNewClientAdded()), Qt::QueuedConnection);
+    connect(m_pClientList, SIGNAL(clientRemoved(int)), this, SLOT(onClientRemoved(int)), Qt::QueuedConnection);
+    connect(m_pClientList, SIGNAL(clientDataChanged(int)), this, SLOT(onClientDataUpdated(int)), Qt::QueuedConnection);
 }
 
 int ClientTableModel::rowCount(const QModelIndex & /*parent*/) const

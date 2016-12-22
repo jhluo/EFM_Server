@@ -9,6 +9,8 @@
 #include <QSqlQuery>
 
 #define DATA_TIMEOUT 60000  //swith to no data state after 60 seconds
+#define COMMAND_ACK_TIMEOUT 10000    //give 10 seconds for client to reply
+
 #define FULL_DATA_SIZE 50    //size of data frame in bytes
 #define PARTIAL_DATA_SIZE 37    //this is for the older version of data that only has 37 bytes
 
@@ -18,7 +20,8 @@ AClient::AClient(QObject *pParent)
       m_pInputDevice(NULL),
       m_ClientType(eUnknown),
       m_pDataViewer(NULL),
-      m_ShowChart(false)
+      m_ShowChart(false),
+      m_lastCommandSent(0)
 {
     m_DataBuffer.clear();
 
@@ -28,10 +31,17 @@ AClient::AClient(QObject *pParent)
     m_pDataStarvedTimer = new QTimer(this);
     m_pDataStarvedTimer->setInterval(DATA_TIMEOUT);
     connect(m_pDataStarvedTimer, SIGNAL(timeout()), this, SLOT(onDataTimeout()));
+
+    //Command acknowledgement timer
+    m_pCommandAckTimer = new QTimer(this);
+    m_pCommandAckTimer->setInterval(COMMAND_ACK_TIMEOUT);
+    connect(m_pCommandAckTimer, SIGNAL(timeout()), this, SLOT(onCommandAckTimeout()));
 }
 
 AClient::~AClient()
 {
+    m_pDataStarvedTimer->stop();
+    m_pCommandAckTimer->stop();
     m_DataBuffer.clear();
 }
 
@@ -110,15 +120,38 @@ void AClient::onDataReceived()
     m_pDataStarvedTimer->start();
 }
 
-void AClient::sendData(const QString &data)
+void AClient::sendCommand(const QString &data)
 {
     int bytes = m_pInputDevice->write(data.toLocal8Bit());
     //qDebug() << QString("%1 bytes in buffer, %2 bytes are written").arg(data.toLocal8Bit().size()).arg(bytes);
     emit bytesSent(bytes);
+
+    int indexColon = data.indexOf(":");
+    int commandNum = data.mid(4, indexColon-4).toInt();
+    m_lastCommandSent = commandNum;
+    m_pCommandAckTimer->start();
 }
 
 void AClient::handleData(const QByteArray &newData)
 {
+    //handle command acknowledgement first, then return
+    if(newData.left(3) == "ack") {
+        bool ok = false;
+        int commandNum = newData.mid(3, 2).toInt();
+        QString id = newData.mid(6, 4);
+        QString result = newData.right(5);
+
+        if(commandNum == m_lastCommandSent
+           && id == m_ClientId
+           && result == "setok")
+            ok = true;
+
+        emit clientAcknowledge(ok);
+
+        return;
+    }
+
+
     if(newData.left(1) == "J" //it's a new packet
        || m_DataBuffer.size() >= FULL_DATA_SIZE // buffer is holding more than it should for some reason
        )
@@ -171,7 +204,7 @@ void AClient::handleData(const QByteArray &newData)
                 .arg(currentTime.minute())
                 .arg(currentTime.second());
 
-        sendData(command);
+        sendCommand(command);
         //qDebug() <<command;
     }
 
@@ -259,6 +292,19 @@ void AClient::handleData(const QByteArray &newData)
 
     //emit signal to notify model
     emit clientDataChanged();
+
+    //reply the client with ack command
+    QDateTime currentDateTime = QDateTime::currentDateTime();
+    QDate currentDate = currentDateTime.date();
+    QTime currentTime = currentDateTime.time();
+    QString command=QString("dxsj32:%1%2%3%4%5")
+            .arg(currentDate.year()-2000)
+            .arg(currentDate.month())
+            .arg(currentDate.day())
+            .arg(currentTime.hour())
+            .arg(currentTime.minute());
+
+    sendCommand(command);
 
     //display the data if there's a viewer dialog opened
     if(m_pDataViewer != NULL) {
@@ -380,12 +426,23 @@ void AClient::onDataTimeout()
     emit clientDataChanged();
 }
 
+//throw message when client did not ack command
+void AClient::onCommandAckTimeout()
+{
+    m_pCommandAckTimer->stop();
+    emit error(QString(tr("Client %1 did not receive command.  Please retry.")).arg(m_ClientId));
+}
+
 void AClient::onSocketDisconnected()
 {
     LOG_SYS(QString("Client %1 at %2 disconnected").arg(m_ClientId).arg(getClientAddress()));
 
     if(m_pDataStarvedTimer->isActive()) {
         m_pDataStarvedTimer->stop();
+    }
+
+    if(m_pCommandAckTimer->isActive()) {
+        m_pCommandAckTimer->stop();
     }
 
     m_ClientState = eOffline;

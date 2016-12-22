@@ -45,4 +45,5 @@ private slots:
     void onSendButtonClicked();
 
     void onCommandSent(const int bytesWritten);
+    void onCommandAcknowledged(const bool ok);
 };

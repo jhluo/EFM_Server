@@ -117,12 +117,18 @@ private:
     //whether we display the client in chart dialog
     bool m_ShowChart;
 
+    //Command ack timer
+    QTimer *m_pCommandAckTimer;
+    int m_lastCommandSent;
+
+
     //method used in decode to convert bytes into a double
     double convertToDecimal(const QByteArray &highByte, const QByteArray &lowByte);
 
 signals:
     void error(QString err);
     void bytesSent(const int size);
+    void clientAcknowledge(const bool ok);
     void clientIDAssigned();
     void clientDisconnected();
     void clientDataChanged();
@@ -139,7 +145,7 @@ public slots:
     Q_INVOKABLE virtual void connectClient();
     Q_INVOKABLE virtual void disconnectClient();
 
-    void sendData(const QString &data);
+    void sendCommand(const QString &data);
 
     //slots that turns a serial port off and on
     void setSerialConnect(const bool on);
@@ -147,6 +153,7 @@ public slots:
 private slots:
     void onDataReceived();
     void onDataTimeout();
+    void onCommandAckTimeout();
     void onSocketDisconnected();
 };
 

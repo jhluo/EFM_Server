@@ -64,10 +64,10 @@ void AClientList::removeAll()
 
 void AClientList::sort(const int column, Qt::SortOrder order)
 {
-    qDebug() << "Before sort:\n";
-    for(int i=0; i<m_ClientList.size(); i++) {
-        qDebug() << m_ClientList.at(i)->getClientId() << endl;
-    }
+//    qDebug() << "Before sort:\n";
+//    for(int i=0; i<m_ClientList.size(); i++) {
+//        qDebug() << m_ClientList.at(i)->getClientId() << endl;
+//    }
 
     if(column == 0) {   //sort by name
         if(order == Qt::AscendingOrder)
@@ -77,13 +77,18 @@ void AClientList::sort(const int column, Qt::SortOrder order)
             std::sort(m_ClientList.begin(), m_ClientList.end(),
                       [](AClient* a, AClient* b) -> bool { return a->getClientId().toInt() > b->getClientId().toInt(); });
     } else if (column == 1) { //sort by source
-
+        if(order == Qt::AscendingOrder)
+            std::sort(m_ClientList.begin(), m_ClientList.end(),
+                      [](AClient* a, AClient* b) -> bool { return a->getClientAddress() < b->getClientAddress(); });
+        else
+            std::sort(m_ClientList.begin(), m_ClientList.end(),
+                      [](AClient* a, AClient* b) -> bool { return a->getClientAddress() > b->getClientAddress(); });
     }
 
-    qDebug() << "After sort:\n";
-    for(int i=0; i<m_ClientList.size(); i++) {
-        qDebug() << m_ClientList.at(i)->getClientId() << endl;
-    }
+//    qDebug() << "After sort:\n";
+//    for(int i=0; i<m_ClientList.size(); i++) {
+//        qDebug() << m_ClientList.at(i)->getClientId() << endl;
+//    }
 }
 
 int AClientList::size() const
