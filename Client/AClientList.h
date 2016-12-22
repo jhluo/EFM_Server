@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QVector>
+#include "AClient.h"
 
 //container object of all clients
 
@@ -18,6 +19,7 @@ public:
     void addClient(AClient *pClient);
     void removeClient(const int index);
     void removeAll();
+    void sort(const int column, Qt::SortOrder order);
 
     int size() const;
     AClient* getClient(const int index);

@@ -1,6 +1,6 @@
-#include "AClient.h"
 #include "AClientList.h"
 #include <QThread>
+#include <algorithm>
 
 AClientList::AClientList(QObject *pParent)
     : QObject(pParent)
@@ -39,6 +39,24 @@ void AClientList::removeAll()
     }
 
     m_ClientList.clear();
+}
+
+void AClientList::sort(const int column, Qt::SortOrder order)
+{
+    qDebug() << "Before sort:\n";
+    for(int i=0; i<m_ClientList.size(); i++) {
+        qDebug() << m_ClientList.at(i)->getClientId() << endl;
+    }
+
+//    if(column == 0) {
+//        if(order == Qt::AscendingOrder)
+//            std::sort(m_ClientList.begin(), m_ClientList.end(), sortByName);
+//    }
+
+    qDebug() << "After sort:\n";
+    for(int i=0; i<m_ClientList.size(); i++) {
+        qDebug() << m_ClientList.at(i)->getClientId() << endl;
+    }
 }
 
 int AClientList::size() const

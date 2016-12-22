@@ -20,6 +20,12 @@ ClientTableView::ClientTableView(AClientList *pClientList, QWidget *pParent)
 
     m_pClientTableModel = new ClientTableModel(this);
     m_pClientTableModel->setClientList(pClientList);
+
+    //this add sorting
+    //QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel(this);
+    //proxyModel->setSourceModel(m_pClientTableModel);
+    //setModel(proxyModel);
+
     setModel(m_pClientTableModel);
 
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -36,8 +42,10 @@ void ClientTableView::setupTable()
 {
     //this->verticalHeader()->setVisible(false);
     horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     setSelectionBehavior(QAbstractItemView::SelectRows);
     setEditTriggers(QAbstractItemView::NoEditTriggers);
+    setSortingEnabled(true);
 }
 
 //deselect selection when left click

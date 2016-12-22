@@ -100,6 +100,17 @@ QVariant ClientTableModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
+void ClientTableModel::sort(int column, Qt::SortOrder order)
+{
+    m_pClientList->sort(column, order);
+
+    //refresh the entire table
+    QModelIndex topLeft = createIndex(0,0);
+    QModelIndex bottomRight = createIndex(rowCount()-1, columnCount()-1);
+    //emit a signal to make the view reread identified data
+    emit dataChanged(topLeft, bottomRight);
+}
+
 void ClientTableModel::onUpdateTimer()
 {
     //we identify the top left cell
