@@ -7,6 +7,7 @@
 #include <QThread>
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QSqlError>
 
 #define DATA_TIMEOUT 60000  //swith to no data state after 60 seconds
 #define COMMAND_ACK_TIMEOUT 10000    //give 10 seconds for client to reply
@@ -222,12 +223,17 @@ void AClient::handleData(const QByteArray &newData)
 
     ClientData clientData;
     int second = m_DataBuffer.mid(10,1).toHex().toInt(&ok, 16);
+    if(second > 59) second = 0;
     int month = m_DataBuffer.mid(11,1).toHex().toInt(&ok, 16);
+    if(month > 12) month = 12;
     int day = m_DataBuffer.mid(12,1).toHex().toInt(&ok, 16);
+    if(day > 31) day = 1;
     int hour = m_DataBuffer.mid(13,1).toHex().toInt(&ok, 16);
+    if(hour>23) hour=0;
     int minute = m_DataBuffer.mid(14,1).toHex().toInt(&ok, 16);
+    if(minute>59) minute=0;
     clientData.clientDate = QString("%1/%2/%3 %4:%5:%6")
-                            .arg(16)
+                            .arg(2016)
                             .arg(month)
                             .arg(day)
                             .arg(hour)
@@ -462,24 +468,26 @@ bool AClient::writeDatabase(const ClientData &data)
 
     AppSettings settings;
     QSqlDatabase db;
+
     QString connectionName = m_ClientId;
     if(!QSqlDatabase::contains(connectionName)) {
-        QSqlDatabase db = QSqlDatabase::addDatabase("QODBC", connectionName);
-        QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
-                .arg(settings.readDatabaseSettings("host", "").toString())
-                .arg(settings.readDatabaseSettings("DbName", "").toString())
-                .arg(settings.readDatabaseSettings("user", "").toString())
-                .arg(settings.readDatabaseSettings("password", "").toString());
-
-        db.setDatabaseName(dsn);
+        db = QSqlDatabase::addDatabase("QODBC", connectionName);
     } else {
         db = QSqlDatabase::database(connectionName);
     }
 
+    QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
+            .arg(settings.readDatabaseSettings("host", "").toString())
+            .arg(settings.readDatabaseSettings("DbName", "").toString())
+            .arg(settings.readDatabaseSettings("user", "").toString())
+            .arg(settings.readDatabaseSettings("password", "").toString());
+
+    db.setDatabaseName(dsn);
+
     if(db.open()) {
         QString queryStr;
         queryStr = QString("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, 紫外线, 氧气含量, PM1, PM25, PM10, 错误标志)"
-                           "VALUES ('%1', '%2', %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18);"
+                           "VALUES (%1, '%2', %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18);"
                            )
                 .arg(m_ClientId)
                 .arg(data.clientDate)
@@ -502,30 +510,39 @@ bool AClient::writeDatabase(const ClientData &data)
 
         QSqlQuery query(db);
         result = query.exec(queryStr);
+        if(result==false) {
+            LOG_SYS("Insert failed\n");
+            LOG_SYS("Date: "+data.clientDate+"\n");
+            LOG_SYS(query.lastError().text());
+        }
 
-        QString queryStr2;
-        queryStr2 = QString("UPDATE equipment "
-                           "SET data_date='%1', 浓度=%2, 湿度=%3, 温度=%4, 正离子数=%5, 风向=%6, 风速=%7, 雨量=%8, 气压=%9, 紫外线=%10, 氧气含量=%11, PM1=%12, PM25=%13, PM10=%14"
-                           "WHERE StationID='%15';"
-                           )
-                .arg(data.clientDate)
-                .arg(data.nIon)
-                .arg(data.humidity)
-                .arg(data.temperature)
-                .arg(data.pIon)
-                .arg(data.windDirection)
-                .arg(data.windSpeed)
-                .arg(data.rainfall)
-                .arg(data.pressure)
-                .arg(data.ultraViolet)
-                .arg(data.oxygen)
-                .arg(data.pm1)
-                .arg(data.pm25)
-                .arg(data.pm10)
-                .arg(m_ClientId);
+//        QString queryStr2;
+//        queryStr2 = QString("UPDATE equipment "
+//                           "SET data_date='%1', 浓度=%2, 湿度=%3, 温度=%4, 正离子数=%5, 风向=%6, 风速=%7, 雨量=%8, 气压=%9, 紫外线=%10, 氧气含量=%11, PM1=%12, PM25=%13, PM10=%14"
+//                           "WHERE StationID=%15;"
+//                           )
+//                .arg(data.clientDate)
+//                .arg(data.nIon)
+//                .arg(data.humidity)
+//                .arg(data.temperature)
+//                .arg(data.pIon)
+//                .arg(data.windDirection)
+//                .arg(data.windSpeed)
+//                .arg(data.rainfall)
+//                .arg(data.pressure)
+//                .arg(data.ultraViolet)
+//                .arg(data.oxygen)
+//                .arg(data.pm1)
+//                .arg(data.pm25)
+//                .arg(data.pm10)
+//                .arg(m_ClientId);
 
 
-        result = query.exec(queryStr2);
+//        result = query.exec(queryStr2);
+//        if(result==false) {
+//            LOG_SYS("Update failed\n");
+//            LOG_SYS(query.lastError().text());
+//        }
         db.close();
     }
 

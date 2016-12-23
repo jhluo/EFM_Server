@@ -3,7 +3,8 @@
 #include <algorithm>
 
 AClientList::AClientList(QObject *pParent)
-    : QObject(pParent)
+    : QObject(pParent),
+      mMutex()
 {
     m_ClientList.clear();
 }
@@ -15,6 +16,8 @@ AClientList::~AClientList()
 
 void AClientList::addClient(AClient *pClient)
 {
+    QMutexLocker locker(&mMutex);
+
     //put the next client into the list
     m_ClientList.append(pClient);
     emit clientAdded();
@@ -22,6 +25,8 @@ void AClientList::addClient(AClient *pClient)
 
 void AClientList::removeClient(const int index)
 {
+    QMutexLocker locker(&mMutex);
+
     delete m_ClientList[index];
     m_ClientList.remove(index);
     emit clientRemoved(index);
@@ -29,6 +34,8 @@ void AClientList::removeClient(const int index)
 
 void AClientList::removeAClient(AClient *pClient)
 {
+    QMutexLocker locker(&mMutex);
+
     QList<AClient*> clientList;
     QList<int> indexList;
 
@@ -49,6 +56,8 @@ void AClientList::removeAClient(AClient *pClient)
 
 void AClientList::removeAll()
 {
+    QMutexLocker locker(&mMutex);
+
     for(int i=0; i<m_ClientList.size(); i++){
         AClient* pClient = m_ClientList.at(i);
         if(pClient->getClientState()=="Online") {
@@ -68,6 +77,7 @@ void AClientList::sort(const int column, Qt::SortOrder order)
 //    for(int i=0; i<m_ClientList.size(); i++) {
 //        qDebug() << m_ClientList.at(i)->getClientId() << endl;
 //    }
+    QMutexLocker locker(&mMutex);
 
     if(column == 0) {   //sort by name
         if(order == Qt::AscendingOrder)

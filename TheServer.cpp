@@ -95,7 +95,8 @@ void TheServer::onNewTcpClientConnected()
     QTcpSocket *pSocket = this->nextPendingConnection();
 
     //a new client has connected, we want to create a new client object and put it into its own thread
-    LOG_SYS(QString("New client from %1 has connected").arg(pSocket->peerAddress().toString()));
+    LOG_SYS(QString("New client from %1 at port %2 has connected").arg(pSocket->peerAddress().toString())
+            .arg(pSocket->peerPort()));
 
     TcpClient *pClient = new TcpClient(pSocket);
 

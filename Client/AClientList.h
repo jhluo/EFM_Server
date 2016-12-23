@@ -2,6 +2,9 @@
 
 #include <QObject>
 #include <QVector>
+#include <QMutex>
+#include <QMutexLocker>
+
 #include "AClient.h"
 
 //container object of all clients
@@ -30,6 +33,7 @@ public:
 
 private:
     QVector<AClient*> m_ClientList;
+    QMutex mMutex;
 
 signals:
     void clientAdded();
