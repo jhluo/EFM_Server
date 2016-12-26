@@ -1,3 +1,4 @@
+#include <QSqlDatabase>
 #include "TcpClient.h"
 #include "Misc/Logger.h"
 
@@ -35,6 +36,19 @@ void TcpClient::onSocketDisconnected()
     m_ClientState = eOffline;
 
     m_TimeOfDisconnect = QDateTime::currentDateTime();
+
+    //remove the database connection for this thread
+    QSqlDatabase db;
+    QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
+            .arg(settings.readDatabaseSettings("host", "").toString())
+            .arg(settings.readDatabaseSettings("DbName", "").toString())
+            .arg(settings.readDatabaseSettings("user", "").toString())
+            .arg(settings.readDatabaseSettings("password", "").toString());
+    db.setDatabaseName(dsn);
+
+    if(QSqlDatabase::contains(m_ThreadId)) {
+        db = QSqlDatabase::removeDatabase(m_ThreadId);
+    }
 
     //emit signal to notify model
     emit clientDisconnected();

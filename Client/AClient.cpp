@@ -469,8 +469,10 @@ bool AClient::writeDatabase(const ClientData &data)
     AppSettings settings;
     QSqlDatabase db;
 
-    QString connectionName = m_ClientId;
-    if(!QSqlDatabase::contains(connectionName)) {
+    int* threadId = (int *)(this->thread()->currentThreadId());
+    m_ThreadId = QString::number(*id);
+
+    if(!QSqlDatabase::contains(m_ThreadId)) {
         db = QSqlDatabase::addDatabase("QODBC", connectionName);
     } else {
         db = QSqlDatabase::database(connectionName);
@@ -516,33 +518,32 @@ bool AClient::writeDatabase(const ClientData &data)
             LOG_SYS(query.lastError().text());
         }
 
-//        QString queryStr2;
-//        queryStr2 = QString("UPDATE equipment "
-//                           "SET data_date='%1', 浓度=%2, 湿度=%3, 温度=%4, 正离子数=%5, 风向=%6, 风速=%7, 雨量=%8, 气压=%9, 紫外线=%10, 氧气含量=%11, PM1=%12, PM25=%13, PM10=%14"
-//                           "WHERE StationID=%15;"
-//                           )
-//                .arg(data.clientDate)
-//                .arg(data.nIon)
-//                .arg(data.humidity)
-//                .arg(data.temperature)
-//                .arg(data.pIon)
-//                .arg(data.windDirection)
-//                .arg(data.windSpeed)
-//                .arg(data.rainfall)
-//                .arg(data.pressure)
-//                .arg(data.ultraViolet)
-//                .arg(data.oxygen)
-//                .arg(data.pm1)
-//                .arg(data.pm25)
-//                .arg(data.pm10)
-//                .arg(m_ClientId);
+        queryStr = QString("UPDATE equipment "
+                           "SET data_date='%1', 浓度=%2, 湿度=%3, 温度=%4, 正离子数=%5, 风向=%6, 风速=%7, 雨量=%8, 气压=%9, 紫外线=%10, 氧气含量=%11, PM1=%12, PM25=%13, PM10=%14"
+                           "WHERE StationID=%15;"
+                           )
+                .arg(data.clientDate)
+                .arg(data.nIon)
+                .arg(data.humidity)
+                .arg(data.temperature)
+                .arg(data.pIon)
+                .arg(data.windDirection)
+                .arg(data.windSpeed)
+                .arg(data.rainfall)
+                .arg(data.pressure)
+                .arg(data.ultraViolet)
+                .arg(data.oxygen)
+                .arg(data.pm1)
+                .arg(data.pm25)
+                .arg(data.pm10)
+                .arg(m_ClientId);
 
-
-//        result = query.exec(queryStr2);
-//        if(result==false) {
-//            LOG_SYS("Update failed\n");
-//            LOG_SYS(query.lastError().text());
-//        }
+        QSqlQuery updateQuery(db);
+        result = updateQuery.exec(queryStr);
+        if(result==false) {
+            LOG_SYS("Update failed\n");
+            LOG_SYS(updateQuery.lastError().text());
+        }
         db.close();
     }
 

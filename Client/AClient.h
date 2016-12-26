@@ -85,6 +85,7 @@ public:
 
 protected:
     QString m_ClientId; //ID number of the client;
+    QString m_ThreadId;
 
     //Time stamp when client was connected and disconnected;
     QDateTime m_TimeOfConnect;
@@ -120,7 +121,6 @@ private:
     //Command ack timer
     QTimer *m_pCommandAckTimer;
     int m_lastCommandSent;
-
 
     //method used in decode to convert bytes into a double
     double convertToDecimal(const QByteArray &highByte, const QByteArray &lowByte);

@@ -40,10 +40,10 @@ MainWindowWidget::~MainWindowWidget()
 
 void MainWindowWidget::createLayout()
 {
-//    m_pClientTable = new ClientTableView(m_pServer->getClientList(), this);
-//    //connect signal to add tabs to the widget
-//    connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), m_pChartDialog, SLOT(onChartToggled(bool,AClient*)));
-//    connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), this, SLOT(onChartToggled(bool)));
+    m_pClientTable = new ClientTableView(m_pServer->getClientList(), this);
+    //connect signal to add tabs to the widget
+    connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), m_pChartDialog, SLOT(onChartToggled(bool,AClient*)));
+    connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), this, SLOT(onChartToggled(bool)));
 
     m_pDatabaseCheckBox = new QCheckBox(tr("Write to Database"));
     connect(m_pDatabaseCheckBox, SIGNAL(toggled(bool)), this, SLOT(onDatabaseChecked(bool)));
@@ -79,7 +79,7 @@ void MainWindowWidget::createLayout()
     pCommandGroupBox->setLayout(pCommandLayout);
 
     QHBoxLayout *pTopLayout = new QHBoxLayout;
-//    pTopLayout->addWidget(m_pClientTable);
+    pTopLayout->addWidget(m_pClientTable);
     pTopLayout->addWidget(pCommandGroupBox);
     QWidget *pTopWidget = new QWidget;
     pTopWidget->setLayout(pTopLayout);
