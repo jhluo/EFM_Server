@@ -12,8 +12,8 @@
 #define DATA_TIMEOUT 60000  //swith to no data state after 60 seconds
 #define COMMAND_ACK_TIMEOUT 10000    //give 10 seconds for client to reply
 
-#define FULL_DATA_SIZE 50    //size of data frame in bytes
-#define PARTIAL_DATA_SIZE 37    //this is for the older version of data that only has 37 bytes
+#define VERSION1_LENGTH 37  //length in bytes for fixed length messages
+#define VERSION2_LENGTH 50
 
 AClient::AClient(QObject *pParent)
     : QObject(pParent),
@@ -152,156 +152,25 @@ void AClient::handleData(const QByteArray &newData)
         return;
     }
 
-    //handle new format
-//    QByteArray exampleData = "BG,12345,321420,1163418,01000,18,YNAI,001,"
-//                             "20120912131000,005,009,03,ASA,010001,AAA5,-102, "
-//                             "ADA5,080,ASB,0300,ASC,1000,ASD,-100,ASE,080,ASF,"
-//                            "10000,ASG,000200,000000000,z,1,y_AAA,2,wA,4,9574,ED";
-//    if(exampleData.left(2)=="BG") {
-    if(newData.left(2) == "BG") {
-        decodeVersion3Data(newData);
-
-
-}
-    //handle old format
-    if(newData.left(1) == "J" //it's a new packet
-       || m_DataBuffer.size() >= FULL_DATA_SIZE // buffer is holding more than it should for some reason
-       )
-    {
-        m_DataBuffer.clear(); //clear previous data
-    }
-
+    m_DataBuffer.clear();
     m_DataBuffer.append(newData);
 
-    if(m_DataBuffer.size() == PARTIAL_DATA_SIZE) {    //old data format 37bit，add 13 bit make it 50
-        for(int i=0; i<13; i++) {
-            m_DataBuffer.append("0");
+    ClientData clientData;
+    //verison 1 & 2
+    if(m_DataBuffer.left(2)=="JH") {
+        if(newData.length() == VERSION1_LENGTH) {
+            m_ClientVersion = eVersion1;
+            decodeVersion1Data(m_DataBuffer, clientData);
+        } else if(newData.length() == VERSION2_LENGTH) {
+            m_ClientVersion = eVersion2;
+            decodeVersion2Data(m_DataBuffer, clientData);
         }
-    }
-
-    if(m_DataBuffer.size() < FULL_DATA_SIZE) {    //not full packet, we wait till next iteration
-        return;
+    } else if(newData.left(2)=="BG") {
+        m_ClientVersion = eVersion3;
+        decodeVersion3Data(m_DataBuffer, clientData);
     } else {
-        m_DataBuffer.left(FULL_DATA_SIZE);
-    }
-
-    //qDebug() <<"Data to be decoded is:  " << m_Data.toHex()<<endl << endl;
-
-    //Here we start decoding because we passed the checks above
-
-    //first we validate the message header
-    QString header;
-    header.append(m_DataBuffer.left(5));
-    if(header != "JHWTO") {
-        m_DataBuffer.clear();
         return;
     }
-
-    bool ok = false;
-    if(m_ClientId == "Unknown") {//this is the first packet we get in this client, so tell server a new client has connected
-        //this line is needed so that the slot knows what the ID is
-        m_ClientId = QString::number(m_DataBuffer.mid(5, 2).toHex().toInt(&ok, 16));
-        emit clientIDAssigned();
-
-        //send an initial command to calibrate date
-        QDateTime currentDateTime = QDateTime::currentDateTime();
-        QDate currentDate = currentDateTime.date();
-        QTime currentTime = currentDateTime.time();
-        QString command=QString("dxsj02:\"%1.%2.%3.%4.%5.%6.%7\"")
-                .arg(currentDate.year()-2000)
-                .arg(currentDate.month())
-                .arg(currentDate.day())
-                .arg(currentDate.dayOfWeek())
-                .arg(currentTime.hour())
-                .arg(currentTime.minute())
-                .arg(currentTime.second());
-
-        sendCommand(command);
-        //qDebug() <<command;
-    }
-
-    m_ClientId = QString::number(m_DataBuffer.mid(5, 2).toHex().toInt(&ok, 16));
-
-    int msgCount = m_DataBuffer.mid(7, 2).toHex().toInt(&ok, 16);
-    Q_UNUSED(msgCount);
-
-    QByteArray bcc = m_DataBuffer.mid(9, 1).toHex();
-    Q_UNUSED(bcc);  //message checksum, no use yet
-
-
-    if(m_DataBuffer.size() < 10)
-       return;
-
-    int second = m_DataBuffer.mid(10,1).toHex().toInt(&ok, 16);
-    if(second > 59) second = 0;
-    int month = m_DataBuffer.mid(11,1).toHex().toInt(&ok, 16);
-    if(month > 12) month = 12;
-    int day = m_DataBuffer.mid(12,1).toHex().toInt(&ok, 16);
-    if(day > 31) day = 1;
-    int hour = m_DataBuffer.mid(13,1).toHex().toInt(&ok, 16);
-    if(hour>23) hour=0;
-    int minute = m_DataBuffer.mid(14,1).toHex().toInt(&ok, 16);
-    if(minute>59) minute=0;
-    clientData.clientDate = QString("%1/%2/%3 %4:%5:%6")
-                            .arg(2016)
-                            .arg(month)
-                            .arg(day)
-                            .arg(hour)
-                            .arg(minute)
-                            .arg(second);
-
-    //convert temperature to floating point number, first argument is higher byte,
-    // second argument is lower byte
-    clientData.temperature = convertToDecimal(m_DataBuffer.mid(15,1), m_DataBuffer.mid(16,1));
-
-    //convert humidity to floating point number, same as temeprature
-    clientData.humidity = convertToDecimal(m_DataBuffer.mid(17, 1), m_DataBuffer.mid(18,1));
-
-    clientData.nIon = m_DataBuffer.mid(19, 2).toHex().toInt(&ok, 16);
-    clientData.pIon = m_DataBuffer.mid(21, 2).toHex().toInt(&ok, 16);
-
-    clientData.windDirection = m_DataBuffer.mid(23,2).toHex().toInt(&ok, 16);
-
-    clientData.windSpeed = convertToDecimal(m_DataBuffer.mid(25,1), m_DataBuffer.mid(26,1));
-
-    //convert rainfall to a double
-    const char rain_h = m_DataBuffer.at(27);
-    const char rain_l = m_DataBuffer.at(28);
-
-    //shift higher-byte 4 bits to left then combine with first 4 bits of lower-byte
-    //???this is different than what's in spec, need to verify
-    int rain_int = (rain_h << 4) | ((rain_l & 0xF0) >> 4);
-
-    //only look at last 4 bits of lower-byte
-    int rain_dec = rain_l & 0x0F;
-
-    //combine integer and fractional part
-    double rain_frac = 0;
-    if(rain_dec<10)
-        rain_frac = rain_dec/10.0;
-    else
-        rain_frac = rain_dec/100.0;
-
-    clientData.rainfall = rain_int + rain_frac;
-
-    //pressure needs three bytes
-    clientData.pressure = convertToDecimal(m_DataBuffer.mid(29, 2), m_DataBuffer.mid(31,1));
-
-    clientData.ultraViolet = m_DataBuffer.mid(32, 2).toHex().toInt(&ok, 16);
-
-    //TODO:  BCC check sum stuff on byte 34~36,  not implemented yet
-
-    clientData.oxygen = m_DataBuffer.mid(37, 2).toHex().toInt(&ok, 16) / 10;
-
-    clientData.pm1 = m_DataBuffer.mid(39, 2).toHex().toInt(&ok, 16) / 10;
-
-    clientData.pm25 = m_DataBuffer.mid(41, 2).toHex().toInt(&ok, 16) / 10;
-
-    clientData.pm10 = m_DataBuffer.mid(43, 2).toHex().toInt(&ok, 16) / 10;
-
-    int error = 0;  //TBD
-    Q_UNUSED(error);
-
 
     //emits signal for chart dialog
     emit receivedData(QDateTime::currentDateTime(), clientData.nIon);
@@ -432,28 +301,19 @@ void AClient::handleData(const QByteArray &newData)
     m_DataBuffer.clear(); //done decoding, clear the array
 }
 
-void AClient::decodeVersion3Data(const QByteArray &newData)
+void AClient::decodeVersion1Data(const QByteArray &dataArray, ClientData &data)
 {
-    QString str;
-    str.append(newData);
+    //first we validate the message header
+    QString header;
+    header.append(dataArray.left(5));
+    if(header != "JHWTO") {
+        return;
+    }
 
-    //if data is not long enough to be informative
-    if(m_DataBuffer.size() < 65)
-       return;
-
-    QString stationID = str.mid(3,4);
-    int latitude = str.mid(9,5).toInt();
-    int longtitude = str.mid(16,6).toInt();
-    int altitude = str.mid(24,4).toInt();
-    int serviceType = str.mid(30,1).toInt();
-    QString deviceType = str.mid(33,3);
-    QString deviceID = str.mid(38,2).toInt();
-    int dateTime = str.mid(42,13).toInt();
-
-    QString clientID = stationID+deviceID;
+    bool ok = false;
     if(m_ClientId == "Unknown") {//this is the first packet we get in this client, so tell server a new client has connected
         //this line is needed so that the slot knows what the ID is
-        m_ClientId = clientID.toInt();
+        m_ClientId = QString::number(dataArray.mid(5, 2).toHex().toInt(&ok, 16));
         emit clientIDAssigned();
 
         //send an initial command to calibrate date
@@ -473,9 +333,128 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
         //qDebug() <<command;
     }
 
-    m_ClientId = clientID.toInt();
+    m_ClientId = QString::number(dataArray.mid(5, 2).toHex().toInt(&ok, 16));
 
-    ClientData clientData;
+    int msgCount = dataArray.mid(7, 2).toHex().toInt(&ok, 16);
+    Q_UNUSED(msgCount);
+
+    QByteArray bcc = dataArray.mid(9, 1).toHex();
+    Q_UNUSED(bcc);  //message checksum, no use yet
+
+    int second = dataArray.mid(10,1).toHex().toInt(&ok, 16);
+    if(second > 59) second = 0;
+    int month = dataArray.mid(11,1).toHex().toInt(&ok, 16);
+    if(month > 12) month = 12;
+    int day = dataArray.mid(12,1).toHex().toInt(&ok, 16);
+    if(day > 31) day = 1;
+    int hour = dataArray.mid(13,1).toHex().toInt(&ok, 16);
+    if(hour>23) hour=0;
+    int minute = dataArray.mid(14,1).toHex().toInt(&ok, 16);
+    if(minute>59) minute=0;
+    data.clientDate = QString("%1/%2/%3 %4:%5:%6")
+                            .arg(2016)
+                            .arg(month)
+                            .arg(day)
+                            .arg(hour)
+                            .arg(minute)
+                            .arg(second);
+
+    //convert temperature to floating point number, first argument is higher byte,
+    // second argument is lower byte
+    data.temperature = convertToDecimal(dataArray.mid(15,1), dataArray.mid(16,1));
+
+    //convert humidity to floating point number, same as temeprature
+    data.humidity = convertToDecimal(dataArray.mid(17, 1), dataArray.mid(18,1));
+
+    data.nIon = dataArray.mid(19, 2).toHex().toInt(&ok, 16);
+    data.pIon = dataArray.mid(21, 2).toHex().toInt(&ok, 16);
+
+    data.windDirection = dataArray.mid(23,2).toHex().toInt(&ok, 16);
+
+    data.windSpeed = convertToDecimal(dataArray.mid(25,1), dataArray.mid(26,1));
+
+    //convert rainfall to a double
+    const char rain_h = dataArray.at(27);
+    const char rain_l = dataArray.at(28);
+
+    //shift higher-byte 4 bits to left then combine with first 4 bits of lower-byte
+    //???this is different than what's in spec, need to verify
+    int rain_int = (rain_h << 4) | ((rain_l & 0xF0) >> 4);
+
+    //only look at last 4 bits of lower-byte
+    int rain_dec = rain_l & 0x0F;
+
+    //combine integer and fractional part
+    double rain_frac = 0;
+    if(rain_dec<10)
+        rain_frac = rain_dec/10.0;
+    else
+        rain_frac = rain_dec/100.0;
+
+    data.rainfall = rain_int + rain_frac;
+
+    //pressure needs three bytes
+    data.pressure = convertToDecimal(dataArray.mid(29, 2), dataArray.mid(31,1));
+
+    data.ultraViolet = dataArray.mid(32, 2).toHex().toInt(&ok, 16);
+
+    //TODO:  BCC check sum stuff on byte 34~36,  not implemented yet
+
+    int error = 0;  //TBD
+    Q_UNUSED(error);
+}
+
+void AClient::decodeVersion2Data(const QByteArray &dataArray, ClientData &data)
+{
+    bool ok = false;
+    decodeVersion1Data(dataArray, data);
+
+    data.oxygen = dataArray.mid(37, 2).toHex().toInt(&ok, 16) / 10;
+
+    data.pm1 = dataArray.mid(39, 2).toHex().toInt(&ok, 16) / 10;
+
+    data.pm25 = dataArray.mid(41, 2).toHex().toInt(&ok, 16) / 10;
+
+    data.pm10 = dataArray.mid(43, 2).toHex().toInt(&ok, 16) / 10;
+}
+
+void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
+{
+    QString str;
+    str.append(newData);
+
+    QString stationID = str.mid(3,4);
+    data.latitude = str.mid(9,5).toInt();
+    data.longtitude = str.mid(16,6).toInt();
+    data.altitude = str.mid(24,4).toInt();
+    data.serviceType = str.mid(30,1).toInt();
+    data.deviceType = str.mid(33,3);
+    data.deviceID = str.mid(38,2).toInt();
+
+    QString clientID = data.stationID+data.deviceID;
+    if(m_ClientId == "Unknown") {//this is the first packet we get in this client, so tell server a new client has connected
+        //this line is needed so that the slot knows what the ID is
+        m_ClientId = clientID;
+        emit clientIDAssigned();
+
+        //send an initial command to calibrate date
+        QDateTime currentDateTime = QDateTime::currentDateTime();
+        QDate currentDate = currentDateTime.date();
+        QTime currentTime = currentDateTime.time();
+        QString command=QString("dxsj02:\"%1.%2.%3.%4.%5.%6.%7\"")
+                .arg(currentDate.year()-2000)
+                .arg(currentDate.month())
+                .arg(currentDate.day())
+                .arg(currentDate.dayOfWeek())
+                .arg(currentTime.hour())
+                .arg(currentTime.minute())
+                .arg(currentTime.second());
+
+        sendCommand(command);
+        //qDebug() <<command;
+    }
+
+    m_ClientId = clientID;
 
     int year = m_DataBuffer.mid(42,3).toInt();
     int month = m_DataBuffer.mid(46,1).toHex().toInt();
@@ -488,7 +467,7 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
     if(minute>59) minute=0;
     int second = m_DataBuffer.mid(54,1).toHex().toInt();
     if(second>59) second=0;
-    clientData.clientDate = QString("%1/%2/%3 %4:%5:%6")
+    data.clientDate = QString("%1/%2/%3 %4:%5:%6")
                             .arg(year)
                             .arg(month)
                             .arg(day)
@@ -496,10 +475,9 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
                             .arg(minute)
                             .arg(second);
 
-    int interval = str.mid(57,2).toInt();
-    int elementCount = str.mid(61,2).toInt();
-    int statusCount = str.mid(65,1).toInt();
-
+    data.interval = str.mid(57,2).toInt();
+    data.elementCount = str.mid(61,2).toInt();
+    data.statusCount = str.mid(65,1).toInt();
 
     //locate the index of the field
     int indexOfASA = str.indexOf("ASA");
@@ -527,68 +505,71 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
     QString ASA_Str = "";
     if(indexOfASA != -1) {  //-1 is the case that "ASA" cannot not be found in the sentence
         ASA_Str = str.mid(indexOfASA+4, str.indexOf(",", indexOfASA+4)-(indexOfASA+4));
-}
+        data.nIon = ASA_Str.toInt();
+    }
     QString AAA5_Str = "";
     if(indexOfAAA5 != -1) {  //-1 is the case that "AAA5" cannot not be found in the sentence
         AAA5_Str = str.mid(indexOfAAA5+5, str.indexOf(",", indexOfAAA5+5)-(indexOfAAA5+5));
-}
+        data.temperature = AAA5_Str.toInt() / 10.0;
+    }
     QString ADA5_Str = "";
     if(indexOfADA5 != -1) {  //-1 is the case that "ASA" cannot not be found in the sentence
         ADA5_Str = str.mid(indexOfADA5+5, str.indexOf(",", indexOfADA5+5)-(indexOfADA5+5));
-}
+        data.humidity = ADA5_Str.toInt();
+    }
     QString ASB_Str = "";
     if(indexOfASB != -1) {  //-1 is the case that "ASB" cannot not be found in the sentence
         ASB_Str = str.mid(indexOfASB+4, str.indexOf(",", indexOfASB+4)-(indexOfASB+4));
-}
+    }
     QString ASC_Str = "";
     if(indexOfASC != -1) {  //-1 is the case that "ASC" cannot not be found in the sentence
         ASC_Str = str.mid(indexOfASC+4, str.indexOf(",", indexOfASC+4)-(indexOfASC+4));
-}
+    }
     QString ASD_Str = "";
     if(indexOfASD != -1) {  //-1 is the case that "ASD" cannot not be found in the sentence
         ASD_Str = str.mid(indexOfASD+4, str.indexOf(",", indexOfASD+4)-(indexOfASD+4));
-}
+    }
     QString ASE_Str = "";
     if(indexOfASE != -1) {  //-1 is the case that "ASE" cannot not be found in the sentence
         ASE_Str = str.mid(indexOfASE+4, str.indexOf(",", indexOfASE+4)-(indexOfASE+4));
-}
+    }
     QString ASF_Str = "";
     if(indexOfASF != -1) {  //-1 is the case that "ASF" cannot not be found in the sentence
         ASF_Str = str.mid(indexOfASF+4, str.indexOf(",", indexOfASF+4)-(indexOfASF+4));
-}
+    }
     QString ASG_Str = "";
     if(indexOfASG != -1) {  //-1 is the case that "ASG" cannot not be found in the sentence
         ASG_Str = str.mid(indexOfASG+4, str.indexOf(",", indexOfASG+4)-(indexOfASG+4));
-}
+    }
     QString z_Str = "";
     if(indexOfz != -1) {  //-1 is the case that "z" cannot not be found in the sentence
         z_Str = str.mid(indexOfz+2, str.indexOf(",", indexOfz+2)-(indexOfz+2));
-}
+    }
     QString y_AAA_Str = "";
     if(indexOfy_AAA != -1) {  //-1 is the case that "y_AAA" cannot not be found in the sentence
         y_AAA_Str = str.mid(indexOfy_AAA+6, str.indexOf(",", indexOfy_AAA+6)-(indexOfy_AAA+6));
-}
+    }
     QString y_ADA_Str = "";
     if(indexOfy_ADA != -1) {  //-1 is the case that "y_ADA" cannot not be found in the sentence
         y_ADA_Str = str.mid(indexOfy_ADA+6, str.indexOf(",", indexOfy_ADA+6)-(indexOfy_ADA+6));
-}
+    }
     QString xA_Str = "";
     if(indexOfxA != -1) {  //-1 is the case that "xA" cannot not be found in the sentence
         xA_Str = str.mid(indexOfxA+3, str.indexOf(",", indexOfxA+3)-(indexOfxA+3));
-}
+    }
     QString xB_Str = "";
     if(indexOfxB != -1) {  //-1 is the case that "xB" cannot not be found in the sentence
         xB_Str = str.mid(indexOfxB+3, str.indexOf(",", indexOfxB+3)-(indexOfxB+3));
-}
+    }
     QString wA_Str = "";
     if(indexOfwA != -1) {  //-1 is the case that "wA" cannot not be found in the sentence
         wA_Str = str.mid(indexOfwA+3, str.indexOf(",", indexOfwA+3)-(indexOfwA+3));
-}
+    }
 
     QString tQ_Str = "";
     if(indexOftQ != -1) {  //-1 is the case that "tQ" cannot not be found in the sentence
         tQ_Str = str.mid(indexOftQ+7, str.indexOf(",", indexOftQ+3)-(indexOftQ+3));
-}
+    }
 }
 
 //disconnect the client when no data is being sent
@@ -656,6 +637,7 @@ bool AClient::writeDatabase(const ClientData &data)
 
     if(db.open()) {
         QString queryStr;
+        if(m_ClientVersion == eVersion1) {
         queryStr = QString("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, 紫外线, 氧气含量, PM1, PM25, PM10, 错误标志)"
                            "VALUES (%1, '%2', %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18);"
                            )
@@ -677,6 +659,68 @@ bool AClient::writeDatabase(const ClientData &data)
                 .arg(data.pm25)
                 .arg(data.pm10)
                 .arg(0);
+        } else if (m_ClientVersion == eVersion2) {
+            queryStr = QString("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, 紫外线, 氧气含量, PM1, PM25, PM10, 错误标志)"
+                               "VALUES (%1, '%2', %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18);"
+                               )
+                    .arg(m_ClientId)
+                    .arg(data.clientDate)
+                    .arg(0)
+                    .arg(0)
+                    .arg(data.nIon)
+                    .arg(data.humidity)
+                    .arg(data.temperature)
+                    .arg(data.pIon)
+                    .arg(data.windDirection)
+                    .arg(data.windSpeed)
+                    .arg(data.rainfall)
+                    .arg(data.pressure)
+                    .arg(data.ultraViolet)
+                    .arg(data.oxygen)
+                    .arg(data.pm1)
+                    .arg(data.pm25)
+                    .arg(data.pm10)
+                    .arg(0);
+        } else if (m_ClientVersion == eVersion3) {
+            queryStr = QString("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, CO2, PM1, PM25, PM10, 测量室负温度, 测量室正温度, "
+                                        "甲醛, 极板负电压, 极板正电压, 风扇负转速, 风扇正转速, 关风机采集数, 开风机采集数, 关风机正离子, 开风机正离子, 经度, 纬度, 海拔高度, 服务类型, 设备标识, 帧标识, 设备标识码)"
+                               "VALUES (%1, '%2', %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18, %19, %20, %21, %22, %23, %24, %25, %26, %27, %28, %29, %30, %31, %32, %33, %34);"
+                               )
+                    .arg(m_ClientId)
+                    .arg(data.clientDate)
+                    .arg(0)
+                    .arg(0)
+                    .arg(data.nIon)
+                    .arg(data.humidity)
+                    .arg(data.temperature)
+                    .arg(data.pIon)
+                    .arg(data.windDirection)
+                    .arg(data.windSpeed)
+                    .arg(data.rainfall)
+                    .arg(data.pressure)
+                    //.arg(data.CO2)
+                    .arg(data.pm1)
+                    .arg(data.pm25)
+                    .arg(data.pm10)
+    //                .arg(TubeTempLeft)
+    //                .arg(TubeTempRight)
+    //                .arg(VOC)
+    //                .arg(PVN)
+    //                .arg(PVP)
+    //                .arg(RPML)
+    //                .arg(RPMR)
+    //                .arg(FOFFL)
+    //                .arg(FONL)
+    //                .arg(FOFFR)
+    //                .arg(FONR)
+    //                .arg(Longtitude)
+    //                .arg(Latitude)
+    //                .arg(Altitude)
+    //                .arg(ServiceType)
+    //                .arg(DeviceType)
+    //                .arg(0)
+                    .arg(0);
+        }
 
         QSqlQuery query(db);
         result = query.exec(queryStr);
@@ -686,82 +730,6 @@ bool AClient::writeDatabase(const ClientData &data)
             LOG_SYS(query.lastError().text());
         }
 
-        QString queryStrNewFormat;
-        queryStrNewFormat = QString("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, CO2, PM1, PM25, PM10, 测量室负温度, 测量室正温度, "
-                                    "甲醛, 极板负电压, 极板正电压, 风扇负转速, 风扇正转速, 关风机采集数, 开风机采集数, 关风机正离子, 开风机正离子, 经度, 纬度, 海拔高度, 服务类型, 设备标识, 帧标识, 设备标识码)"
-                           "VALUES (%1, '%2', %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18, %19, %20, %21, %22, %23, %24, %25, %26, %27, %28, %29, %30, %31, %32, %33, %34);"
-                           )
-                .arg(m_ClientId)
-                .arg(data.clientDate)
-                .arg(0)
-                .arg(0)
-                .arg(data.nIon)
-                .arg(data.humidity)
-                .arg(data.temperature)
-                .arg(data.pIon)
-                .arg(data.windDirection)
-                .arg(data.windSpeed)
-                .arg(data.rainfall)
-                .arg(data.pressure)
-                //.arg(data.CO2)
-                .arg(data.pm1)
-                .arg(data.pm25)
-                .arg(data.pm10)
-//                .arg(TubeTempLeft)
-//                .arg(TubeTempRight)
-//                .arg(VOC)
-//                .arg(PVN)
-//                .arg(PVP)
-//                .arg(RPML)
-//                .arg(RPMR)
-//                .arg(FOFFL)
-//                .arg(FONL)
-//                .arg(FOFFR)
-//                .arg(FONR)
-//                .arg(Longtitude)
-//                .arg(Latitude)
-//                .arg(Altitude)
-//                .arg(ServiceType)
-//                .arg(DeviceType)
-//                .arg(0)
-                .arg(0);
-
-
-        //QSqlQuery query(db);
-        result = query.exec(queryStr);
-        if(result==false) {
-            LOG_SYS("Insert failed\n");
-            LOG_SYS("Date: "+data.clientDate+"\n");
-            LOG_SYS(query.lastError().text());
-        }
-
-
-//        queryStr = QString("UPDATE equipment "
-//                           "SET data_date='%1', 浓度=%2, 湿度=%3, 温度=%4, 正离子数=%5, 风向=%6, 风速=%7, 雨量=%8, 气压=%9, 紫外线=%10, 氧气含量=%11, PM1=%12, PM25=%13, PM10=%14"
-//                           "WHERE StationID=%15;"
-//                           )
-//                .arg(data.clientDate)
-//                .arg(data.nIon)
-//                .arg(data.humidity)
-//                .arg(data.temperature)
-//                .arg(data.pIon)
-//                .arg(data.windDirection)
-//                .arg(data.windSpeed)
-//                .arg(data.rainfall)
-//                .arg(data.pressure)
-//                .arg(data.ultraViolet)
-//                .arg(data.oxygen)
-//                .arg(data.pm1)
-//                .arg(data.pm25)
-//                .arg(data.pm10)
-//                .arg(m_ClientId);
-
-//        QSqlQuery updateQuery(db);
-//        result = updateQuery.exec(queryStr);
-//        if(result==false) {
-//            LOG_SYS("Update failed\n");
-//            LOG_SYS(updateQuery.lastError().text());
-//        }
         db.close();
     }
 
