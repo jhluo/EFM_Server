@@ -6,7 +6,6 @@ INPUT(
 ./release\AppSettings.o
 ./release\DatabaseSettingsDialog.o
 ./release\TheServer.o
-./release\AClient.o
 ./release\DataViewer.o
 ./release\ServerSettingsDialog.o
 ./release\AboutDialog.o
@@ -17,9 +16,12 @@ INPUT(
 ./release\ChartDialog.o
 ./release\ChartTabWidget.o
 ./release\SerialSettingsDialog.o
-./release\AClientList.o
 ./release\ClientTableModel.o
 ./release\ClientTableView.o
+./release\AClient.o
+./release\AClientList.o
+./release\SerialClient.o
+./release\TcpClient.o
 ./release\qrc_resource.o
 ./release\moc_mainwindow.o
 ./release\moc_MainWindowWidget.o
@@ -27,7 +29,6 @@ INPUT(
 ./release\moc_AppSettings.o
 ./release\moc_DatabaseSettingsDialog.o
 ./release\moc_TheServer.o
-./release\moc_AClient.o
 ./release\moc_DataViewer.o
 ./release\moc_ServerSettingsDialog.o
 ./release\moc_AboutDialog.o
@@ -38,7 +39,10 @@ INPUT(
 ./release\moc_ChartDialog.o
 ./release\moc_ChartTabWidget.o
 ./release\moc_SerialSettingsDialog.o
-./release\moc_AClientList.o
 ./release\moc_ClientTableModel.o
 ./release\moc_ClientTableView.o
+./release\moc_AClient.o
+./release\moc_AClientList.o
+./release\moc_SerialClient.o
+./release\moc_TcpClient.o
 );

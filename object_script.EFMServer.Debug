@@ -6,7 +6,6 @@ INPUT(
 ./debug\AppSettings.o
 ./debug\DatabaseSettingsDialog.o
 ./debug\TheServer.o
-./debug\AClient.o
 ./debug\DataViewer.o
 ./debug\ServerSettingsDialog.o
 ./debug\AboutDialog.o
@@ -17,9 +16,12 @@ INPUT(
 ./debug\ChartDialog.o
 ./debug\ChartTabWidget.o
 ./debug\SerialSettingsDialog.o
-./debug\AClientList.o
 ./debug\ClientTableModel.o
 ./debug\ClientTableView.o
+./debug\AClient.o
+./debug\AClientList.o
+./debug\SerialClient.o
+./debug\TcpClient.o
 ./debug\qrc_resource.o
 ./debug\moc_mainwindow.o
 ./debug\moc_MainWindowWidget.o
@@ -27,7 +29,6 @@ INPUT(
 ./debug\moc_AppSettings.o
 ./debug\moc_DatabaseSettingsDialog.o
 ./debug\moc_TheServer.o
-./debug\moc_AClient.o
 ./debug\moc_DataViewer.o
 ./debug\moc_ServerSettingsDialog.o
 ./debug\moc_AboutDialog.o
@@ -38,7 +39,10 @@ INPUT(
 ./debug\moc_ChartDialog.o
 ./debug\moc_ChartTabWidget.o
 ./debug\moc_SerialSettingsDialog.o
-./debug\moc_AClientList.o
 ./debug\moc_ClientTableModel.o
 ./debug\moc_ClientTableView.o
+./debug\moc_AClient.o
+./debug\moc_AClientList.o
+./debug\moc_SerialClient.o
+./debug\moc_TcpClient.o
 );
