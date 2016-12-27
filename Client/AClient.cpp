@@ -153,15 +153,16 @@ void AClient::handleData(const QByteArray &newData)
     }
 
     //handle new format
-    QByteArray exampleData = "BG,12345,321420,1163418,01000,18,YNAI,001,"
-                             "20120912131000,005,009,03,ASA,010001,AAA5,-102, "
-                             "ADA5,080,ASB,0300,ASC,1000,ASD,-100,ASE,080,ASF,"
-                            "10000,ASG,000200,000000000,z,1,y_AAA,2,wA,4,9574,ED";
-    if(exampleData.left(2)=="BG") {
-    //if(newData.left(2) == "BG") {
+//    QByteArray exampleData = "BG,12345,321420,1163418,01000,18,YNAI,001,"
+//                             "20120912131000,005,009,03,ASA,010001,AAA5,-102, "
+//                             "ADA5,080,ASB,0300,ASC,1000,ASD,-100,ASE,080,ASF,"
+//                            "10000,ASG,000200,000000000,z,1,y_AAA,2,wA,4,9574,ED";
+//    if(exampleData.left(2)=="BG") {
+    if(newData.left(2) == "BG") {
 
         QString str;
         str.append(exampleData);
+
 
         int stationID = str.mid(3,4).toInt();
         int latitude = str.mid(9,5).toInt();
@@ -171,9 +172,55 @@ void AClient::handleData(const QByteArray &newData)
         QString deviceType = str.mid(33,3);
         int deviceID = str.mid(38,2).toInt();
         int dateTime = str.mid(42,13).toInt();
+
+        if(m_ClientId == "Unknown") {//this is the first packet we get in this client, so tell server a new client has connected
+            //this line is needed so that the slot knows what the ID is
+            m_ClientId = QString::number(m_ClientId = stationID+":"+deviceID);
+            emit clientIDAssigned();
+
+            //send an initial command to calibrate date
+            QDateTime currentDateTime = QDateTime::currentDateTime();
+            QDate currentDate = currentDateTime.date();
+            QTime currentTime = currentDateTime.time();
+            QString command=QString("dxsj02:\"%1.%2.%3.%4.%5.%6.%7\"")
+                    .arg(currentDate.year()-2000)
+                    .arg(currentDate.month())
+                    .arg(currentDate.day())
+                    .arg(currentDate.dayOfWeek())
+                    .arg(currentTime.hour())
+                    .arg(currentTime.minute())
+                    .arg(currentTime.second());
+
+            sendCommand(command);
+            //qDebug() <<command;
+        }
+        ClientData dateTime;
+        int year = m_DataBuffer.mid(42,3).toInt();
+        int month = m_DataBuffer.mid(46,1).toHex().toInt();
+        if(month > 12) month = 1;
+        int day = m_DataBuffer.mid(48,1).toHex().toInt();
+        if(day > 31) day = 1;
+        int hour = m_DataBuffer.mid(50,1).toHex().toInt();
+        if(hour>23) hour=0;
+        int minute = m_DataBuffer.mid(52,1).toHex().toInt();
+        if(minute>59) minute=0;
+        int minute = m_DataBuffer.mid(54,1).toHex().toInt();
+        if(second>59) second=0;
+        clientData.clientDate = QString("%1/%2/%3 %4:%5:%6")
+                                .arg(year)
+                                .arg(month)
+                                .arg(day)
+                                .arg(hour)
+                                .arg(minute)
+                                .arg(second);
+
         int interval = str.mid(57,2).toInt();
         int elementCount = str.mid(61,2).toInt();
         int statusCount = str.mid(65,1).toInt();
+
+        //if data is not long enough to be informative
+        if(m_DataBuffer.size() < 65)
+           return;
 
         //locate the index of the field
         int indexOfASA = str.indexOf("ASA");
@@ -334,7 +381,6 @@ void AClient::handleData(const QByteArray &newData)
     if(m_DataBuffer.size() < 10)
        return;
 
-    ClientData clientData;
     int second = m_DataBuffer.mid(10,1).toHex().toInt(&ok, 16);
     if(second > 59) second = 0;
     int month = m_DataBuffer.mid(11,1).toHex().toInt(&ok, 16);
