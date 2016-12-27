@@ -29,6 +29,12 @@ public:
         eUnknown
     };
 
+    enum eClientVersion {
+        eVersion1,
+        eVersion2,
+        eVersion3
+    };
+
     typedef struct {
         QString clientDate;
         double temperature;
@@ -44,6 +50,34 @@ public:
         double pm1;
         double pm25;
         double pm10;
+        double CO2;
+        double longtitude;
+        double latititude;
+        double altitude;
+        double VOC;
+        int serviceType;
+        QString deviceType;
+        int deviceID;
+        int stationID;
+        int interval;
+        int elementCount;
+        int statusCount;
+        int fanOnIonCountN;
+        int fanOffIonCountN;
+        int fanOnIonCountP;
+        int fanOffIonCountP;
+        double PolarVoltP;
+        double PolarVoltN;
+        double TubeTempL;
+        double TubeTampR;
+        int RPML;
+        int RPMR;
+
+
+
+
+
+
     } ClientData;
 
     AClient(QObject *pParent = 0);
@@ -100,6 +134,10 @@ protected:
 private:
     void handleData(const QByteArray &newData);
 
+    void decodeVersion1Data(const QByteArray &newData);
+    void decodeVersion2Data(const QByteArray &newData);
+    void decodeVersion3Data(const QByteArray &newData);
+
     void writeDataLog(const QString &fileName, const ClientData &data);
     void writeRawLog(const QString &fileName, const QByteArray &rawData);
     bool writeDatabase(const ClientData &data);
@@ -111,6 +149,9 @@ private:
 
     //type of this client
     eClientType m_ClientType;
+
+    //version of data format for this client
+    eClientVersion m_CLientVersion;
 
     //this can be used to display data info from a client
     QTextEdit *m_pDataViewer;
