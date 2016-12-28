@@ -470,12 +470,12 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
     str.append(newData);
 
     data.stationID = str.mid(3,4);
-    data.latitude = str.mid(9,5).toInt();
-    data.longtitude = str.mid(16,6).toInt();
-    data.altitude = str.mid(24,4).toInt();
-    data.serviceType = str.mid(30,1).toInt();
-    data.deviceType = str.mid(33,3);
-    data.deviceString = str.mid(38,2).toInt();
+    data.latitude = str.mid(9,5).toDouble();
+    data.longtitude = str.mid(16,6).toDouble();
+    data.altitude = str.mid(24,4).toDouble();
+    data.serviceType = str.mid(30,2).toInt();
+    data.deviceType = str.mid(33,4);
+    data.deviceString = str.mid(38,3);
 
     QString clientID = data.stationID+data.deviceString;
 
@@ -503,16 +503,16 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
 
     m_ClientId = clientID;
 
-    int year = m_DataBuffer.mid(42,3).toInt();
-    int month = m_DataBuffer.mid(46,1).toHex().toInt();
+    int year = str.mid(42,4).toInt();
+    int month = str.mid(46,2).toInt();
     if(month > 12) month = 1;
-    int day = m_DataBuffer.mid(48,1).toHex().toInt();
+    int day = str.mid(48,2).toInt();
     if(day > 31) day = 1;
-    int hour = m_DataBuffer.mid(50,1).toHex().toInt();
+    int hour = str.mid(50,2).toInt();
     if(hour>23) hour=0;
-    int minute = m_DataBuffer.mid(52,1).toHex().toInt();
+    int minute = str.mid(52,2).toInt();
     if(minute>59) minute=0;
-    int second = m_DataBuffer.mid(54,1).toHex().toInt();
+    int second = str.mid(54,2).toInt();
     if(second>59) second=0;
     data.clientDate = QString("%1/%2/%3 %4:%5:%6")
                             .arg(year)
@@ -522,9 +522,9 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
                             .arg(minute)
                             .arg(second);
 
-    data.interval = str.mid(57,2).toInt();
-    data.elementCount = str.mid(61,2).toInt();
-    data.statusCount = str.mid(65,1).toInt();
+    data.interval = str.mid(57,3).toInt();
+    data.elementCount = str.mid(61,3).toInt();
+    data.statusCount = str.mid(65,2).toInt();
 
 
     //locate the index of the field
@@ -563,7 +563,7 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
     QString ADA5_Str = "";
     if(indexOfADA5 != -1) {  //-1 is the case that "ASA" cannot not be found in the sentence
         ADA5_Str = str.mid(indexOfADA5+5, str.indexOf(",", indexOfADA5+5)-(indexOfADA5+5));
-        data.humidity = ADA5_Str.toInt();
+        data.humidity = ADA5_Str.toDouble();
     }
     QString ASB_Str = "";
     if(indexOfASB != -1) {  //-1 is the case that "ASB" cannot not be found in the sentence
