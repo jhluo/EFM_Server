@@ -37,6 +37,9 @@ AClient::AClient(QObject *pParent)
     m_pCommandAckTimer = new QTimer(this);
     m_pCommandAckTimer->setInterval(COMMAND_ACK_TIMEOUT);
     connect(m_pCommandAckTimer, SIGNAL(timeout()), this, SLOT(onCommandAckTimeout()));
+
+    //send message to a logger
+    connect(this, SIGNAL(error(QString)), Logger::getInstance(), SLOT(write(QString)));
 }
 
 AClient::~AClient()
@@ -339,7 +342,7 @@ void AClient::handleData(const QByteArray &newData)
     //try to connect to database, only if write to database enabled
     if(settings.readMiscSettings("writeDatabase", true).toBool()) {
         if(!writeDatabase(clientData)) {
-            LOG_SYS(QString("Client %1 failed to write to database.").arg(m_ClientId));
+            emit error(QString("Client %1 failed to write to database.").arg(m_ClientId));
         }
     }
 
@@ -764,29 +767,6 @@ void AClient::onCommandAckTimeout()
 {
     m_pCommandAckTimer->stop();
     emit error(QString(tr("Client %1 did not receive command.  Please retry.")).arg(m_ClientId));
-}
-
-void AClient::onSocketDisconnected()
-{
-    LOG_SYS(QString("Client %1 at %2 disconnected").arg(m_ClientId).arg(getClientAddress()));
-
-    if(m_pDataStarvedTimer->isActive()) {
-        m_pDataStarvedTimer->stop();
-    }
-
-    if(m_pCommandAckTimer->isActive()) {
-        m_pCommandAckTimer->stop();
-    }
-
-    m_ClientState = eOffline;
-
-    m_TimeOfDisconnect = QDateTime::currentDateTime();
-
-    //emit signal to notify model
-    emit clientDataChanged();
-
-    //end the thread
-    this->thread()->quit();
 }
 
 bool AClient::writeDatabase(const ClientData &data)

@@ -34,9 +34,6 @@ public:
     void registerSystemDisplay(QTextEdit *pLogDisplay);
     void registerDataDisplay(QTextEdit *pDataDisplay);
 
-    //write messages to display widget
-    void write(const QString &line, const eLogType type);
-
     void setDataLogEnabled(const bool enable);
     bool getDataLogEnabled() const {return m_DataLogEnabled;}
 
@@ -64,6 +61,10 @@ private:
     QTextEdit *m_pDataDisplay;
 
     QMutex mMutex;
+
+public slots:
+    //write messages to display widget
+    void write(const QString &line, const eLogType type=eSystem);
 };
 
 #endif // LOGGER_H

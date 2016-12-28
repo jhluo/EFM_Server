@@ -28,10 +28,14 @@ void TcpClient::disconnectClient()
 
 void TcpClient::onSocketDisconnected()
 {
-    LOG_SYS(QString("Client %1 at %2 disconnected").arg(m_ClientId).arg(getClientAddress()));
+    emit error(QString("Client %1 at %2 disconnected").arg(m_ClientId).arg(getClientAddress()));
 
     if(m_pDataStarvedTimer->isActive()) {
         m_pDataStarvedTimer->stop();
+    }
+
+    if(m_pCommandAckTimer->isActive()) {
+        m_pCommandAckTimer->stop();
     }
 
     m_ClientState = eOffline;
@@ -48,9 +52,12 @@ void TcpClient::onSocketDisconnected()
             .arg(settings.readDatabaseSettings("password", "").toString());
     db.setDatabaseName(dsn);
 
-    if(db.contains(m_ThreadId)) {
-        db.removeDatabase(m_ThreadId);
+    if(db.contains(m_ClientId)) {
+        db.removeDatabase(m_ClientId);
     }
+
+    //emit signal to notify model
+    emit clientDataChanged();
 
     //emit signal to notify model
     emit clientDisconnected();

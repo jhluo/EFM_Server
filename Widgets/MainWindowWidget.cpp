@@ -27,10 +27,6 @@ MainWindowWidget::MainWindowWidget(TheServer *pApp, QWidget *parent)
     setMinimumSize(600, 420);
     createLayout();
     populateWidgets();
-
-    //create chart dialog in the background
-    m_pChartDialog = new ChartDialog(this);
-
 }
 
 MainWindowWidget::~MainWindowWidget()
@@ -41,6 +37,8 @@ MainWindowWidget::~MainWindowWidget()
 void MainWindowWidget::createLayout()
 {
     m_pClientTable = new ClientTableView(m_pServer->getClientList(), this);
+    //create chart dialog in the background
+    m_pChartDialog = new ChartDialog(this);
     //connect signal to add tabs to the widget
     connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), m_pChartDialog, SLOT(onChartToggled(bool,AClient*)));
     connect(m_pClientTable, SIGNAL(showChart(bool,AClient*)), this, SLOT(onChartToggled(bool)));

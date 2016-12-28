@@ -16,7 +16,7 @@ private:
     QTcpSocket *m_pSocket;
 
 signals:
-    void error(QTcpSocket::SocketError socketerror);
+    //void error(QTcpSocket::SocketError socketerror);
 
 public slots:
     Q_INVOKABLE void disconnectClient();

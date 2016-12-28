@@ -130,6 +130,10 @@ protected:
     //Use to timeout client when no data is coming
     QTimer *m_pDataStarvedTimer;
 
+    //Command ack timer
+    QTimer *m_pCommandAckTimer;
+    int m_lastCommandSent;
+
     //current state of the client
     eClientState m_ClientState;
 
@@ -160,10 +164,6 @@ private:
 
     //whether we display the client in chart dialog
     bool m_ShowChart;
-
-    //Command ack timer
-    QTimer *m_pCommandAckTimer;
-    int m_lastCommandSent;
 
     //method used in decode to convert bytes into a double
     double convertToDecimal(const QByteArray &highByte, const QByteArray &lowByte);
@@ -197,7 +197,6 @@ private slots:
     void onDataReceived();
     void onDataTimeout();
     void onCommandAckTimeout();
-    void onSocketDisconnected();
 };
 
 #endif // AClient_H
