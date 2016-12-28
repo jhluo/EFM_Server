@@ -530,19 +530,22 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
     int indexOfASA = newData.indexOf("ASA");
     int indexOfAAA5 = newData.indexOf("AAA5");
     int indexOfADA5 = newData.indexOf("ADA5");
-//    int indexOfASB = str.indexOf("ASB");
-//    int indexOfASC = str.indexOf("ASC");
-//    int indexOfASD = str.indexOf("ASD");
-//    int indexOfASE = str.indexOf("ASE");
-//    int indexOfASF = str.indexOf("ASF");
-//    int indexOfASG = str.indexOf("ASG");
-//    int indexOfz = str.indexOf("z");
-//    int indexOfy_AAA = str.indexOf("y_AAA");
-//    int indexOfy_ADA = str.indexOf("y_ADA");
-//    int indexOfxA = str.indexOf("xA");
-//    int indexOfxB = str.indexOf("xB");
-//    int indexOfwA = str.indexOf("wA");
-//    int indexOftQ = str.indexOf("tQ");
+    int indexOfASB = newData.indexOf("ASB");
+    int indexOfASC = newData.indexOf("ASC");
+    int indexOfASD = newData.indexOf("ASD");
+    int indexOfASE = newData.indexOf("ASE");
+    int indexOfASF = newData.indexOf("ASF");
+    int indexOfASG = newData.indexOf("ASG");
+    int indexOfz = newData.indexOf("z");
+    int indexOfy_AAA = newData.indexOf("y_AAA");
+    int indexOfy_ADA = newData.indexOf("y_ADA");
+    int indexOfxA = newData.indexOf("xA");
+    int indexOfxB = newData.indexOf("xB");
+    int indexOfwA = newData.indexOf("wA");
+    int indexOftQ = newData.indexOf("tQ");
+//    int statusCode;
+//    int qualityControl;
+
 
 
     //indexOfASA is where the field header "ASA" starts (at 68 in example)
@@ -564,60 +567,187 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
         ADA5_Str = newData.mid(indexOfADA5+5, newData.indexOf(",", indexOfADA5+5)-(indexOfADA5+5));
         data.humidity = ADA5_Str.toInt();
     }
-//    QString ASB_Str = "";
-//    if(indexOfASB != -1) {  //-1 is the case that "ASB" cannot not be found in the sentence
-//        ASB_Str = str.mid(indexOfASB+4, str.indexOf(",", indexOfASB+4)-(indexOfASB+4));
-//        //data.humidity = ADA5_Str.toInt();
-//    }
-//    QString ASC_Str = "";
-//    if(indexOfASC != -1) {  //-1 is the case that "ASC" cannot not be found in the sentence
-//        ASC_Str = str.mid(indexOfASC+4, str.indexOf(",", indexOfASC+4)-(indexOfASC+4));
-//    }
-//    QString ASD_Str = "";
-//    if(indexOfASD != -1) {  //-1 is the case that "ASD" cannot not be found in the sentence
-//        ASD_Str = str.mid(indexOfASD+4, str.indexOf(",", indexOfASD+4)-(indexOfASD+4));
-//    }
-//    QString ASE_Str = "";
-//    if(indexOfASE != -1) {  //-1 is the case that "ASE" cannot not be found in the sentence
-//        ASE_Str = str.mid(indexOfASE+4, str.indexOf(",", indexOfASE+4)-(indexOfASE+4));
-//    }
-//    QString ASF_Str = "";
-//    if(indexOfASF != -1) {  //-1 is the case that "ASF" cannot not be found in the sentence
-//        ASF_Str = str.mid(indexOfASF+4, str.indexOf(",", indexOfASF+4)-(indexOfASF+4));
-//    }
-//    QString ASG_Str = "";
-//    if(indexOfASG != -1) {  //-1 is the case that "ASG" cannot not be found in the sentence
-//        ASG_Str = str.mid(indexOfASG+4, str.indexOf(",", indexOfASG+4)-(indexOfASG+4));
-//    }
-//    QString z_Str = "";
-//    if(indexOfz != -1) {  //-1 is the case that "z" cannot not be found in the sentence
-//        z_Str = str.mid(indexOfz+2, str.indexOf(",", indexOfz+2)-(indexOfz+2));
-//    }
-//    QString y_AAA_Str = "";
-//    if(indexOfy_AAA != -1) {  //-1 is the case that "y_AAA" cannot not be found in the sentence
-//        y_AAA_Str = str.mid(indexOfy_AAA+6, str.indexOf(",", indexOfy_AAA+6)-(indexOfy_AAA+6));
-//    }
-//    QString y_ADA_Str = "";
-//    if(indexOfy_ADA != -1) {  //-1 is the case that "y_ADA" cannot not be found in the sentence
-//        y_ADA_Str = str.mid(indexOfy_ADA+6, str.indexOf(",", indexOfy_ADA+6)-(indexOfy_ADA+6));
-//    }
-//    QString xA_Str = "";
-//    if(indexOfxA != -1) {  //-1 is the case that "xA" cannot not be found in the sentence
-//        xA_Str = str.mid(indexOfxA+3, str.indexOf(",", indexOfxA+3)-(indexOfxA+3));
-//    }
-//    QString xB_Str = "";
-//    if(indexOfxB != -1) {  //-1 is the case that "xB" cannot not be found in the sentence
-//        xB_Str = str.mid(indexOfxB+3, str.indexOf(",", indexOfxB+3)-(indexOfxB+3));
-//    }
-//    QString wA_Str = "";
-//    if(indexOfwA != -1) {  //-1 is the case that "wA" cannot not be found in the sentence
-//        wA_Str = str.mid(indexOfwA+3, str.indexOf(",", indexOfwA+3)-(indexOfwA+3));
-//    }
+    QString ASB_Str = "";
+    if(indexOfASB != -1) {  //-1 is the case that "ASB" cannot not be found in the sentence
+        ASB_Str = newData.mid(indexOfASB+4, newData.indexOf(",", indexOfASB+4)-(indexOfASB+4));
+        data.PolarVoltN = ASB_Str.toInt() / 10.0;
+    }
+    QString ASC_Str = "";
+    if(indexOfASC != -1) {  //-1 is the case that "ASC" cannot not be found in the sentence
+        ASC_Str = newData.mid(indexOfASC+4, newData.indexOf(",", indexOfASC+4)-(indexOfASC+4));
+        data.RPML = ASC_Str.toInt();
+    }
+    QString ASD_Str = "";
+    if(indexOfASD != -1) {  //-1 is the case that "ASD" cannot not be found in the sentence
+        ASD_Str = newData.mid(indexOfASD+4, newData.indexOf(",", indexOfASD+4)-(indexOfASD+4));
+        data.TubeTempL = ASD_Str.toInt() / 10.0;
+    }
+    QString ASE_Str = "";
+    if(indexOfASE != -1) {  //-1 is the case that "ASE" cannot not be found in the sentence
+        ASE_Str = newData.mid(indexOfASE+4, newData.indexOf(",", indexOfASE+4)-(indexOfASE+4));
+        data.TubeHumidityL = ASE_Str.toInt()/1.0;
+    }
+    QString ASF_Str = "";
+    if(indexOfASF != -1) {  //-1 is the case that "ASF" cannot not be found in the sentence
+        ASF_Str = newData.mid(indexOfASF+4, newData.indexOf(",", indexOfASF+4)-(indexOfASF+4));
+        data.pressure = ASF_Str.toInt()/10.0;
+    }
+    QString ASG_Str = "";
+    if(indexOfASG != -1) {  //-1 is the case that "ASG" cannot not be found in the sentence
+        ASG_Str = newData.mid(indexOfASG+4, newData.indexOf(",", indexOfASG+4)-(indexOfASG+4));
+        data.insulation = ADA5_Str.toInt();
+    }
 
-//    QString tQ_Str = "";
-//    if(indexOftQ != -1) {  //-1 is the case that "tQ" cannot not be found in the sentence
-//        tQ_Str = str.mid(indexOftQ+7, str.indexOf(",", indexOftQ+3)-(indexOftQ+3));
-//    }
+//    if(statusCode =-1)
+//                    {
+//                        switch(statusCode)
+//                        {
+//                        case 0:
+//                            {
+//                                status = QString(("正常"));
+//                            }
+//                            break;
+//                        case 1:
+//                            {
+//                                status = QString(("异常"));
+//                                }
+//                            break;
+//                        case 2:
+//                            {
+//                                status = QString(("故障"));
+//                                }
+//                            break;
+//                        case 3:
+//                            {
+//                                status = QString(("偏高"));
+//                                }
+//                            break;
+//                        case 4:
+//                            {
+//                                status = QString(("偏低"));
+//                                }
+//                            break;
+//                        case 5:
+//                            {
+//                                status = QString(("停止"));
+//                                }
+//                            break;
+//                        case 6:
+//                            {
+//                                status = QString(("交流"));
+//                                }
+//                            break;
+//                        case 7:
+//                            {
+//                                status = QString(("直流"));
+//                                }
+//                            break;
+//                        case 8:
+//                            {
+//                                status = QString(("未接外部电源"));
+//                                }
+//                            break;
+//                        default:
+//                            break;
+//                        }
+//                    }
+
+
+//    if(qualityControl =-1)
+//                    {
+//                        switch(statusCode)
+//                        {
+//                        case 0:
+//                            {
+//                                qualityControl = QString(("正确"));
+//                            }
+//                            break;
+//                        case 1:
+//                            {
+//                                qualityControl = QString(("可疑"));
+//                                }
+//                            break;
+//                        case 2:
+//                            {
+//                                qualityControl = QString(("错误"));
+//                                }
+//                            break;
+//                        case 3:
+//                            {
+//                                qualityControl = QString(("订正数据"));
+//                                }
+//                            break;
+//                        case 4:
+//                            {
+//                                qualityControl = QString(("修改数据"));
+//                                }
+//                            break;
+//                        case 5:
+//                            {
+//                                qualityControl = QString(("预留"));
+//                                }
+//                            break;
+//                        case 6:
+//                            {
+//                                qualityControl = QString(("预留"));
+//                                }
+//                            break;
+//                        case 7:
+//                            {
+//                                qualityControl = QString(("预留"));
+//                                }
+//                            break;
+//                        case 8:
+//                            {
+//                                qualityControl = QString(("缺测"));
+//                                }
+//                            break;
+//                        case 9:
+//                            {
+//                                qualityControl = QString(("未做质量控制"));
+//                                }
+//                            break;
+//                        default:
+//                            break;
+//                        }
+//                    }
+
+    QString z_Str = "";
+    if(indexOfz != -1) {  //-1 is the case that "z" cannot not be found in the sentence
+        z_Str = newData.mid(indexOfz+2, newData.indexOf(",", indexOfz+2)-(indexOfz+2));
+        data.status = z_Str.toInt();
+    }
+    QString y_AAA_Str = "";
+    if(indexOfy_AAA != -1) {  //-1 is the case that "y_AAA" cannot not be found in the sentence
+        y_AAA_Str = newData.mid(indexOfy_AAA+6, newData.indexOf(",", indexOfy_AAA+6)-(indexOfy_AAA+6));
+        data.humidity = ADA5_Str.toInt();
+    }
+    QString y_ADA_Str = "";
+    if(indexOfy_ADA != -1) {  //-1 is the case that "y_ADA" cannot not be found in the sentence
+        y_ADA_Str = newData.mid(indexOfy_ADA+6, newData.indexOf(",", indexOfy_ADA+6)-(indexOfy_ADA+6));
+        data.humidity = ADA5_Str.toInt();
+    }
+    QString xA_Str = "";
+    if(indexOfxA != -1) {  //-1 is the case that "xA" cannot not be found in the sentence
+        xA_Str = newData.mid(indexOfxA+3, newData.indexOf(",", indexOfxA+3)-(indexOfxA+3));
+        data.humidity = ADA5_Str.toInt();
+    }
+    QString xB_Str = "";
+    if(indexOfxB != -1) {  //-1 is the case that "xB" cannot not be found in the sentence
+        xB_Str = newData.mid(indexOfxB+3, newData.indexOf(",", indexOfxB+3)-(indexOfxB+3));
+        data.humidity = ADA5_Str.toInt();
+    }
+    QString wA_Str = "";
+    if(indexOfwA != -1) {  //-1 is the case that "wA" cannot not be found in the sentence
+        wA_Str = newData.mid(indexOfwA+3, newData.indexOf(",", indexOfwA+3)-(indexOfwA+3));
+        data.humidity = ADA5_Str.toInt();
+    }
+
+    QString tQ_Str = "";
+    if(indexOftQ != -1) {  //-1 is the case that "tQ" cannot not be found in the sentence
+        tQ_Str = newData.mid(indexOftQ+7, newData.indexOf(",", indexOftQ+3)-(indexOftQ+3));
+        data.humidity = ADA5_Str.toInt();
+    }
 }
 
 //disconnect the client when no data is being sent
@@ -682,6 +812,7 @@ bool AClient::writeDatabase(const ClientData &data)
     }
 
     QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
+
             .arg(settings.readDatabaseSettings("host", "").toString())
             .arg(settings.readDatabaseSettings("DbName", "").toString())
             .arg(settings.readDatabaseSettings("user", "").toString())
@@ -736,55 +867,55 @@ bool AClient::writeDatabase(const ClientData &data)
                     .arg(data.pm10)
                     .arg(0);
         } else if (m_ClientVersion == eVersion3) {
-//            queryStr = QString("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, CO2, PM1, PM25, PM10, 测量室负温度, 测量室正温度, "
-//                                        "甲醛, 极板负电压, 极板正电压, 风扇负转速, 风扇正转速, 关风机采集数, 开风机采集数, 关风机正离子, 开风机正离子, 经度, 纬度, 海拔高度, 服务类型, 设备标识, 帧标识, 设备标识码)"
-//                               "VALUES (%1, '%2', %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18, %19, %20, %21, %22, %23, %24, %25, %26, %27, %28, %29, %30, %31, %32, %33, %34);"
+            queryStr = QString("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, CO2, PM1, PM25, PM10, 测量室负温度, 测量室正温度, "
+                                        "甲醛, 极板负电压, 极板正电压, 风扇负转速, 风扇正转速, 关风机采集数, 开风机采集数, 关风机正离子, 开风机正离子, 经度, 纬度, 海拔高度, 服务类型, 设备标识, 帧标识, 设备标识码)"
+                               "VALUES (%1, '%2', '%3', %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18, %19, %20, %21, %22, %23, %24, %25, %26, %27, %28, %29, %30, %31, %32, %33, %34);"
+                               )
+                    .arg(data.stationID)
+                    .arg(data.deviceString)
+                    .arg(0)
+                    .arg(0)
+                    .arg(data.nIon)
+                    .arg(data.humidity)
+                    .arg(data.temperature)
+                    .arg(data.pIon)
+                    .arg(data.windDirection)
+                    .arg(data.windSpeed)
+                    .arg(data.rainfall)
+                    .arg(data.pressure)
+                    .arg(data.CO2)
+                    .arg(data.pm1)
+                    .arg(data.pm25)
+                    .arg(data.pm10)
+                    .arg(data.TubeTempL)
+                    .arg(data.TubeTempR)
+                    .arg(data.VOC)
+                    .arg(data.PolarVoltN)
+                    .arg(data.PolarVoltP)
+                    .arg(data.RPML)
+                    .arg(data.RPMR)
+                    .arg(data.fanOffIonCountN)
+                    .arg(data.fanOnIonCountN)
+                    .arg(data.fanOffIonCountP)
+                    .arg(data.fanOnIonCountP)
+                    .arg(data.longtitude)
+                    .arg(data.latitude)
+                    .arg(data.altitude)
+                    .arg(data.serviceType)
+                    .arg(data.deviceType)
+                    .arg(data.interval)
+                    .arg(data.deviceID);
+//            queryStr = QString("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度)"
+//                               "VALUES (%1, '%2', '%3', %4, %5, %6, %7, %8);"
 //                               )
-//                    .arg(m_ClientId)
+//                    .arg(data.stationID)
+//                    .arg(data.deviceString)
 //                    .arg(data.clientDate)
 //                    .arg(0)
 //                    .arg(0)
 //                    .arg(data.nIon)
 //                    .arg(data.humidity)
-//                    .arg(data.temperature)
-//                    .arg(data.pIon)
-//                    .arg(data.windDirection)
-//                    .arg(data.windSpeed)
-//                    .arg(data.rainfall)
-//                    .arg(data.pressure)
-//                    .arg(data.CO2)
-//                    .arg(data.pm1)
-//                    .arg(data.pm25)
-//                    .arg(data.pm10)
-//                    .arg(data.TubeTempL)
-//                    .arg(data.TubeTempR)
-//                    .arg(data.VOC)
-//                    .arg(data.PolarVoltN)
-//                    .arg(data.PolarVoltP)
-//                    .arg(data.RPML)
-//                    .arg(data.RPMR)
-//                    .arg(data.fanOffIonCountN)
-//                    .arg(data.fanOnIonCountN)
-//                    .arg(data.fanOffIonCountP)
-//                    .arg(data.fanOnIonCountP)
-//                    .arg(data.longtitude)
-//                    .arg(data.latitude)
-//                    .arg(data.altitude)
-//                    .arg(data.serviceType)
-//                    .arg(data.deviceType)
-//                    .arg(data.interval)
-//                    .arg(data.deviceString);
-            queryStr = QString("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度)"
-                               "VALUES (%1, '%2', '%3', %4, %5, %6, %7, %8);"
-                               )
-                    .arg(data.stationID)
-                    .arg(data.deviceString)
-                    .arg(data.clientDate)
-                    .arg(0)
-                    .arg(0)
-                    .arg(data.nIon)
-                    .arg(data.humidity)
-                    .arg(data.temperature);
+//                    .arg(data.temperature);
         }
 
         QSqlQuery query(db);

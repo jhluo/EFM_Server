@@ -59,6 +59,8 @@ public:
         QString deviceType;
         QString deviceString;
         QString stationID;
+        QString deviceID;
+        QString status;
         int interval;
         int elementCount;
         int statusCount;
@@ -70,8 +72,13 @@ public:
         double PolarVoltN;
         double TubeTempL;
         double TubeTempR;
+        double TubeHumidityL;
+        double TubeHumidityR;
+        int insulation;
         int RPML;
         int RPMR;
+        int statusCode;
+        int qualityControl;
 
     } ClientData;
 
