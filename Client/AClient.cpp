@@ -466,16 +466,14 @@ void AClient::decodeVersion2Data(const QByteArray &dataArray, ClientData &data)
 
 void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
 {
-    QString str;
-    str.append(newData);
+    data.stationID = newData.mid(3,5);
+    data.latitude = newData.mid(9,6).toInt();
+    data.longtitude = newData.mid(16,7).toInt();
+    data.altitude = newData.mid(24,5).toInt();
+    data.serviceType = newData.mid(30,2).toInt();
+    data.deviceType = newData.mid(33,4);
+    data.deviceString = newData.mid(38,3);
 
-    data.stationID = str.mid(3,4);
-    data.latitude = str.mid(9,5).toDouble();
-    data.longtitude = str.mid(16,6).toDouble();
-    data.altitude = str.mid(24,4).toDouble();
-    data.serviceType = str.mid(30,2).toInt();
-    data.deviceType = str.mid(33,4);
-    data.deviceString = str.mid(38,3);
 
     QString clientID = data.stationID+data.deviceString;
 
@@ -503,16 +501,17 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
 
     m_ClientId = clientID;
 
-    int year = str.mid(42,4).toInt();
-    int month = str.mid(46,2).toInt();
+    int year = newData.mid(42,4).toInt();
+    int month = newData.mid(46,2).toInt();
     if(month > 12) month = 1;
-    int day = str.mid(48,2).toInt();
+    int day = newData.mid(48,2).toInt();
     if(day > 31) day = 1;
-    int hour = str.mid(50,2).toInt();
+    int hour = newData.mid(50,2).toInt();
     if(hour>23) hour=0;
-    int minute = str.mid(52,2).toInt();
+    int minute = newData.mid(52,2).toInt();
     if(minute>59) minute=0;
-    int second = str.mid(54,2).toInt();
+    int second = newData.mid(54,2).toInt();
+
     if(second>59) second=0;
     data.clientDate = QString("%1/%2/%3 %4:%5:%6")
                             .arg(year)
@@ -522,28 +521,28 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
                             .arg(minute)
                             .arg(second);
 
-    data.interval = str.mid(57,3).toInt();
-    data.elementCount = str.mid(61,3).toInt();
-    data.statusCount = str.mid(65,2).toInt();
+    data.interval = newData.mid(57,3).toInt();
+    data.elementCount = newData.mid(61,3).toInt();
+    data.statusCount = newData.mid(65,2).toInt();
 
 
     //locate the index of the field
-    int indexOfASA = str.indexOf("ASA");
-    int indexOfAAA5 = str.indexOf("AAA5");
-    int indexOfADA5 = str.indexOf("ADA5");
-    int indexOfASB = str.indexOf("ASB");
-    int indexOfASC = str.indexOf("ASC");
-    int indexOfASD = str.indexOf("ASD");
-    int indexOfASE = str.indexOf("ASE");
-    int indexOfASF = str.indexOf("ASF");
-    int indexOfASG = str.indexOf("ASG");
-    int indexOfz = str.indexOf("z");
-    int indexOfy_AAA = str.indexOf("y_AAA");
-    int indexOfy_ADA = str.indexOf("y_ADA");
-    int indexOfxA = str.indexOf("xA");
-    int indexOfxB = str.indexOf("xB");
-    int indexOfwA = str.indexOf("wA");
-    int indexOftQ = str.indexOf("tQ");
+    int indexOfASA = newData.indexOf("ASA");
+    int indexOfAAA5 = newData.indexOf("AAA5");
+    int indexOfADA5 = newData.indexOf("ADA5");
+//    int indexOfASB = str.indexOf("ASB");
+//    int indexOfASC = str.indexOf("ASC");
+//    int indexOfASD = str.indexOf("ASD");
+//    int indexOfASE = str.indexOf("ASE");
+//    int indexOfASF = str.indexOf("ASF");
+//    int indexOfASG = str.indexOf("ASG");
+//    int indexOfz = str.indexOf("z");
+//    int indexOfy_AAA = str.indexOf("y_AAA");
+//    int indexOfy_ADA = str.indexOf("y_ADA");
+//    int indexOfxA = str.indexOf("xA");
+//    int indexOfxB = str.indexOf("xB");
+//    int indexOfwA = str.indexOf("wA");
+//    int indexOftQ = str.indexOf("tQ");
 
 
     //indexOfASA is where the field header "ASA" starts (at 68 in example)
@@ -552,72 +551,73 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
 
     QString ASA_Str = "";
     if(indexOfASA != -1) {  //-1 is the case that "ASA" cannot not be found in the sentence
-        ASA_Str = str.mid(indexOfASA+4, str.indexOf(",", indexOfASA+4)-(indexOfASA+4));
+        ASA_Str = newData.mid(indexOfASA+4, newData.indexOf(",", indexOfASA+4)-(indexOfASA+4));
         data.nIon = ASA_Str.toInt();
     }
     QString AAA5_Str = "";
     if(indexOfAAA5 != -1) {  //-1 is the case that "AAA5" cannot not be found in the sentence
-        AAA5_Str = str.mid(indexOfAAA5+5, str.indexOf(",", indexOfAAA5+5)-(indexOfAAA5+5));
+        AAA5_Str = newData.mid(indexOfAAA5+5, newData.indexOf(",", indexOfAAA5+5)-(indexOfAAA5+5));
         data.temperature = AAA5_Str.toInt() / 10.0;
     }
     QString ADA5_Str = "";
     if(indexOfADA5 != -1) {  //-1 is the case that "ASA" cannot not be found in the sentence
-        ADA5_Str = str.mid(indexOfADA5+5, str.indexOf(",", indexOfADA5+5)-(indexOfADA5+5));
-        data.humidity = ADA5_Str.toDouble();
+        ADA5_Str = newData.mid(indexOfADA5+5, newData.indexOf(",", indexOfADA5+5)-(indexOfADA5+5));
+        data.humidity = ADA5_Str.toInt();
     }
-    QString ASB_Str = "";
-    if(indexOfASB != -1) {  //-1 is the case that "ASB" cannot not be found in the sentence
-        ASB_Str = str.mid(indexOfASB+4, str.indexOf(",", indexOfASB+4)-(indexOfASB+4));
-    }
-    QString ASC_Str = "";
-    if(indexOfASC != -1) {  //-1 is the case that "ASC" cannot not be found in the sentence
-        ASC_Str = str.mid(indexOfASC+4, str.indexOf(",", indexOfASC+4)-(indexOfASC+4));
-    }
-    QString ASD_Str = "";
-    if(indexOfASD != -1) {  //-1 is the case that "ASD" cannot not be found in the sentence
-        ASD_Str = str.mid(indexOfASD+4, str.indexOf(",", indexOfASD+4)-(indexOfASD+4));
-    }
-    QString ASE_Str = "";
-    if(indexOfASE != -1) {  //-1 is the case that "ASE" cannot not be found in the sentence
-        ASE_Str = str.mid(indexOfASE+4, str.indexOf(",", indexOfASE+4)-(indexOfASE+4));
-    }
-    QString ASF_Str = "";
-    if(indexOfASF != -1) {  //-1 is the case that "ASF" cannot not be found in the sentence
-        ASF_Str = str.mid(indexOfASF+4, str.indexOf(",", indexOfASF+4)-(indexOfASF+4));
-    }
-    QString ASG_Str = "";
-    if(indexOfASG != -1) {  //-1 is the case that "ASG" cannot not be found in the sentence
-        ASG_Str = str.mid(indexOfASG+4, str.indexOf(",", indexOfASG+4)-(indexOfASG+4));
-    }
-    QString z_Str = "";
-    if(indexOfz != -1) {  //-1 is the case that "z" cannot not be found in the sentence
-        z_Str = str.mid(indexOfz+2, str.indexOf(",", indexOfz+2)-(indexOfz+2));
-    }
-    QString y_AAA_Str = "";
-    if(indexOfy_AAA != -1) {  //-1 is the case that "y_AAA" cannot not be found in the sentence
-        y_AAA_Str = str.mid(indexOfy_AAA+6, str.indexOf(",", indexOfy_AAA+6)-(indexOfy_AAA+6));
-    }
-    QString y_ADA_Str = "";
-    if(indexOfy_ADA != -1) {  //-1 is the case that "y_ADA" cannot not be found in the sentence
-        y_ADA_Str = str.mid(indexOfy_ADA+6, str.indexOf(",", indexOfy_ADA+6)-(indexOfy_ADA+6));
-    }
-    QString xA_Str = "";
-    if(indexOfxA != -1) {  //-1 is the case that "xA" cannot not be found in the sentence
-        xA_Str = str.mid(indexOfxA+3, str.indexOf(",", indexOfxA+3)-(indexOfxA+3));
-    }
-    QString xB_Str = "";
-    if(indexOfxB != -1) {  //-1 is the case that "xB" cannot not be found in the sentence
-        xB_Str = str.mid(indexOfxB+3, str.indexOf(",", indexOfxB+3)-(indexOfxB+3));
-    }
-    QString wA_Str = "";
-    if(indexOfwA != -1) {  //-1 is the case that "wA" cannot not be found in the sentence
-        wA_Str = str.mid(indexOfwA+3, str.indexOf(",", indexOfwA+3)-(indexOfwA+3));
-    }
+//    QString ASB_Str = "";
+//    if(indexOfASB != -1) {  //-1 is the case that "ASB" cannot not be found in the sentence
+//        ASB_Str = str.mid(indexOfASB+4, str.indexOf(",", indexOfASB+4)-(indexOfASB+4));
+//        //data.humidity = ADA5_Str.toInt();
+//    }
+//    QString ASC_Str = "";
+//    if(indexOfASC != -1) {  //-1 is the case that "ASC" cannot not be found in the sentence
+//        ASC_Str = str.mid(indexOfASC+4, str.indexOf(",", indexOfASC+4)-(indexOfASC+4));
+//    }
+//    QString ASD_Str = "";
+//    if(indexOfASD != -1) {  //-1 is the case that "ASD" cannot not be found in the sentence
+//        ASD_Str = str.mid(indexOfASD+4, str.indexOf(",", indexOfASD+4)-(indexOfASD+4));
+//    }
+//    QString ASE_Str = "";
+//    if(indexOfASE != -1) {  //-1 is the case that "ASE" cannot not be found in the sentence
+//        ASE_Str = str.mid(indexOfASE+4, str.indexOf(",", indexOfASE+4)-(indexOfASE+4));
+//    }
+//    QString ASF_Str = "";
+//    if(indexOfASF != -1) {  //-1 is the case that "ASF" cannot not be found in the sentence
+//        ASF_Str = str.mid(indexOfASF+4, str.indexOf(",", indexOfASF+4)-(indexOfASF+4));
+//    }
+//    QString ASG_Str = "";
+//    if(indexOfASG != -1) {  //-1 is the case that "ASG" cannot not be found in the sentence
+//        ASG_Str = str.mid(indexOfASG+4, str.indexOf(",", indexOfASG+4)-(indexOfASG+4));
+//    }
+//    QString z_Str = "";
+//    if(indexOfz != -1) {  //-1 is the case that "z" cannot not be found in the sentence
+//        z_Str = str.mid(indexOfz+2, str.indexOf(",", indexOfz+2)-(indexOfz+2));
+//    }
+//    QString y_AAA_Str = "";
+//    if(indexOfy_AAA != -1) {  //-1 is the case that "y_AAA" cannot not be found in the sentence
+//        y_AAA_Str = str.mid(indexOfy_AAA+6, str.indexOf(",", indexOfy_AAA+6)-(indexOfy_AAA+6));
+//    }
+//    QString y_ADA_Str = "";
+//    if(indexOfy_ADA != -1) {  //-1 is the case that "y_ADA" cannot not be found in the sentence
+//        y_ADA_Str = str.mid(indexOfy_ADA+6, str.indexOf(",", indexOfy_ADA+6)-(indexOfy_ADA+6));
+//    }
+//    QString xA_Str = "";
+//    if(indexOfxA != -1) {  //-1 is the case that "xA" cannot not be found in the sentence
+//        xA_Str = str.mid(indexOfxA+3, str.indexOf(",", indexOfxA+3)-(indexOfxA+3));
+//    }
+//    QString xB_Str = "";
+//    if(indexOfxB != -1) {  //-1 is the case that "xB" cannot not be found in the sentence
+//        xB_Str = str.mid(indexOfxB+3, str.indexOf(",", indexOfxB+3)-(indexOfxB+3));
+//    }
+//    QString wA_Str = "";
+//    if(indexOfwA != -1) {  //-1 is the case that "wA" cannot not be found in the sentence
+//        wA_Str = str.mid(indexOfwA+3, str.indexOf(",", indexOfwA+3)-(indexOfwA+3));
+//    }
 
-    QString tQ_Str = "";
-    if(indexOftQ != -1) {  //-1 is the case that "tQ" cannot not be found in the sentence
-        tQ_Str = str.mid(indexOftQ+7, str.indexOf(",", indexOftQ+3)-(indexOftQ+3));
-    }
+//    QString tQ_Str = "";
+//    if(indexOftQ != -1) {  //-1 is the case that "tQ" cannot not be found in the sentence
+//        tQ_Str = str.mid(indexOftQ+7, str.indexOf(",", indexOftQ+3)-(indexOftQ+3));
+//    }
 }
 
 //disconnect the client when no data is being sent
@@ -666,13 +666,19 @@ bool AClient::writeDatabase(const ClientData &data)
     AppSettings settings;
     QSqlDatabase db;
 
-    int* threadId = (int *)(this->thread()->currentThreadId());
-    m_ThreadId = QString::number(*threadId);
+//    int* threadId = (int *)(this->thread()->currentThreadId());
+//    m_ThreadId = QString::number(*threadId);
 
-    if(!QSqlDatabase::contains(m_ThreadId)) {
-        db = QSqlDatabase::addDatabase("QODBC", m_ThreadId);
+//    if(!QSqlDatabase::contains(m_ThreadId)) {
+//        db = QSqlDatabase::addDatabase("QODBC", m_ThreadId);
+//    } else {
+//        db = QSqlDatabase::database(m_ThreadId);
+//    }
+
+    if(!QSqlDatabase::contains(m_ClientId)) {
+        db = QSqlDatabase::addDatabase("QODBC", m_ClientId);
     } else {
-        db = QSqlDatabase::database(m_ThreadId);
+        db = QSqlDatabase::database(m_ClientId);
     }
 
     QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
@@ -730,52 +736,68 @@ bool AClient::writeDatabase(const ClientData &data)
                     .arg(data.pm10)
                     .arg(0);
         } else if (m_ClientVersion == eVersion3) {
-            queryStr = QString("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, CO2, PM1, PM25, PM10, 测量室负温度, 测量室正温度, "
-                                        "甲醛, 极板负电压, 极板正电压, 风扇负转速, 风扇正转速, 关风机采集数, 开风机采集数, 关风机正离子, 开风机正离子, 经度, 纬度, 海拔高度, 服务类型, 设备标识, 帧标识, 设备标识码)"
-                               "VALUES (%1, '%2', %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18, %19, %20, %21, %22, %23, %24, %25, %26, %27, %28, %29, %30, %31, %32, %33, %34);"
+//            queryStr = QString("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, CO2, PM1, PM25, PM10, 测量室负温度, 测量室正温度, "
+//                                        "甲醛, 极板负电压, 极板正电压, 风扇负转速, 风扇正转速, 关风机采集数, 开风机采集数, 关风机正离子, 开风机正离子, 经度, 纬度, 海拔高度, 服务类型, 设备标识, 帧标识, 设备标识码)"
+//                               "VALUES (%1, '%2', %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18, %19, %20, %21, %22, %23, %24, %25, %26, %27, %28, %29, %30, %31, %32, %33, %34);"
+//                               )
+//                    .arg(m_ClientId)
+//                    .arg(data.clientDate)
+//                    .arg(0)
+//                    .arg(0)
+//                    .arg(data.nIon)
+//                    .arg(data.humidity)
+//                    .arg(data.temperature)
+//                    .arg(data.pIon)
+//                    .arg(data.windDirection)
+//                    .arg(data.windSpeed)
+//                    .arg(data.rainfall)
+//                    .arg(data.pressure)
+//                    .arg(data.CO2)
+//                    .arg(data.pm1)
+//                    .arg(data.pm25)
+//                    .arg(data.pm10)
+//                    .arg(data.TubeTempL)
+//                    .arg(data.TubeTempR)
+//                    .arg(data.VOC)
+//                    .arg(data.PolarVoltN)
+//                    .arg(data.PolarVoltP)
+//                    .arg(data.RPML)
+//                    .arg(data.RPMR)
+//                    .arg(data.fanOffIonCountN)
+//                    .arg(data.fanOnIonCountN)
+//                    .arg(data.fanOffIonCountP)
+//                    .arg(data.fanOnIonCountP)
+//                    .arg(data.longtitude)
+//                    .arg(data.latitude)
+//                    .arg(data.altitude)
+//                    .arg(data.serviceType)
+//                    .arg(data.deviceType)
+//                    .arg(data.interval)
+//                    .arg(data.deviceString);
+            queryStr = QString("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度)"
+                               "VALUES (%1, '%2', '%3', %4, %5, %6, %7, %8);"
                                )
-                    .arg(m_ClientId)
+                    .arg(data.stationID)
+                    .arg(data.deviceString)
                     .arg(data.clientDate)
                     .arg(0)
                     .arg(0)
                     .arg(data.nIon)
                     .arg(data.humidity)
-                    .arg(data.temperature)
-                    .arg(data.pIon)
-                    .arg(data.windDirection)
-                    .arg(data.windSpeed)
-                    .arg(data.rainfall)
-                    .arg(data.pressure)
-                    //.arg(data.CO2)
-                    .arg(data.pm1)
-                    .arg(data.pm25)
-                    .arg(data.pm10)
-    //                .arg(TubeTempLeft)
-    //                .arg(TubeTempRight)
-    //                .arg(VOC)
-    //                .arg(PVN)
-    //                .arg(PVP)
-    //                .arg(RPML)
-    //                .arg(RPMR)
-    //                .arg(FOFFL)
-    //                .arg(FONL)
-    //                .arg(FOFFR)
-    //                .arg(FONR)
-    //                .arg(Longtitude)
-    //                .arg(Latitude)
-    //                .arg(Altitude)
-    //                .arg(ServiceType)
-    //                .arg(DeviceType)
-    //                .arg(0)
-                    .arg(0);
+                    .arg(data.temperature);
         }
 
         QSqlQuery query(db);
         result = query.exec(queryStr);
         if(result==false) {
-            LOG_SYS("Insert failed\n");
-            LOG_SYS("Date: "+data.clientDate+"\n");
-            LOG_SYS(query.lastError().text());
+            qDebug() << "Insert failed\n";
+            qDebug() << "stationID: "+data.stationID;
+            qDebug() << "deviceString: "+data.deviceString;
+            qDebug() << "Date: "+data.clientDate;
+            qDebug() << "nIon: "+data.nIon;
+            qDebug() << "humidity: "+QString::number(data.humidity);
+            qDebug() << "temp: "+QString::number(data.temperature);
+            qDebug() << query.lastError().text();
         }
 
         db.close();
