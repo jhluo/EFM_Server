@@ -57,7 +57,10 @@ public:
         double VOC;
         int serviceType;
         QString deviceType;
+<<<<<<< HEAD
         QString deviceString;
+=======
+>>>>>>> origin/master
         QString deviceID;
         QString stationID;
         int interval;
@@ -73,11 +76,6 @@ public:
         double TubeTempR;
         int RPML;
         int RPMR;
-
-
-
-
-
 
     } ClientData;
 
@@ -135,9 +133,9 @@ protected:
 private:
     void handleData(const QByteArray &newData);
 
-    void decodeVersion1Data(const QByteArray &newData);
-    void decodeVersion2Data(const QByteArray &newData);
-    void decodeVersion3Data(const QByteArray &newData);
+    void decodeVersion1Data(const QByteArray &dataArray, ClientData &data);
+    void decodeVersion2Data(const QByteArray &dataArray, ClientData &data);
+    void decodeVersion3Data(const QByteArray &dataArray, ClientData &data);
 
     void writeDataLog(const QString &fileName, const ClientData &data);
     void writeRawLog(const QString &fileName, const QByteArray &rawData);
@@ -152,7 +150,7 @@ private:
     eClientType m_ClientType;
 
     //version of data format for this client
-    eClientVersion m_CLientVersion;
+    eClientVersion m_ClientVersion;
 
     //this can be used to display data info from a client
     QTextEdit *m_pDataViewer;
