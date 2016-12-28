@@ -158,11 +158,12 @@ void AClient::handleData(const QByteArray &newData)
 //                             "ADA5,080,ASB,0300,ASC,1000,ASD,-100,ASE,080,ASF,"
 //                            "10000,ASG,000200,000000000,z,1,y_AAA,2,wA,4,9574,ED";
 //    if(exampleData.left(2)=="BG") {
-    if(newData.left(2) == "BG") {
+
+//    if(newData.left(2) == "BG" && newData.right(2) == "ED") {
+        if(newData.left(2) == "BG") {
+        m_DataBuffer.clear(); //clear previous data
         decodeVersion3Data(newData);
-
-
-}
+    }
     //handle old format
     if(newData.left(1) == "J" //it's a new packet
        || m_DataBuffer.size() >= FULL_DATA_SIZE // buffer is holding more than it should for some reason
@@ -242,6 +243,9 @@ void AClient::handleData(const QByteArray &newData)
     if(hour>23) hour=0;
     int minute = m_DataBuffer.mid(14,1).toHex().toInt(&ok, 16);
     if(minute>59) minute=0;
+
+    ClientData clientData;
+
     clientData.clientDate = QString("%1/%2/%3 %4:%5:%6")
                             .arg(2016)
                             .arg(month)
@@ -360,14 +364,60 @@ void AClient::handleData(const QByteArray &newData)
                     DataStr += QString("Oxygen Content【蒸发（mm）】: %1\n" ).arg(clientData.oxygen);
                 }
         if (clientData.pm1!=0){
-                    DataStr += QString("PM 1.0:  %1\n" ).arg(clientData.pm1);
+                    DataStr += QString("PM 1.0 (ug/m3):  %1\n" ).arg(clientData.pm1);
                 }
         if (clientData.pm25!=0){
-                    DataStr += QString("PM 2.5:  %1\n" ).arg(clientData.pm25);
+                    DataStr += QString("PM 2.5 (ug/m3):  %1\n" ).arg(clientData.pm25);
                 }
         if (clientData.pm10!=0){
-                    DataStr += QString("PM 10:  %1\n" ).arg(clientData.pm10);
+                    DataStr += QString("PM 10 (ug/m3):  %1\n" ).arg(clientData.pm10);
                 }
+        if (clientData.CO2!=0){
+                    DataStr += QString("CO2【二氧化碳】:  %1\n" ).arg(clientData.CO2);
+                }
+        if (clientData.VOC!=0){
+                    DataStr += QString("VOC【甲醛】:  %1\n" ).arg(clientData.VOC);
+                }
+        if (clientData.PolarVoltP!=0){
+                    DataStr += QString("Polar Voltage Positive【极板正电压（V）】:  %1\n" ).arg(clientData.PolarVoltP);
+                }
+        if (clientData.PolarVoltN!=0){
+                    DataStr += QString("Polar Voltage Negative【极板正电压（V）】:  %1\n" ).arg(clientData.PolarVoltN);
+                }
+        if (clientData.TubeTempL!=0){
+                    DataStr += QString("Tube Temperature Left【左管温度（℃）】:  %1\n" ).arg(clientData.TubeTempL);
+                }
+        if (clientData.TubeTempR!=0){
+                    DataStr += QString("Tube Temperature Right【右管温度（℃）】:  %1\n" ).arg(clientData.TubeTempR);
+                }
+        if (clientData.RPML!=0){
+                    DataStr += QString("Fan Speed Left【左风扇转速（转/s）】:  %1\n" ).arg(clientData.RPML);
+                }
+        if (clientData.RPMR!=0){
+                    DataStr += QString("Fan Speed Right【右风扇转速（转/s）】:  %1\n" ).arg(clientData.RPMR);
+                }
+        if (clientData.fanOnIonCountN!=0){
+                    DataStr += QString("Fan On Negative Ion Count 【开风机负离子采集数】:  %1\n" ).arg(clientData.fanOnIonCountN);
+                }
+        if (clientData.fanOffIonCountN!=0){
+                    DataStr += QString("Fan Off Negative Ion Count 【关风机负离子采集数】:  %1\n" ).arg(clientData.fanOffIonCountN);
+                }
+        if (clientData.fanOnIonCountP!=0){
+                    DataStr += QString("Fan On Positive Ion Count 【开风机正离子采集数】:  %1\n" ).arg(clientData.fanOnIonCountP);
+                }
+        if (clientData.fanOffIonCountP!=0){
+                    DataStr += QString("Fan Off Positive Ion Count 【关风机正离子采集数】:  %1\n" ).arg(clientData.fanOffIonCountP);
+                }
+        if (clientData.interval!=0){
+                    DataStr += QString("Interval【帧标识】:  %1\n" ).arg(clientData.interval);
+                }
+        if (clientData.elementCount!=0){
+                    DataStr += QString("Element Count【观测要素】:  %1\n" ).arg(clientData.elementCount);
+                }
+        if (clientData.statusCount!=0){
+                    DataStr += QString("Status Count【状态要素】:  %1\n" ).arg(clientData.statusCount);
+                }
+
 
 //        DataStr += QString("Temperature【温度】:  %1\n"
 //                           "Humidity【湿度】:  %2\n"
@@ -437,20 +487,23 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
     QString str;
     str.append(newData);
 
+    qDebug() <<"Data to be decoded is:  " << newData<<endl << endl;
+
     //if data is not long enough to be informative
     if(m_DataBuffer.size() < 65)
        return;
+    ClientData clientData;
+    clientData.stationID = str.mid(3,4);
+    clientData.latitude = str.mid(9,5).toInt();
+    clientData.longtitude = str.mid(16,6).toInt();
+    clientData.altitude = str.mid(24,4).toInt();
+    clientData.serviceType = str.mid(30,1).toInt();
+    clientData.deviceType = str.mid(33,3);
+    clientData.deviceID = str.mid(38,2);
+    clientData.deviceString = clientData.stationID+":"+clientData.deviceID;
+    //int dateTime = str.mid(42,13).toInt();
 
-    QString stationID = str.mid(3,4);
-    int latitude = str.mid(9,5).toInt();
-    int longtitude = str.mid(16,6).toInt();
-    int altitude = str.mid(24,4).toInt();
-    int serviceType = str.mid(30,1).toInt();
-    QString deviceType = str.mid(33,3);
-    QString deviceID = str.mid(38,2).toInt();
-    int dateTime = str.mid(42,13).toInt();
-
-    QString clientID = stationID+deviceID;
+    QString clientID = clientData.deviceID+clientData.stationID;
     if(m_ClientId == "Unknown") {//this is the first packet we get in this client, so tell server a new client has connected
         //this line is needed so that the slot knows what the ID is
         m_ClientId = clientID.toInt();
@@ -473,9 +526,9 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
         //qDebug() <<command;
     }
 
-    m_ClientId = clientID.toInt();
+    //m_ClientId = clientID.toInt();
 
-    ClientData clientData;
+    //ClientData clientData;
 
     int year = m_DataBuffer.mid(42,3).toInt();
     int month = m_DataBuffer.mid(46,1).toHex().toInt();
@@ -496,9 +549,9 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
                             .arg(minute)
                             .arg(second);
 
-    int interval = str.mid(57,2).toInt();
-    int elementCount = str.mid(61,2).toInt();
-    int statusCount = str.mid(65,1).toInt();
+    clientData.interval = str.mid(57,2).toInt();
+    clientData.elementCount = str.mid(61,2).toInt();
+    clientData.statusCount = str.mid(65,1).toInt();
 
 
     //locate the index of the field
@@ -687,11 +740,13 @@ bool AClient::writeDatabase(const ClientData &data)
         }
 
         QString queryStrNewFormat;
-        queryStrNewFormat = QString("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, CO2, PM1, PM25, PM10, 测量室负温度, 测量室正温度, "
+        queryStrNewFormat = QString("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, CO2, PM1, PM25, PM10, 测量室负温度, 测量室正温度, "
                                     "甲醛, 极板负电压, 极板正电压, 风扇负转速, 风扇正转速, 关风机采集数, 开风机采集数, 关风机正离子, 开风机正离子, 经度, 纬度, 海拔高度, 服务类型, 设备标识, 帧标识, 设备标识码)"
                            "VALUES (%1, '%2', %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18, %19, %20, %21, %22, %23, %24, %25, %26, %27, %28, %29, %30, %31, %32, %33, %34);"
                            )
-                .arg(m_ClientId)
+                //.arg(m_ClientId)
+                .arg(data.stationID)
+                .arg(data.deviceID)
                 .arg(data.clientDate)
                 .arg(0)
                 .arg(0)
@@ -703,28 +758,28 @@ bool AClient::writeDatabase(const ClientData &data)
                 .arg(data.windSpeed)
                 .arg(data.rainfall)
                 .arg(data.pressure)
-                //.arg(data.CO2)
+                .arg(data.CO2)
                 .arg(data.pm1)
                 .arg(data.pm25)
                 .arg(data.pm10)
-//                .arg(TubeTempLeft)
-//                .arg(TubeTempRight)
-//                .arg(VOC)
-//                .arg(PVN)
-//                .arg(PVP)
-//                .arg(RPML)
-//                .arg(RPMR)
-//                .arg(FOFFL)
-//                .arg(FONL)
-//                .arg(FOFFR)
-//                .arg(FONR)
-//                .arg(Longtitude)
-//                .arg(Latitude)
-//                .arg(Altitude)
-//                .arg(ServiceType)
-//                .arg(DeviceType)
-//                .arg(0)
-                .arg(0);
+                .arg(data.TubeTempL)
+                .arg(data.TubeTempR)
+                .arg(data.VOC)
+                .arg(data.PolarVoltN)
+                .arg(data.PolarVoltP)
+                .arg(data.RPML)
+                .arg(data.RPMR)
+                .arg(data.fanOffIonCountN)
+                .arg(data.fanOnIonCountN)
+                .arg(data.fanOffIonCountP)
+                .arg(data.fanOnIonCountP)
+                .arg(data.longtitude)
+                .arg(data.latitude)
+                .arg(data.altitude)
+                .arg(data.serviceType)
+                .arg(data.deviceID)
+                .arg(data.interval)
+                .arg(data.deviceString);
 
 
         //QSqlQuery query(db);

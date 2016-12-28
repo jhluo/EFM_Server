@@ -52,13 +52,14 @@ public:
         double pm10;
         double CO2;
         double longtitude;
-        double latititude;
+        double latitude;
         double altitude;
         double VOC;
         int serviceType;
         QString deviceType;
-        int deviceID;
-        int stationID;
+        QString deviceString;
+        QString deviceID;
+        QString stationID;
         int interval;
         int elementCount;
         int statusCount;
@@ -69,7 +70,7 @@ public:
         double PolarVoltP;
         double PolarVoltN;
         double TubeTempL;
-        double TubeTampR;
+        double TubeTempR;
         int RPML;
         int RPMR;
 
