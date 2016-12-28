@@ -152,30 +152,7 @@ void AClient::handleData(const QByteArray &newData)
         return;
     }
 
-<<<<<<< HEAD
-    //handle new format
-//    QByteArray exampleData = "BG,12345,321420,1163418,01000,18,YNAI,001,"
-//                             "20120912131000,005,009,03,ASA,010001,AAA5,-102, "
-//                             "ADA5,080,ASB,0300,ASC,1000,ASD,-100,ASE,080,ASF,"
-//                            "10000,ASG,000200,000000000,z,1,y_AAA,2,wA,4,9574,ED";
-//    if(exampleData.left(2)=="BG") {
-
-//    if(newData.left(2) == "BG" && newData.right(2) == "ED") {
-        if(newData.left(2) == "BG") {
-        m_DataBuffer.clear(); //clear previous data
-        decodeVersion3Data(newData);
-    }
-    //handle old format
-    if(newData.left(1) == "J" //it's a new packet
-       || m_DataBuffer.size() >= FULL_DATA_SIZE // buffer is holding more than it should for some reason
-       )
-    {
-        m_DataBuffer.clear(); //clear previous data
-    }
-
-=======
     m_DataBuffer.clear();
->>>>>>> origin/master
     m_DataBuffer.append(newData);
 
     ClientData clientData;
@@ -195,118 +172,6 @@ void AClient::handleData(const QByteArray &newData)
         return;
     }
 
-<<<<<<< HEAD
-    bool ok = false;
-    if(m_ClientId == "Unknown") {//this is the first packet we get in this client, so tell server a new client has connected
-        //this line is needed so that the slot knows what the ID is
-        m_ClientId = QString::number(m_DataBuffer.mid(5, 2).toHex().toInt(&ok, 16));
-        emit clientIDAssigned();
-
-        //send an initial command to calibrate date
-        QDateTime currentDateTime = QDateTime::currentDateTime();
-        QDate currentDate = currentDateTime.date();
-        QTime currentTime = currentDateTime.time();
-        QString command=QString("dxsj02:\"%1.%2.%3.%4.%5.%6.%7\"")
-                .arg(currentDate.year()-2000)
-                .arg(currentDate.month())
-                .arg(currentDate.day())
-                .arg(currentDate.dayOfWeek())
-                .arg(currentTime.hour())
-                .arg(currentTime.minute())
-                .arg(currentTime.second());
-
-        sendCommand(command);
-        //qDebug() <<command;
-    }
-
-    m_ClientId = QString::number(m_DataBuffer.mid(5, 2).toHex().toInt(&ok, 16));
-
-    int msgCount = m_DataBuffer.mid(7, 2).toHex().toInt(&ok, 16);
-    Q_UNUSED(msgCount);
-
-    QByteArray bcc = m_DataBuffer.mid(9, 1).toHex();
-    Q_UNUSED(bcc);  //message checksum, no use yet
-
-
-    if(m_DataBuffer.size() < 10)
-       return;
-
-    int second = m_DataBuffer.mid(10,1).toHex().toInt(&ok, 16);
-    if(second > 59) second = 0;
-    int month = m_DataBuffer.mid(11,1).toHex().toInt(&ok, 16);
-    if(month > 12) month = 12;
-    int day = m_DataBuffer.mid(12,1).toHex().toInt(&ok, 16);
-    if(day > 31) day = 1;
-    int hour = m_DataBuffer.mid(13,1).toHex().toInt(&ok, 16);
-    if(hour>23) hour=0;
-    int minute = m_DataBuffer.mid(14,1).toHex().toInt(&ok, 16);
-    if(minute>59) minute=0;
-
-    ClientData clientData;
-
-    clientData.clientDate = QString("%1/%2/%3 %4:%5:%6")
-                            .arg(2016)
-                            .arg(month)
-                            .arg(day)
-                            .arg(hour)
-                            .arg(minute)
-                            .arg(second);
-
-    //convert temperature to floating point number, first argument is higher byte,
-    // second argument is lower byte
-    clientData.temperature = convertToDecimal(m_DataBuffer.mid(15,1), m_DataBuffer.mid(16,1));
-
-    //convert humidity to floating point number, same as temeprature
-    clientData.humidity = convertToDecimal(m_DataBuffer.mid(17, 1), m_DataBuffer.mid(18,1));
-
-    clientData.nIon = m_DataBuffer.mid(19, 2).toHex().toInt(&ok, 16);
-    clientData.pIon = m_DataBuffer.mid(21, 2).toHex().toInt(&ok, 16);
-
-    clientData.windDirection = m_DataBuffer.mid(23,2).toHex().toInt(&ok, 16);
-
-    clientData.windSpeed = convertToDecimal(m_DataBuffer.mid(25,1), m_DataBuffer.mid(26,1));
-
-    //convert rainfall to a double
-    const char rain_h = m_DataBuffer.at(27);
-    const char rain_l = m_DataBuffer.at(28);
-
-    //shift higher-byte 4 bits to left then combine with first 4 bits of lower-byte
-    //???this is different than what's in spec, need to verify
-    int rain_int = (rain_h << 4) | ((rain_l & 0xF0) >> 4);
-
-    //only look at last 4 bits of lower-byte
-    int rain_dec = rain_l & 0x0F;
-
-    //combine integer and fractional part
-    double rain_frac = 0;
-    if(rain_dec<10)
-        rain_frac = rain_dec/10.0;
-    else
-        rain_frac = rain_dec/100.0;
-
-    clientData.rainfall = rain_int + rain_frac;
-
-    //pressure needs three bytes
-    clientData.pressure = convertToDecimal(m_DataBuffer.mid(29, 2), m_DataBuffer.mid(31,1));
-
-    clientData.ultraViolet = m_DataBuffer.mid(32, 2).toHex().toInt(&ok, 16);
-
-    //TODO:  BCC check sum stuff on byte 34~36,  not implemented yet
-
-    clientData.oxygen = m_DataBuffer.mid(37, 2).toHex().toInt(&ok, 16) / 10;
-
-    clientData.pm1 = m_DataBuffer.mid(39, 2).toHex().toInt(&ok, 16) / 10;
-
-    clientData.pm25 = m_DataBuffer.mid(41, 2).toHex().toInt(&ok, 16) / 10;
-
-    clientData.pm10 = m_DataBuffer.mid(43, 2).toHex().toInt(&ok, 16) / 10;
-
-    int error = 0;  //TBD
-    Q_UNUSED(error);
-
-
-=======
->>>>>>> origin/master
     //emits signal for chart dialog
     emit receivedData(QDateTime::currentDateTime(), clientData.nIon);
 
@@ -604,35 +469,16 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
     QString str;
     str.append(newData);
 
-<<<<<<< HEAD
-    qDebug() <<"Data to be decoded is:  " << newData<<endl << endl;
-
-    //if data is not long enough to be informative
-    if(m_DataBuffer.size() < 65)
-       return;
-    ClientData clientData;
-    clientData.stationID = str.mid(3,4);
-    clientData.latitude = str.mid(9,5).toInt();
-    clientData.longtitude = str.mid(16,6).toInt();
-    clientData.altitude = str.mid(24,4).toInt();
-    clientData.serviceType = str.mid(30,1).toInt();
-    clientData.deviceType = str.mid(33,3);
-    clientData.deviceID = str.mid(38,2);
-    clientData.deviceString = clientData.stationID+":"+clientData.deviceID;
-    //int dateTime = str.mid(42,13).toInt();
-
-    QString clientID = clientData.deviceID+clientData.stationID;
-=======
-    QString stationID = str.mid(3,4);
+    data.stationID = str.mid(3,4);
     data.latitude = str.mid(9,5).toInt();
     data.longtitude = str.mid(16,6).toInt();
     data.altitude = str.mid(24,4).toInt();
     data.serviceType = str.mid(30,1).toInt();
     data.deviceType = str.mid(33,3);
-    data.deviceID = str.mid(38,2).toInt();
+    data.deviceString = str.mid(38,2).toInt();
 
-    QString clientID = data.stationID+data.deviceID;
->>>>>>> origin/master
+    QString clientID = data.stationID+data.deviceString;
+
     if(m_ClientId == "Unknown") {//this is the first packet we get in this client, so tell server a new client has connected
         //this line is needed so that the slot knows what the ID is
         m_ClientId = clientID;
@@ -655,13 +501,7 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
         //qDebug() <<command;
     }
 
-<<<<<<< HEAD
-    //m_ClientId = clientID.toInt();
-
-    //ClientData clientData;
-=======
     m_ClientId = clientID;
->>>>>>> origin/master
 
     int year = m_DataBuffer.mid(42,3).toInt();
     int month = m_DataBuffer.mid(46,1).toHex().toInt();
@@ -682,16 +522,10 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
                             .arg(minute)
                             .arg(second);
 
-<<<<<<< HEAD
-    clientData.interval = str.mid(57,2).toInt();
-    clientData.elementCount = str.mid(61,2).toInt();
-    clientData.statusCount = str.mid(65,1).toInt();
-
-=======
     data.interval = str.mid(57,2).toInt();
     data.elementCount = str.mid(61,2).toInt();
     data.statusCount = str.mid(65,1).toInt();
->>>>>>> origin/master
+
 
     //locate the index of the field
     int indexOfASA = str.indexOf("ASA");
@@ -936,54 +770,7 @@ bool AClient::writeDatabase(const ClientData &data)
                     .arg(0);
         }
 
-<<<<<<< HEAD
-        QString queryStrNewFormat;
-        queryStrNewFormat = QString("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, CO2, PM1, PM25, PM10, 测量室负温度, 测量室正温度, "
-                                    "甲醛, 极板负电压, 极板正电压, 风扇负转速, 风扇正转速, 关风机采集数, 开风机采集数, 关风机正离子, 开风机正离子, 经度, 纬度, 海拔高度, 服务类型, 设备标识, 帧标识, 设备标识码)"
-                           "VALUES (%1, '%2', %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18, %19, %20, %21, %22, %23, %24, %25, %26, %27, %28, %29, %30, %31, %32, %33, %34);"
-                           )
-                //.arg(m_ClientId)
-                .arg(data.stationID)
-                .arg(data.deviceID)
-                .arg(data.clientDate)
-                .arg(0)
-                .arg(0)
-                .arg(data.nIon)
-                .arg(data.humidity)
-                .arg(data.temperature)
-                .arg(data.pIon)
-                .arg(data.windDirection)
-                .arg(data.windSpeed)
-                .arg(data.rainfall)
-                .arg(data.pressure)
-                .arg(data.CO2)
-                .arg(data.pm1)
-                .arg(data.pm25)
-                .arg(data.pm10)
-                .arg(data.TubeTempL)
-                .arg(data.TubeTempR)
-                .arg(data.VOC)
-                .arg(data.PolarVoltN)
-                .arg(data.PolarVoltP)
-                .arg(data.RPML)
-                .arg(data.RPMR)
-                .arg(data.fanOffIonCountN)
-                .arg(data.fanOnIonCountN)
-                .arg(data.fanOffIonCountP)
-                .arg(data.fanOnIonCountP)
-                .arg(data.longtitude)
-                .arg(data.latitude)
-                .arg(data.altitude)
-                .arg(data.serviceType)
-                .arg(data.deviceID)
-                .arg(data.interval)
-                .arg(data.deviceString);
-
-
-        //QSqlQuery query(db);
-=======
         QSqlQuery query(db);
->>>>>>> origin/master
         result = query.exec(queryStr);
         if(result==false) {
             LOG_SYS("Insert failed\n");

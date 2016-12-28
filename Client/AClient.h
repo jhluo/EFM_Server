@@ -57,11 +57,7 @@ public:
         double VOC;
         int serviceType;
         QString deviceType;
-<<<<<<< HEAD
         QString deviceString;
-=======
->>>>>>> origin/master
-        QString deviceID;
         QString stationID;
         int interval;
         int elementCount;
