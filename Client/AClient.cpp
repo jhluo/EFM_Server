@@ -9,7 +9,7 @@
 #include <QSqlQuery>
 #include <QSqlError>
 
-#define DATA_TIMEOUT 60000  //swith to no data state after 60 seconds
+#define DATA_TIMEOUT 60000 * 5//swith to no data state after 5 minutes
 #define COMMAND_ACK_TIMEOUT 10000    //give 10 seconds for client to reply
 
 #define VERSION1_LENGTH 37  //length in bytes for fixed length messages
@@ -559,46 +559,68 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
     if(indexOfASA != -1) {  //-1 is the case that "ASA" cannot not be found in the sentence
         ASA_Str = newData.mid(indexOfASA+4, newData.indexOf(",", indexOfASA+4)-(indexOfASA+4));
         data.nIon = ASA_Str.toInt();
+    } else {
+        data.nIon = -1;
     }
+
     QString AAA5_Str = "";
     if(indexOfAAA5 != -1) {  //-1 is the case that "AAA5" cannot not be found in the sentence
         AAA5_Str = newData.mid(indexOfAAA5+5, newData.indexOf(",", indexOfAAA5+5)-(indexOfAAA5+5));
         data.temperature = AAA5_Str.toInt() / 10.0;
+    } else {
+        data.temperature = -500;
     }
+
     QString ADA5_Str = "";
     if(indexOfADA5 != -1) {  //-1 is the case that "ASA" cannot not be found in the sentence
         ADA5_Str = newData.mid(indexOfADA5+5, newData.indexOf(",", indexOfADA5+5)-(indexOfADA5+5));
         data.humidity = ADA5_Str.toInt();
+    } else {
+        data.humidity = -1;
     }
+
     QString ASB_Str = "";
     if(indexOfASB != -1) {  //-1 is the case that "ASB" cannot not be found in the sentence
         ASB_Str = newData.mid(indexOfASB+4, newData.indexOf(",", indexOfASB+4)-(indexOfASB+4));
         data.PolarVoltN = ASB_Str.toInt() / 10.0;
+    } else {
+        data.PolarVoltN = -1000;
     }
+
     QString ASC_Str = "";
     if(indexOfASC != -1) {  //-1 is the case that "ASC" cannot not be found in the sentence
         ASC_Str = newData.mid(indexOfASC+4, newData.indexOf(",", indexOfASC+4)-(indexOfASC+4));
         data.RPML = ASC_Str.toInt();
+    } else {
+        data.RPML = -1000;
     }
     QString ASD_Str = "";
     if(indexOfASD != -1) {  //-1 is the case that "ASD" cannot not be found in the sentence
         ASD_Str = newData.mid(indexOfASD+4, newData.indexOf(",", indexOfASD+4)-(indexOfASD+4));
         data.TubeTempL = ASD_Str.toInt() / 10.0;
+    } else {
+        data.TubeTempL = -1000;
     }
     QString ASE_Str = "";
     if(indexOfASE != -1) {  //-1 is the case that "ASE" cannot not be found in the sentence
         ASE_Str = newData.mid(indexOfASE+4, newData.indexOf(",", indexOfASE+4)-(indexOfASE+4));
         data.TubeHumidityL = ASE_Str.toInt()/1.0;
+    } else {
+        data.TubeHumidityL = -1000;
     }
     QString ASF_Str = "";
     if(indexOfASF != -1) {  //-1 is the case that "ASF" cannot not be found in the sentence
         ASF_Str = newData.mid(indexOfASF+4, newData.indexOf(",", indexOfASF+4)-(indexOfASF+4));
         data.pressure = ASF_Str.toInt()/10.0;
+    } else {
+        data.pressure = -1;
     }
     QString ASG_Str = "";
     if(indexOfASG != -1) {  //-1 is the case that "ASG" cannot not be found in the sentence
         ASG_Str = newData.mid(indexOfASG+4, newData.indexOf(",", indexOfASG+4)-(indexOfASG+4));
         data.insulation = ADA5_Str.toInt();
+    } else {
+        data.insulation = -1;
     }
 
 //    if(statusCode =-1)
