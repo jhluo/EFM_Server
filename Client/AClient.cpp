@@ -869,55 +869,57 @@ bool AClient::writeDatabase(const ClientData &data)
                     .arg(data.pm10)
                     .arg(0);
         } else if (m_ClientVersion == eVersion3) {
-            queryStr = QString("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, CO2, PM1, PM25, PM10, 测量室负温度, 测量室正温度, "
-                                        "甲醛, 极板负电压, 极板正电压, 风扇负转速, 风扇正转速, 关风机采集数, 开风机采集数, 关风机正离子, 开风机正离子, 经度, 纬度, 海拔高度, 服务类型, 设备标识, 帧标识, 设备标识码)"
-                               "VALUES (%1, '%2', '%3', %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18, %19, %20, %21, %22, %23, %24, %25, %26, %27, %28, %29, %30, %31, %32, %33, %34);"
-                               )
-                    .arg(data.stationID)
-                    .arg(data.deviceString)
-                    .arg(0)
-                    .arg(0)
-                    .arg(data.nIon)
-                    .arg(data.humidity)
-                    .arg(data.temperature)
-                    .arg(data.pIon)
-                    .arg(data.windDirection)
-                    .arg(data.windSpeed)
-                    .arg(data.rainfall)
-                    .arg(data.pressure)
-                    .arg(data.CO2)
-                    .arg(data.pm1)
-                    .arg(data.pm25)
-                    .arg(data.pm10)
-                    .arg(data.TubeTempL)
-                    .arg(data.TubeTempR)
-                    .arg(data.VOC)
-                    .arg(data.PolarVoltN)
-                    .arg(data.PolarVoltP)
-                    .arg(data.RPML)
-                    .arg(data.RPMR)
-                    .arg(data.fanOffIonCountN)
-                    .arg(data.fanOnIonCountN)
-                    .arg(data.fanOffIonCountP)
-                    .arg(data.fanOnIonCountP)
-                    .arg(data.longtitude)
-                    .arg(data.latitude)
-                    .arg(data.altitude)
-                    .arg(data.serviceType)
-                    .arg(data.deviceType)
-                    .arg(data.interval)
-                    .arg(data.deviceID);
-//            queryStr = QString("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度)"
-//                               "VALUES (%1, '%2', '%3', %4, %5, %6, %7, %8);"
+//            queryStr = QString("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, CO2, PM1, PM25, PM10, 测量室负温度, 测量室正温度, "
+//                                        "甲醛, 极板负电压, 极板正电压, 风扇负转速, 风扇正转速, 关风机采集数, 开风机采集数, 关风机正离子, 开风机正离子, 经度, 纬度, 海拔高度, 服务类型, 设备标识, 帧标识, 设备标识码)"
+//                               "VALUES (%1, '%2', '%3', %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18, %19, %20, %21, %22, %23, %24, %25, %26, %27, %28, %29, %30, %31, %32, %33, %34);"
 //                               )
 //                    .arg(data.stationID)
 //                    .arg(data.deviceString)
-//                    .arg(data.clientDate)
 //                    .arg(0)
 //                    .arg(0)
 //                    .arg(data.nIon)
 //                    .arg(data.humidity)
-//                    .arg(data.temperature);
+//                    .arg(data.temperature)
+//                    .arg(data.pIon)
+//                    .arg(data.windDirection)
+//                    .arg(data.windSpeed)
+//                    .arg(data.rainfall)
+//                    .arg(data.pressure)
+//                    .arg(data.CO2)
+//                    .arg(data.pm1)
+//                    .arg(data.pm25)
+//                    .arg(data.pm10)
+//                    .arg(data.TubeTempL)
+//                    .arg(data.TubeTempR)
+//                    .arg(data.VOC)
+//                    .arg(data.PolarVoltN)
+//                    .arg(data.PolarVoltP)
+//                    .arg(data.RPML)
+//                    .arg(data.RPMR)
+//                    .arg(data.fanOffIonCountN)
+//                    .arg(data.fanOnIonCountN)
+//                    .arg(data.fanOffIonCountP)
+//                    .arg(data.fanOnIonCountP)
+//                    .arg(data.longtitude)
+//                    .arg(data.latitude)
+//                    .arg(data.altitude)
+//                    .arg(data.serviceType)
+//                    .arg(data.deviceType)
+//                    .arg(data.interval)
+//                    .arg(data.deviceID);
+
+
+            queryStr = QString("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度)"
+                               "VALUES (%1, '%2', '%3', %4, %5, %6, %7, %8);"
+                               )
+                    .arg(data.stationID)
+                    .arg(data.deviceString)
+                    .arg(data.clientDate)
+                    .arg(0)
+                    .arg(0)
+                    .arg(data.nIon)
+                    .arg(data.humidity)
+                    .arg(data.temperature);
         }
 
         QSqlQuery query(db);
