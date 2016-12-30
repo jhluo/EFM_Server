@@ -9,7 +9,8 @@
 #include <QSqlQuery>
 #include <QSqlError>
 
-#define DATA_TIMEOUT 60000 * 5//swith to no data state after 5 minutes
+#define DATA_TIMEOUT 60000 * 1//swith to no data state after 2 minutes
+#define CLIENT_TIMEOUT 60000 * 2 //disconnect the client if there's no data after 5 minutes
 #define COMMAND_ACK_TIMEOUT 10000    //give 10 seconds for client to reply
 
 #define VERSION1_LENGTH 37  //length in bytes for fixed length messages
@@ -33,6 +34,10 @@ AClient::AClient(QObject *pParent)
     m_pDataStarvedTimer->setInterval(DATA_TIMEOUT);
     connect(m_pDataStarvedTimer, SIGNAL(timeout()), this, SLOT(onDataTimeout()));
 
+    m_pClientDisconnectTimer = new QTimer(this);
+    m_pClientDisconnectTimer->setInterval(CLIENT_TIMEOUT);
+    connect(m_pClientDisconnectTimer, SIGNAL(timeout()), this, SLOT(disconnectClient()));
+
     //Command acknowledgement timer
     m_pCommandAckTimer = new QTimer(this);
     m_pCommandAckTimer->setInterval(COMMAND_ACK_TIMEOUT);
@@ -45,6 +50,7 @@ AClient::AClient(QObject *pParent)
 AClient::~AClient()
 {
     m_pDataStarvedTimer->stop();
+    m_pClientDisconnectTimer->stop();
     m_pCommandAckTimer->stop();
     m_DataBuffer.clear();
 }
@@ -109,7 +115,12 @@ QSerialPort* AClient::getClientSerialPort()
 void AClient::onDataReceived()
 {
     //got data, refresh data timer
-    m_pDataStarvedTimer->stop();
+    if(m_pDataStarvedTimer->isActive())
+        m_pDataStarvedTimer->stop();
+
+    if(m_pClientDisconnectTimer->isActive())
+        m_pClientDisconnectTimer->stop();
+
     m_ClientState = eOnline;
 
     //read the incoming data
@@ -160,7 +171,7 @@ void AClient::handleData(const QByteArray &newData)
 
     ClientData clientData;
     //verison 1 & 2
-    if(m_DataBuffer.left(2)=="JH") {
+    if(m_DataBuffer.left(2)==QString("JH").toLocal8Bit()) {
         if(newData.length() == VERSION1_LENGTH) {
             m_ClientVersion = eVersion1;
             decodeVersion1Data(m_DataBuffer, clientData);
@@ -779,6 +790,7 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
 void AClient::onDataTimeout()
 {
     m_pDataStarvedTimer->stop();
+    m_pClientDisconnectTimer->start();
     m_ClientState = eNoData;
     //emit signal to notify model
     emit clientDataChanged();

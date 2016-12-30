@@ -130,6 +130,9 @@ protected:
     //Use to timeout client when no data is coming
     QTimer *m_pDataStarvedTimer;
 
+    //use to disconnect client after no data is transmitted for a while
+    QTimer *m_pClientDisconnectTimer;
+
     //Command ack timer
     QTimer *m_pCommandAckTimer;
     int m_lastCommandSent;

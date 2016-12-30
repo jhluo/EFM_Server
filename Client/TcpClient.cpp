@@ -24,6 +24,7 @@ TcpClient::~TcpClient()
 void TcpClient::disconnectClient()
 {
     m_pSocket->disconnectFromHost();
+    m_pClientDisconnectTimer->stop();
 }
 
 void TcpClient::onSocketDisconnected()
