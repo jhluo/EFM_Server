@@ -53,8 +53,10 @@ void TcpClient::onSocketDisconnected()
             .arg(settings.readDatabaseSettings("password", "").toString());
     db.setDatabaseName(dsn);
 
-    if(db.contains(m_ClientId)) {
-        db.removeDatabase(m_ClientId);
+    QString connectionName = QString::number((int)(thread()->currentThreadId()));
+
+    if(db.contains(connectionName)) {
+        db.removeDatabase(connectionName);
     }
 
     //emit signal to notify model

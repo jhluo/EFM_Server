@@ -802,7 +802,7 @@ void AClient::onDataTimeout()
 void AClient::onCommandAckTimeout()
 {
     m_pCommandAckTimer->stop();
-    emit error(QString(tr("Client %1 did not receive command.  Please retry.")).arg(m_ClientId));
+    //emit error(QString(tr("Client %1 did not receive command.  Please retry.")).arg(m_ClientId));
 }
 
 bool AClient::writeDatabase(const ClientData &data)
@@ -820,11 +820,11 @@ bool AClient::writeDatabase(const ClientData &data)
 //    } else {
 //        db = QSqlDatabase::database(m_ThreadId);
 //    }
-
-    if(!QSqlDatabase::contains(m_ClientId)) {
-        db = QSqlDatabase::addDatabase("QODBC", m_ClientId);
+    QString connectionName = QString::number((int)(thread()->currentThreadId()));
+    if(!QSqlDatabase::contains(connectionName)) {
+        db = QSqlDatabase::addDatabase("QODBC", connectionName);
     } else {
-        db = QSqlDatabase::database(m_ClientId);
+        db = QSqlDatabase::database(connectionName);
     }
 
     QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
