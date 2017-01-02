@@ -151,6 +151,7 @@ void AClient::handleData(const QByteArray &newData)
 {
     //handle command acknowledgement first, then return
     if(newData.left(3) == "ack") {
+        qDebug() << "Ack:  " << newData;
         bool ok = false;
         int commandNum = newData.mid(3, 2).toInt();
         QString id = newData.mid(6, 4);
@@ -162,6 +163,7 @@ void AClient::handleData(const QByteArray &newData)
             ok = true;
 
         emit clientAcknowledge(ok);
+        m_pCommandAckTimer->stop();
 
         return;
     }

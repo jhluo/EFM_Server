@@ -42,7 +42,9 @@ SOURCES += main.cpp\
     Client/AClient.cpp \
     Client/AClientList.cpp \
     Client/SerialClient.cpp \
-    Client/TcpClient.cpp
+    Client/TcpClient.cpp \
+    Client/Data/ClientData.cpp \
+    Client/Data/tData.cpp
 
 HEADERS  += mainwindow.h \
     Widgets/MainWindowWidget.h \
@@ -65,7 +67,10 @@ HEADERS  += mainwindow.h \
     Client/AClient.h \
     Client/AClientList.h \
     Client/SerialClient.h \
-    Client/TcpClient.h
+    Client/TcpClient.h \
+    Client/ClientData.h \
+    Client/Data/ClientData.h \
+    Client/Data/tData.h
 
 FORMS    += mainwindow.ui
 
