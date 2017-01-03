@@ -1,5 +1,12 @@
 ﻿#include "ClientData.h"
 
+ClientData::ClientData(QObject *parent):
+    QObject(parent),
+    m_DataList(eTotal)
+{
+
+}
+
 void ClientData::setData(const eDataId id, const QVariant &value)
 {
     bool ok = false;
@@ -11,13 +18,42 @@ void ClientData::setData(const eDataId id, const QVariant &value)
     }
 }
 
-void ClientData::validateData(eDataId id, const QVariant &value, const bool &ok)
+void ClientData::validateData(eDataId id, const QVariant &value, bool &ok)
 {
+    switch(id) {
+    case eClientDate:
+        if(!value.toString().isEmpty())
+            ok = true;
+    break;
 
+    case eTemperature:
+        if(value.toDouble() > -500 && value.toDouble() < 6000)
+            ok = true;
+    break;
+
+    case eHumidity:
+        if(value.toDouble() > -1)
+            ok = true;
+    break;
+
+
+    default:
+        //set it for now until all IDs are checked
+        ok = true;
+    break;
+    }
 }
 
-template <class T>
-T ClientData::getData(const eDataId id, const bool &canBeNull) const
+QVariant ClientData::getData(const eDataId &id) const
 {
+    if(m_DataList[id].value().isNull() || !m_DataList[id].value().isValid()) {
+        if(m_DataList[id].value().type()==QVariant::Int)
+            return QVariant(QVariant::Int);
+        if(m_DataList[id].value().type()==QVariant::Double)
+            return QVariant(QVariant::Double);
+        if(m_DataList[id].value().type()==QVariant::String)
+            return QVariant(QVariant::String);
+    }
 
+    return m_DataList[id].value();
 }

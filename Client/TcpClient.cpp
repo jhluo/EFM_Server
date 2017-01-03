@@ -1,4 +1,5 @@
 #include <QSqlDatabase>
+#include <QThread>
 #include "TcpClient.h"
 #include "Misc/Logger.h"
 #include "Misc/AppSettings.h"
@@ -9,7 +10,7 @@ TcpClient::TcpClient(QTcpSocket *pSocket, QObject *pParent)
 {
     connect(m_pSocket, SIGNAL(disconnected()), this, SLOT(onSocketDisconnected()));
 
-    setDataSource(m_pSocket, eTcp);
+    setDataSource(m_pSocket, eTcpIp);
 
     //tcp client will connect immediately so we do these here, serial client we delay till COM port connects
     m_TimeOfConnect = QDateTime::currentDateTime();
@@ -25,6 +26,17 @@ void TcpClient::disconnectClient()
 {
     m_pSocket->disconnectFromHost();
     m_pClientDisconnectTimer->stop();
+}
+
+QString TcpClient::getClientAddress() const
+{
+    QString ip = "";
+
+    if(m_pSocket != NULL) {
+        ip = m_pSocket->peerAddress().toString();
+    }
+
+    return ip;
 }
 
 void TcpClient::onSocketDisconnected()

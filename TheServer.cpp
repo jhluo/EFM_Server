@@ -73,9 +73,6 @@ void TheServer::addSerialClient(QSerialPort *pPort)
 
     SerialClient *pClient = new SerialClient(pPort);
 
-    //put the socket(connection) into the client object
-    pClient->setDataSource(pPort, AClient::eSerial);
-
     QThread *pClientThread = new QThread(this);
 
     pClient->moveToThread(pClientThread);

@@ -60,9 +60,7 @@ public:
     explicit ClientData(QObject *parent = 0);
 
     void setData(const eDataId id, const QVariant &value);
-
-    template <class T>
-    T getData(const eDataId id, const bool &canBeNull=false) const;
+    QVariant getData(const eDataId &id) const;
 
 signals:
 
@@ -70,6 +68,6 @@ public slots:
 
 private:
     QVector<tData> m_DataList;
-    void validateData(eDataId id, const QVariant &value, const bool &ok);
+    void validateData(eDataId id, const QVariant &value, bool &ok);
 };
 

@@ -12,6 +12,10 @@ public:
     SerialClient(QSerialPort *pPort, QObject *pParent = 0);
     virtual ~SerialClient();
 
+    QIODevice *getInputDevice();
+
+    QString getClientAddress() const;
+
 private:
     QSerialPort *m_pPort;
 

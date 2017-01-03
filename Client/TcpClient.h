@@ -12,6 +12,8 @@ public:
     TcpClient(QTcpSocket *pSocket, QObject *pParent = 0);
     virtual ~TcpClient();
 
+    QString getClientAddress() const;
+
 private:
     QTcpSocket *m_pSocket;
 

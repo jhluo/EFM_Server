@@ -9,6 +9,7 @@
 #include <QDateTime>
 #include <QTextEdit>
 #include <QHostAddress>
+#include "Data/ClientData.h"
 
 class AClient : public QObject
 {
@@ -24,7 +25,7 @@ public:
     };
 
     enum eClientType {
-        eTcp,
+        eTcpIp,
         eSerial,
         eUnknown
     };
@@ -35,60 +36,10 @@ public:
         eVersion3
     };
 
-    typedef struct {
-        QString clientDate;
-        double temperature;
-        double humidity;
-        int nIon;
-        int pIon;
-        int windDirection;
-        double windSpeed;
-        double rainfall;
-        double pressure;
-        int ultraViolet;
-        double oxygen;
-        double pm1;
-        double pm25;
-        double pm10;
-        double CO2;
-        double longtitude;
-        double latitude;
-        double altitude;
-        double VOC;
-        int serviceType;
-        QString deviceType;
-        QString deviceString;
-        QString stationID;
-        QString deviceID;
-        QString status;
-        int interval;
-        int elementCount;
-        int statusCount;
-        int fanOnIonCountN;
-        int fanOffIonCountN;
-        int fanOnIonCountP;
-        int fanOffIonCountP;
-        double PolarVoltP;
-        double PolarVoltN;
-        double TubeTempL;
-        double TubeTempR;
-        double TubeHumidityL;
-        double TubeHumidityR;
-        int insulation;
-        int RPML;
-        int RPMR;
-        int statusCode;
-        int qualityControl;
-
-    } ClientData;
-
     AClient(QObject *pParent = 0);
     virtual ~AClient();
 
-    //void setSocket(QTcpSocket *pSocket);
-    void setDataSource(QIODevice *pInputDevice, const eClientType type);
-
-    QSerialPort *getClientSerialPort();
+    virtual QIODevice *getInputDevice() {return m_pInputDevice;}
 
     //we use this to register a dialog that will show client data
     void registerDataViewer(QTextEdit *pTextEdit);
@@ -98,9 +49,9 @@ public:
     //set displayed client ID only, will not change the ID in the device itself
     void setClientId(const QString &id) {m_ClientId = id;}
     QString getClientId() const { return m_ClientId; }
-    QString getClientAddress() const;
+    virtual QString getClientAddress() const {return "";}
     QString getClientState() const;
-    eClientType getClientType() const { return m_ClientType; }
+    eClientType getClientType() const {return m_ClientType;}
 
     //return time of connection and disconnection
     QDateTime getClientConnectTime() const;
@@ -120,8 +71,9 @@ public:
     }
 
 protected:
+    void setDataSource(QIODevice *pInputDevice, const eClientType &type);
+
     QString m_ClientId; //ID number of the client;
-    QString m_ThreadId;
 
     //Time stamp when client was connected and disconnected;
     QDateTime m_TimeOfConnect;
@@ -140,24 +92,24 @@ protected:
     //current state of the client
     eClientState m_ClientState;
 
+    //type of client
+    eClientType m_ClientType;
+
 private:
     void handleData(const QByteArray &newData);
 
-    void decodeVersion1Data(const QByteArray &dataArray, ClientData &data);
-    void decodeVersion2Data(const QByteArray &dataArray, ClientData &data);
-    void decodeVersion3Data(const QByteArray &dataArray, ClientData &data);
+    void decodeVersion1Data(const QByteArray &dataArray);
+    void decodeVersion2Data(const QByteArray &dataArray);
+    void decodeVersion3Data(const QByteArray &dataArray);
 
+    void writeDataViewer();
     void writeDataLog(const QString &fileName, const ClientData &data);
     void writeRawLog(const QString &fileName, const QByteArray &rawData);
     bool writeDatabase(const ClientData &data);
 
-    //QTcpSocket *m_pSocket;
     QIODevice *m_pInputDevice;
 
     QByteArray m_DataBuffer;
-
-    //type of this client
-    eClientType m_ClientType;
 
     //version of data format for this client
     eClientVersion m_ClientVersion;
@@ -167,6 +119,8 @@ private:
 
     //whether we display the client in chart dialog
     bool m_ShowChart;
+
+    ClientData m_ClientData;
 
     //method used in decode to convert bytes into a double
     double convertToDecimal(const QByteArray &highByte, const QByteArray &lowByte);

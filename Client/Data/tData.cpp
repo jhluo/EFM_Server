@@ -18,22 +18,22 @@ tData::tData(const tData &data) :
     m_DataValue.setValue(data.value());
     m_DataTimer.setInterval(DATA_TIMEOUT);
     connect(&m_DataTimer, SIGNAL(timeout()), this, SLOT(onDataTimeout()));
-    m_DataTimer.stop();
+    //m_DataTimer.stop();
 }
 
 tData::~tData()
 {
-    m_DataTimer.stop();
+    //m_DataTimer.stop();
 }
 
 void tData::setValue(const QVariant &value)
 {
     m_DataValue = value;
 
-    if (value.isValid()) {
-        m_DataTimer.stop();
-        m_DataTimer.start();
-    }
+//    if (value.isValid()) {
+//        m_DataTimer.stop();
+//        m_DataTimer.start();
+//    }
 }
 
 void tData::onDataTimeout()

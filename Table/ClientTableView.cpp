@@ -168,7 +168,7 @@ void ClientTableView::onSerialConnectTriggered()
 void ClientTableView::onSerialEditTriggered()
 {
     AClient *pCurrentClient = m_pClientList->getClient(selectedIndexes().first().row());
-    SerialSettingsDialog dialog(pCurrentClient->getClientSerialPort(), this);
+    SerialSettingsDialog dialog(qobject_cast<QSerialPort*>(pCurrentClient->getInputDevice()), this);
     dialog.exec();
 
 //    if (dialog.exec() == QDialog::Accepted)  {

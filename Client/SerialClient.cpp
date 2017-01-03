@@ -34,3 +34,19 @@ void SerialClient::disconnectClient()
     m_pDataStarvedTimer->stop();
     emit clientDataChanged();
 }
+
+QString SerialClient::getClientAddress() const
+{
+    QString port = "";
+
+    if(m_pPort != NULL) {
+        port = m_pPort->portName();
+    }
+
+    return port;
+}
+
+QIODevice* SerialClient::getInputDevice()
+{
+    return m_pPort;
+}

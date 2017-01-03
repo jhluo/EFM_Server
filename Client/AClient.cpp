@@ -19,15 +19,16 @@
 AClient::AClient(QObject *pParent)
     : QObject(pParent),
       m_ClientId("Unknown"),
+      m_lastCommandSent(0),
       m_pInputDevice(NULL),
-      m_ClientType(eUnknown),
       m_pDataViewer(NULL),
-      m_ShowChart(false),
-      m_lastCommandSent(0)
+      m_ShowChart(false)
 {
     m_DataBuffer.clear();
 
     m_ClientState = eOffline;
+
+    m_ClientType = eUnknown;
 
     //Time out the client if stop sending data
     m_pDataStarvedTimer = new QTimer(this);
@@ -55,7 +56,7 @@ AClient::~AClient()
     m_DataBuffer.clear();
 }
 
-void AClient::setDataSource(QIODevice *pInputDevice, const eClientType type)
+void AClient::setDataSource(QIODevice *pInputDevice, const eClientType &type)
 {
     //assign the socket to this client and connnect the slots
     m_pInputDevice = pInputDevice;
@@ -102,14 +103,6 @@ void AClient::setSerialConnect(const bool on)
             emit clientDataChanged();
         }
     }
-}
-
-QSerialPort* AClient::getClientSerialPort()
-{
-    if(m_ClientType==eSerial)
-        return qobject_cast<QSerialPort*>(m_pInputDevice);
-
-    return NULL;
 }
 
 void AClient::onDataReceived()
@@ -171,25 +164,24 @@ void AClient::handleData(const QByteArray &newData)
     m_DataBuffer.clear();
     m_DataBuffer.append(newData);
 
-    ClientData clientData;
     //verison 1 & 2
-    if(m_DataBuffer.left(2)==QString("JH").toLocal8Bit()) {
+    if(newData.left(2)==QString("JH").toLocal8Bit()) {
         if(newData.length() == VERSION1_LENGTH) {
             m_ClientVersion = eVersion1;
-            decodeVersion1Data(m_DataBuffer, clientData);
+            decodeVersion1Data(m_DataBuffer);
         } else if(newData.length() == VERSION2_LENGTH) {
             m_ClientVersion = eVersion2;
-            decodeVersion2Data(m_DataBuffer, clientData);
+            decodeVersion2Data(m_DataBuffer);
         }
     } else if(newData.left(2)=="BG") {
         m_ClientVersion = eVersion3;
-        decodeVersion3Data(m_DataBuffer, clientData);
+        decodeVersion3Data(m_DataBuffer);
     } else {
         return;
     }
 
     //emits signal for chart dialog
-    emit receivedData(QDateTime::currentDateTime(), clientData.nIon);
+    emit receivedData(QDateTime::currentDateTime(), m_ClientData.getData(ClientData::eNIon).toInt());
 
     //emit signal to notify model
     emit clientDataChanged();
@@ -207,129 +199,7 @@ void AClient::handleData(const QByteArray &newData)
 
     sendCommand(command);
 
-    //display the data if there's a viewer dialog opened
-    if(m_pDataViewer != NULL) {
-        QString DataStr = QString("ID: %1       "
-                                  "Date: %2\n")
-                                  .arg(m_ClientId)
-                                  .arg(clientData.clientDate);
-
-        if (clientData.temperature!=0){
-                    DataStr += QString("Temperature【温度（℃）】:  %1\n" ).arg(clientData.temperature);
-                }
-        if (clientData.humidity!=0){
-                    DataStr += QString("Humidity【湿度（%）】:  %1\n" ).arg(clientData.humidity);
-                }
-        if (clientData.nIon!=0){
-                    DataStr += QString("Negative Ion【负离子（个/cm3）】:  %1\n" ).arg(clientData.nIon);
-                }
-        if (clientData.pIon!=0){
-                    DataStr += QString("Positive Ion【正离子（个/cm3）】:  %1\n" ).arg(clientData.pIon);
-                }
-        if (clientData.windDirection!=0){
-                    DataStr += QString("Wind Direction【风向（°）】:  %1\n" ).arg(clientData.windDirection);
-                }
-        if (clientData.windSpeed!=0){
-                    DataStr += QString("Wind Speed【风速（m/s）】:  %1\n" ).arg(clientData.windSpeed);
-                }
-        if (clientData.rainfall!=0){
-                    DataStr += QString("Rainfall【雨量（ml）】: %1\n" ).arg(clientData.rainfall);
-                }
-        if (clientData.pressure!=0){
-                    DataStr += QString("Pressure【气压（Pa）】:  %1\n" ).arg(clientData.pressure);
-                }
-        if (clientData.ultraViolet!=0){
-                    DataStr += QString("Ultraviolet【总辐射（W/m2）】:  %1\n" ).arg(clientData.ultraViolet);
-                }
-        if (clientData.oxygen!=0){
-                    DataStr += QString("Oxygen Content【蒸发（mm）】: %1\n" ).arg(clientData.oxygen);
-                }
-        if (clientData.pm1!=0){
-                    DataStr += QString("PM 1.0 (ug/m3):  %1\n" ).arg(clientData.pm1);
-                }
-        if (clientData.pm25!=0){
-                    DataStr += QString("PM 2.5 (ug/m3):  %1\n" ).arg(clientData.pm25);
-                }
-        if (clientData.pm10!=0){
-                    DataStr += QString("PM 10 (ug/m3):  %1\n" ).arg(clientData.pm10);
-                }
-        if (clientData.CO2!=0){
-                    DataStr += QString("CO2【二氧化碳】:  %1\n" ).arg(clientData.CO2);
-                }
-        if (clientData.VOC!=0){
-                    DataStr += QString("VOC【甲醛】:  %1\n" ).arg(clientData.VOC);
-                }
-        if (clientData.PolarVoltP!=0){
-                    DataStr += QString("Polar Voltage Positive【极板正电压（V）】:  %1\n" ).arg(clientData.PolarVoltP);
-                }
-        if (clientData.PolarVoltN!=0){
-                    DataStr += QString("Polar Voltage Negative【极板正电压（V）】:  %1\n" ).arg(clientData.PolarVoltN);
-                }
-        if (clientData.TubeTempL!=0){
-                    DataStr += QString("Tube Temperature Left【左管温度（℃）】:  %1\n" ).arg(clientData.TubeTempL);
-                }
-        if (clientData.TubeTempR!=0){
-                    DataStr += QString("Tube Temperature Right【右管温度（℃）】:  %1\n" ).arg(clientData.TubeTempR);
-                }
-        if (clientData.RPML!=0){
-                    DataStr += QString("Fan Speed Left【左风扇转速（转/s）】:  %1\n" ).arg(clientData.RPML);
-                }
-        if (clientData.RPMR!=0){
-                    DataStr += QString("Fan Speed Right【右风扇转速（转/s）】:  %1\n" ).arg(clientData.RPMR);
-                }
-        if (clientData.fanOnIonCountN!=0){
-                    DataStr += QString("Fan On Negative Ion Count 【开风机负离子采集数】:  %1\n" ).arg(clientData.fanOnIonCountN);
-                }
-        if (clientData.fanOffIonCountN!=0){
-                    DataStr += QString("Fan Off Negative Ion Count 【关风机负离子采集数】:  %1\n" ).arg(clientData.fanOffIonCountN);
-                }
-        if (clientData.fanOnIonCountP!=0){
-                    DataStr += QString("Fan On Positive Ion Count 【开风机正离子采集数】:  %1\n" ).arg(clientData.fanOnIonCountP);
-                }
-        if (clientData.fanOffIonCountP!=0){
-                    DataStr += QString("Fan Off Positive Ion Count 【关风机正离子采集数】:  %1\n" ).arg(clientData.fanOffIonCountP);
-                }
-        if (clientData.interval!=0){
-                    DataStr += QString("Interval【帧标识】:  %1\n" ).arg(clientData.interval);
-                }
-        if (clientData.elementCount!=0){
-                    DataStr += QString("Element Count【观测要素】:  %1\n" ).arg(clientData.elementCount);
-                }
-        if (clientData.statusCount!=0){
-                    DataStr += QString("Status Count【状态要素】:  %1\n" ).arg(clientData.statusCount);
-                }
-
-
-//        DataStr += QString("Temperature【温度】:  %1\n"
-//                           "Humidity【湿度】:  %2\n"
-//                           "Negative Ion【负离子】:  %3\n"
-//                           "Positive Ion【正离子】:  %4\n"
-//                           "Wind Direction【风向】:  %5\n"
-//                           "Wind Speed【风速】:  %6\n"
-//                           "Rain Fall【雨量】:  %7\n"
-//                           "Pressure【气压】:  %8\n"
-//                           "Ultra Violet【紫外线】:  %9\n"
-//                           "Oxygen Concentration【含氧量】:  %10\n"
-//                           "PM 1.0:  %11\n"
-//                           "PM 2.5:  %12\n"
-//                           "PM 10:  %13\n\n"
-//                           )
-//                           .arg(clientData.temperature)
-//                           .arg(clientData.humidity)
-//                           .arg(clientData.nIon)
-//                           .arg(clientData.pIon)
-//                           .arg(clientData.windDirection)
-//                           .arg(clientData.windSpeed)
-//                           .arg(clientData.rainfall)
-//                           .arg(clientData.pressure)
-//                           .arg(clientData.ultraViolet)
-//                           .arg(clientData.oxygen)
-//                           .arg(clientData.pm1)
-//                           .arg(clientData.pm25)
-//                           .arg(clientData.pm10);
-
-        emit outputMessage(DataStr);
-    }
+    writeDataViewer();
 
     //write to log file, only do it if we have this enabled
     AppSettings settings;
@@ -340,7 +210,7 @@ void AClient::handleData(const QByteArray &newData)
             QDir().mkdir("log");
 
         QString fileName = "log//" + m_ClientId + "_log.csv";
-        writeDataLog(fileName, clientData);
+        writeDataLog(fileName, m_ClientData);
     }
 
     bool rawLogEnabled = settings.readMiscSettings("rawLog", false).toBool();
@@ -354,7 +224,7 @@ void AClient::handleData(const QByteArray &newData)
 
     //try to connect to database, only if write to database enabled
     if(settings.readMiscSettings("writeDatabase", true).toBool()) {
-        if(!writeDatabase(clientData)) {
+        if(!writeDatabase(m_ClientData)) {
             emit error(QString("Client %1 failed to write to database.").arg(m_ClientId));
         }
     }
@@ -363,7 +233,7 @@ void AClient::handleData(const QByteArray &newData)
     m_DataBuffer.clear(); //done decoding, clear the array
 }
 
-void AClient::decodeVersion1Data(const QByteArray &dataArray, ClientData &data)
+void AClient::decodeVersion1Data(const QByteArray &dataArray)
 {
     //first we validate the message header
     QString header;
@@ -413,7 +283,7 @@ void AClient::decodeVersion1Data(const QByteArray &dataArray, ClientData &data)
     if(hour>23) hour=0;
     int minute = dataArray.mid(14,1).toHex().toInt(&ok, 16);
     if(minute>59) minute=0;
-    data.clientDate = QString("%1/%2/%3 %4:%5:%6")
+    QString dataStr = QString("%1/%2/%3 %4:%5:%6")
                             .arg(2016)
                             .arg(month)
                             .arg(day)
@@ -421,19 +291,21 @@ void AClient::decodeVersion1Data(const QByteArray &dataArray, ClientData &data)
                             .arg(minute)
                             .arg(second);
 
+    m_ClientData.setData(ClientData::eClientDate, dataStr);
+
     //convert temperature to floating point number, first argument is higher byte,
     // second argument is lower byte
-    data.temperature = convertToDecimal(dataArray.mid(15,1), dataArray.mid(16,1));
+    m_ClientData.setData(ClientData::eTemperature, convertToDecimal(dataArray.mid(15,1), dataArray.mid(16,1)));
 
     //convert humidity to floating point number, same as temeprature
-    data.humidity = convertToDecimal(dataArray.mid(17, 1), dataArray.mid(18,1));
+    m_ClientData.setData(ClientData::eHumidity, convertToDecimal(dataArray.mid(17, 1), dataArray.mid(18,1)));
 
-    data.nIon = dataArray.mid(19, 2).toHex().toInt(&ok, 16);
-    data.pIon = dataArray.mid(21, 2).toHex().toInt(&ok, 16);
+    m_ClientData.setData(ClientData::eNIon, dataArray.mid(19, 2).toHex().toInt(&ok, 16));
+    m_ClientData.setData(ClientData::ePIon, dataArray.mid(21, 2).toHex().toInt(&ok, 16));
 
-    data.windDirection = dataArray.mid(23,2).toHex().toInt(&ok, 16);
+    m_ClientData.setData(ClientData::eWindDirection, dataArray.mid(23,2).toHex().toInt(&ok, 16));
 
-    data.windSpeed = convertToDecimal(dataArray.mid(25,1), dataArray.mid(26,1));
+    m_ClientData.setData(ClientData::eWindSpeed, convertToDecimal(dataArray.mid(25,1), dataArray.mid(26,1)));
 
     //convert rainfall to a double
     const char rain_h = dataArray.at(27);
@@ -453,12 +325,12 @@ void AClient::decodeVersion1Data(const QByteArray &dataArray, ClientData &data)
     else
         rain_frac = rain_dec/100.0;
 
-    data.rainfall = rain_int + rain_frac;
+    m_ClientData.setData(ClientData::eRainfall, rain_int + rain_frac);
 
     //pressure needs three bytes
-    data.pressure = convertToDecimal(dataArray.mid(29, 2), dataArray.mid(31,1));
+     m_ClientData.setData(ClientData::ePressure, convertToDecimal(dataArray.mid(29, 2), dataArray.mid(31,1)));
 
-    data.ultraViolet = dataArray.mid(32, 2).toHex().toInt(&ok, 16);
+     m_ClientData.setData(ClientData::eUltraViolet, dataArray.mid(32, 2).toHex().toInt(&ok, 16));
 
     //TODO:  BCC check sum stuff on byte 34~36,  not implemented yet
 
@@ -466,32 +338,31 @@ void AClient::decodeVersion1Data(const QByteArray &dataArray, ClientData &data)
     Q_UNUSED(error);
 }
 
-void AClient::decodeVersion2Data(const QByteArray &dataArray, ClientData &data)
+void AClient::decodeVersion2Data(const QByteArray &dataArray)
 {
     bool ok = false;
-    decodeVersion1Data(dataArray, data);
+    decodeVersion1Data(dataArray);
 
-    data.oxygen = dataArray.mid(37, 2).toHex().toInt(&ok, 16) / 10;
+    m_ClientData.setData(ClientData::eOxygen, dataArray.mid(37, 2).toHex().toInt(&ok, 16) / 10);
 
-    data.pm1 = dataArray.mid(39, 2).toHex().toInt(&ok, 16) / 10;
+    m_ClientData.setData(ClientData::ePm1, dataArray.mid(39, 2).toHex().toInt(&ok, 16) / 10);
 
-    data.pm25 = dataArray.mid(41, 2).toHex().toInt(&ok, 16) / 10;
+    m_ClientData.setData(ClientData::ePm25, dataArray.mid(41, 2).toHex().toInt(&ok, 16) / 10);
 
-    data.pm10 = dataArray.mid(43, 2).toHex().toInt(&ok, 16) / 10;
+    m_ClientData.setData(ClientData::ePm10, dataArray.mid(43, 2).toHex().toInt(&ok, 16) / 10);
 }
 
-void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
+void AClient::decodeVersion3Data(const QByteArray &newData)
 {
-    data.stationID = newData.mid(3,5);
-    data.latitude = newData.mid(9,6).toInt();
-    data.longtitude = newData.mid(16,7).toInt();
-    data.altitude = newData.mid(24,5).toInt();
-    data.serviceType = newData.mid(30,2).toInt();
-    data.deviceType = newData.mid(33,4);
-    data.deviceString = newData.mid(38,3);
+    m_ClientData.setData(ClientData::eStationID, newData.mid(3,5));
+    m_ClientData.setData(ClientData::eLatitude, newData.mid(9,6).toInt());
+    m_ClientData.setData(ClientData::eLongtitude, newData.mid(16,7).toInt());
+    m_ClientData.setData(ClientData::eAltitude, newData.mid(24,5).toInt());
+    m_ClientData.setData(ClientData::eServiceType, newData.mid(30,2).toInt());
+    m_ClientData.setData(ClientData::eDeviceType, newData.mid(33,4));
+    m_ClientData.setData(ClientData::eDeviceID, newData.mid(38,3));
 
-
-    QString clientID = data.stationID+data.deviceString;
+    QString clientID = m_ClientData.getData(ClientData::eStationID).toString()+m_ClientData.getData(ClientData::eDeviceID).toString();
 
     if(m_ClientId == "Unknown") {//this is the first packet we get in this client, so tell server a new client has connected
         //this line is needed so that the slot knows what the ID is
@@ -529,7 +400,7 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
     int second = newData.mid(54,2).toInt();
 
     if(second>59) second=0;
-    data.clientDate = QString("%1/%2/%3 %4:%5:%6")
+    QString dateStr = QString("%1/%2/%3 %4:%5:%6")
                             .arg(year)
                             .arg(month)
                             .arg(day)
@@ -537,9 +408,10 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
                             .arg(minute)
                             .arg(second);
 
-    data.interval = newData.mid(57,3).toInt();
-    data.elementCount = newData.mid(61,3).toInt();
-    data.statusCount = newData.mid(65,2).toInt();
+    m_ClientData.setData(ClientData::eClientDate, dateStr);
+    m_ClientData.setData(ClientData::eInterval, newData.mid(57,3).toInt());
+    m_ClientData.setData(ClientData::eElementCount, newData.mid(61,3).toInt());
+    m_ClientData.setData(ClientData::eStatusCount, newData.mid(65,2).toInt());
 
 
     //locate the index of the field
@@ -571,69 +443,55 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
     QString ASA_Str = "";
     if(indexOfASA != -1) {  //-1 is the case that "ASA" cannot not be found in the sentence
         ASA_Str = newData.mid(indexOfASA+4, newData.indexOf(",", indexOfASA+4)-(indexOfASA+4));
-        data.nIon = ASA_Str.toInt();
-    } else {
-        data.nIon = -1;
+        m_ClientData.setData(ClientData::eNIon, ASA_Str.toInt());
     }
 
     QString AAA5_Str = "";
     if(indexOfAAA5 != -1) {  //-1 is the case that "AAA5" cannot not be found in the sentence
         AAA5_Str = newData.mid(indexOfAAA5+5, newData.indexOf(",", indexOfAAA5+5)-(indexOfAAA5+5));
-        data.temperature = AAA5_Str.toInt() / 10.0;
-    } else {
-        data.temperature = -500;
+        m_ClientData.setData(ClientData::eTemperature, AAA5_Str.toInt() / 10.0);
     }
 
     QString ADA5_Str = "";
     if(indexOfADA5 != -1) {  //-1 is the case that "ASA" cannot not be found in the sentence
         ADA5_Str = newData.mid(indexOfADA5+5, newData.indexOf(",", indexOfADA5+5)-(indexOfADA5+5));
-        data.humidity = ADA5_Str.toInt();
-    } else {
-        data.humidity = -1;
+        m_ClientData.setData(ClientData::eHumidity, ADA5_Str.toInt());
     }
 
     QString ASB_Str = "";
     if(indexOfASB != -1) {  //-1 is the case that "ASB" cannot not be found in the sentence
         ASB_Str = newData.mid(indexOfASB+4, newData.indexOf(",", indexOfASB+4)-(indexOfASB+4));
-        data.PolarVoltN = ASB_Str.toInt() / 10.0;
-    } else {
-        data.PolarVoltN = -1000;
+        m_ClientData.setData(ClientData::ePolarVoltN, ASB_Str.toInt() / 10.0);
     }
 
     QString ASC_Str = "";
     if(indexOfASC != -1) {  //-1 is the case that "ASC" cannot not be found in the sentence
         ASC_Str = newData.mid(indexOfASC+4, newData.indexOf(",", indexOfASC+4)-(indexOfASC+4));
-        data.RPML = ASC_Str.toInt();
-    } else {
-        data.RPML = -1000;
+        m_ClientData.setData(ClientData::eRPML, ASC_Str.toInt());
     }
+
     QString ASD_Str = "";
     if(indexOfASD != -1) {  //-1 is the case that "ASD" cannot not be found in the sentence
         ASD_Str = newData.mid(indexOfASD+4, newData.indexOf(",", indexOfASD+4)-(indexOfASD+4));
-        data.TubeTempL = ASD_Str.toInt() / 10.0;
-    } else {
-        data.TubeTempL = -1000;
+        m_ClientData.setData(ClientData::eTubeTempL, ASD_Str.toInt() / 10.0);
     }
+
     QString ASE_Str = "";
     if(indexOfASE != -1) {  //-1 is the case that "ASE" cannot not be found in the sentence
         ASE_Str = newData.mid(indexOfASE+4, newData.indexOf(",", indexOfASE+4)-(indexOfASE+4));
-        data.TubeHumidityL = ASE_Str.toInt()/1.0;
-    } else {
-        data.TubeHumidityL = -1000;
+        m_ClientData.setData(ClientData::eTubeHumidityL, ASE_Str.toInt()/1.0);
     }
+
     QString ASF_Str = "";
     if(indexOfASF != -1) {  //-1 is the case that "ASF" cannot not be found in the sentence
         ASF_Str = newData.mid(indexOfASF+4, newData.indexOf(",", indexOfASF+4)-(indexOfASF+4));
-        data.pressure = ASF_Str.toInt()/10.0;
-    } else {
-        data.pressure = -1;
+        m_ClientData.setData(ClientData::ePressure, ASF_Str.toInt()/10.0);
     }
+
     QString ASG_Str = "";
     if(indexOfASG != -1) {  //-1 is the case that "ASG" cannot not be found in the sentence
         ASG_Str = newData.mid(indexOfASG+4, newData.indexOf(",", indexOfASG+4)-(indexOfASG+4));
-        data.insulation = ADA5_Str.toInt();
-    } else {
-        data.insulation = -1;
+        m_ClientData.setData(ClientData::eInsulation, ADA5_Str.toInt());
     }
 
 //    if(statusCode =-1)
@@ -753,38 +611,38 @@ void AClient::decodeVersion3Data(const QByteArray &newData, ClientData &data)
     QString z_Str = "";
     if(indexOfz != -1) {  //-1 is the case that "z" cannot not be found in the sentence
         z_Str = newData.mid(indexOfz+2, newData.indexOf(",", indexOfz+2)-(indexOfz+2));
-        data.status = z_Str.toInt();
+
     }
     QString y_AAA_Str = "";
     if(indexOfy_AAA != -1) {  //-1 is the case that "y_AAA" cannot not be found in the sentence
         y_AAA_Str = newData.mid(indexOfy_AAA+6, newData.indexOf(",", indexOfy_AAA+6)-(indexOfy_AAA+6));
-        data.humidity = ADA5_Str.toInt();
+
     }
     QString y_ADA_Str = "";
     if(indexOfy_ADA != -1) {  //-1 is the case that "y_ADA" cannot not be found in the sentence
         y_ADA_Str = newData.mid(indexOfy_ADA+6, newData.indexOf(",", indexOfy_ADA+6)-(indexOfy_ADA+6));
-        data.humidity = ADA5_Str.toInt();
+
     }
     QString xA_Str = "";
     if(indexOfxA != -1) {  //-1 is the case that "xA" cannot not be found in the sentence
         xA_Str = newData.mid(indexOfxA+3, newData.indexOf(",", indexOfxA+3)-(indexOfxA+3));
-        data.humidity = ADA5_Str.toInt();
+
     }
     QString xB_Str = "";
     if(indexOfxB != -1) {  //-1 is the case that "xB" cannot not be found in the sentence
         xB_Str = newData.mid(indexOfxB+3, newData.indexOf(",", indexOfxB+3)-(indexOfxB+3));
-        data.humidity = ADA5_Str.toInt();
+
     }
     QString wA_Str = "";
     if(indexOfwA != -1) {  //-1 is the case that "wA" cannot not be found in the sentence
         wA_Str = newData.mid(indexOfwA+3, newData.indexOf(",", indexOfwA+3)-(indexOfwA+3));
-        data.humidity = ADA5_Str.toInt();
+
     }
 
     QString tQ_Str = "";
     if(indexOftQ != -1) {  //-1 is the case that "tQ" cannot not be found in the sentence
         tQ_Str = newData.mid(indexOftQ+7, newData.indexOf(",", indexOftQ+3)-(indexOftQ+3));
-        data.humidity = ADA5_Str.toInt();
+
     }
 }
 
@@ -802,7 +660,7 @@ void AClient::onDataTimeout()
 void AClient::onCommandAckTimeout()
 {
     m_pCommandAckTimer->stop();
-    //emit error(QString(tr("Client %1 did not receive command.  Please retry.")).arg(m_ClientId));
+    emit error(QString(tr("Client %1 did not receive command.  Please retry.")).arg(m_ClientId));
 }
 
 bool AClient::writeDatabase(const ClientData &data)
@@ -812,14 +670,6 @@ bool AClient::writeDatabase(const ClientData &data)
     AppSettings settings;
     QSqlDatabase db;
 
-//    int* threadId = (int *)(this->thread()->currentThreadId());
-//    m_ThreadId = QString::number(*threadId);
-
-//    if(!QSqlDatabase::contains(m_ThreadId)) {
-//        db = QSqlDatabase::addDatabase("QODBC", m_ThreadId);
-//    } else {
-//        db = QSqlDatabase::database(m_ThreadId);
-//    }
     QString connectionName = QString::number((int)(thread()->currentThreadId()));
     if(!QSqlDatabase::contains(connectionName)) {
         db = QSqlDatabase::addDatabase("QODBC", connectionName);
@@ -837,51 +687,49 @@ bool AClient::writeDatabase(const ClientData &data)
     db.setDatabaseName(dsn);
 
     if(db.open()) {
-        QString queryStr;
+        QSqlQuery query(db);
         if(m_ClientVersion == eVersion1) {
-        queryStr = QString("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, 紫外线, 氧气含量, PM1, PM25, PM10, 错误标志)"
-                           "VALUES (%1, '%2', %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18);"
-                           )
-                .arg(m_ClientId)
-                .arg(data.clientDate)
-                .arg(0)
-                .arg(0)
-                .arg(data.nIon)
-                .arg(data.humidity)
-                .arg(data.temperature)
-                .arg(data.pIon)
-                .arg(data.windDirection)
-                .arg(data.windSpeed)
-                .arg(data.rainfall)
-                .arg(data.pressure)
-                .arg(data.ultraViolet)
-                .arg(data.oxygen)
-                .arg(data.pm1)
-                .arg(data.pm25)
-                .arg(data.pm10)
-                .arg(0);
+            query.prepare("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, 紫外线, 氧气含量, PM1, PM25, PM10, 错误标志)"
+                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+            query.addBindValue(m_ClientId);
+            query.addBindValue(m_ClientData.getData(ClientData::eClientDate));
+            query.addBindValue(QVariant(QVariant::Int));
+            query.addBindValue(QVariant(QVariant::Int));
+            query.addBindValue(m_ClientData.getData(ClientData::eNIon));
+            query.addBindValue(m_ClientData.getData(ClientData::eHumidity));
+            query.addBindValue(m_ClientData.getData(ClientData::eTemperature));
+            query.addBindValue(m_ClientData.getData(ClientData::ePIon));
+            query.addBindValue(m_ClientData.getData(ClientData::eWindDirection));
+            query.addBindValue(m_ClientData.getData(ClientData::eWindSpeed));
+            query.addBindValue(m_ClientData.getData(ClientData::eRainfall));
+            query.addBindValue(m_ClientData.getData(ClientData::ePressure));
+            query.addBindValue(m_ClientData.getData(ClientData::eUltraViolet));
+            query.addBindValue(m_ClientData.getData(ClientData::eOxygen));
+            query.addBindValue(m_ClientData.getData(ClientData::ePm1));
+            query.addBindValue(m_ClientData.getData(ClientData::ePm25));
+            query.addBindValue(m_ClientData.getData(ClientData::ePm10));
+            query.addBindValue(QVariant(QVariant::String));
         } else if (m_ClientVersion == eVersion2) {
-            queryStr = QString("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, 紫外线, 氧气含量, PM1, PM25, PM10, 错误标志)"
-                               "VALUES (%1, '%2', %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15, %16, %17, %18);"
-                               )
-                    .arg(m_ClientId)
-                    .arg(data.clientDate)
-                    .arg(0)
-                    .arg(0)
-                    .arg(data.nIon)
-                    .arg(data.humidity)
-                    .arg(data.temperature)
-                    .arg(data.pIon)
-                    .arg(data.windDirection)
-                    .arg(data.windSpeed)
-                    .arg(data.rainfall)
-                    .arg(data.pressure)
-                    .arg(data.ultraViolet)
-                    .arg(data.oxygen)
-                    .arg(data.pm1)
-                    .arg(data.pm25)
-                    .arg(data.pm10)
-                    .arg(0);
+            query.prepare("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, 紫外线, 氧气含量, PM1, PM25, PM10, 错误标志)"
+                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+            query.addBindValue(m_ClientId);
+            query.addBindValue(m_ClientData.getData(ClientData::eClientDate));
+            query.addBindValue(QVariant(QVariant::Int));
+            query.addBindValue(QVariant(QVariant::Int));
+            query.addBindValue(m_ClientData.getData(ClientData::eNIon));
+            query.addBindValue(m_ClientData.getData(ClientData::eHumidity));
+            query.addBindValue(m_ClientData.getData(ClientData::eTemperature));
+            query.addBindValue(m_ClientData.getData(ClientData::ePIon));
+            query.addBindValue(m_ClientData.getData(ClientData::eWindDirection));
+            query.addBindValue(m_ClientData.getData(ClientData::eWindSpeed));
+            query.addBindValue(m_ClientData.getData(ClientData::eRainfall));
+            query.addBindValue(m_ClientData.getData(ClientData::ePressure));
+            query.addBindValue(m_ClientData.getData(ClientData::eUltraViolet));
+            query.addBindValue(m_ClientData.getData(ClientData::eOxygen));
+            query.addBindValue(m_ClientData.getData(ClientData::ePm1));
+            query.addBindValue(m_ClientData.getData(ClientData::ePm25));
+            query.addBindValue(m_ClientData.getData(ClientData::ePm10));
+            query.addBindValue(QVariant(QVariant::String));
         } else if (m_ClientVersion == eVersion3) {
 //            queryStr = QString("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, CO2, PM1, PM25, PM10, 测量室负温度, 测量室正温度, "
 //                                        "甲醛, 极板负电压, 极板正电压, 风扇负转速, 风扇正转速, 关风机采集数, 开风机采集数, 关风机正离子, 开风机正离子, 经度, 纬度, 海拔高度, 服务类型, 设备标识, 帧标识, 设备标识码)"
@@ -923,29 +771,22 @@ bool AClient::writeDatabase(const ClientData &data)
 //                    .arg(data.deviceID);
 
 
-            queryStr = QString("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度)"
-                               "VALUES (%1, '%2', '%3', %4, %5, %6, %7, %8);"
-                               )
-                    .arg(data.stationID)
-                    .arg(data.deviceString)
-                    .arg(data.clientDate)
-                    .arg(0)
-                    .arg(0)
-                    .arg(data.nIon)
-                    .arg(data.humidity)
-                    .arg(data.temperature);
+            query.prepare("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度)"
+                               "VALUES (?, ?, ?, ?, ?, ?, ?, ?);"
+                         );
+            query.addBindValue(m_ClientId);
+            query.addBindValue(m_ClientData.getData(ClientData::eClientDate));
+            query.addBindValue(QVariant(QVariant::Int));
+            query.addBindValue(QVariant(QVariant::Int));
+            query.addBindValue(m_ClientData.getData(ClientData::eNIon));
+            query.addBindValue(m_ClientData.getData(ClientData::eHumidity));
+            query.addBindValue(m_ClientData.getData(ClientData::eTemperature));
+            query.addBindValue(m_ClientData.getData(ClientData::ePIon));
         }
 
-        QSqlQuery query(db);
-        result = query.exec(queryStr);
+        result = query.exec();
         if(result==false) {
             qDebug() << "Insert failed\n";
-            qDebug() << "stationID: "+data.stationID;
-            qDebug() << "deviceString: "+data.deviceString;
-            qDebug() << "Date: "+data.clientDate;
-            qDebug() << "nIon: "+data.nIon;
-            qDebug() << "humidity: "+QString::number(data.humidity);
-            qDebug() << "temp: "+QString::number(data.temperature);
             qDebug() << query.lastError().text();
         }
 
@@ -957,6 +798,106 @@ bool AClient::writeDatabase(const ClientData &data)
     //qDebug() <<query.lastQuery();
 
     return result;
+}
+
+
+void AClient::writeDataViewer()
+{
+    //display the data if there's a viewer dialog opened
+    if(m_pDataViewer != NULL) {
+        QString DataStr = QString("ID: %1       "
+                                  "Date: %2\n")
+                                  .arg(m_ClientId)
+                                  .arg(m_ClientData.getData(ClientData::eClientDate).toString());
+
+
+        if (!m_ClientData.getData(ClientData::eTemperature).isNull())
+            DataStr += QString("Temperature【温度（℃）】:  %1\n" ).arg(m_ClientData.getData(ClientData::eTemperature).toDouble());
+
+        if (!m_ClientData.getData(ClientData::eHumidity).isNull())
+            DataStr += QString("Humidity【湿度（%）】:  %1\n" ).arg(m_ClientData.getData(ClientData::eHumidity).toDouble());
+
+//        if (clientData.nIon!=0){
+//                    DataStr += QString("Negative Ion【负离子（个/cm3）】:  %1\n" ).arg(clientData.nIon);
+//                }
+//        if (clientData.pIon!=0){
+//                    DataStr += QString("Positive Ion【正离子（个/cm3）】:  %1\n" ).arg(clientData.pIon);
+//                }
+//        if (clientData.windDirection!=0){
+//                    DataStr += QString("Wind Direction【风向（°）】:  %1\n" ).arg(clientData.windDirection);
+//                }
+//        if (clientData.windSpeed!=0){
+//                    DataStr += QString("Wind Speed【风速（m/s）】:  %1\n" ).arg(clientData.windSpeed);
+//                }
+//        if (clientData.rainfall!=0){
+//                    DataStr += QString("Rainfall【雨量（ml）】: %1\n" ).arg(clientData.rainfall);
+//                }
+//        if (clientData.pressure!=0){
+//                    DataStr += QString("Pressure【气压（Pa）】:  %1\n" ).arg(clientData.pressure);
+//                }
+//        if (clientData.ultraViolet!=0){
+//                    DataStr += QString("Ultraviolet【总辐射（W/m2）】:  %1\n" ).arg(clientData.ultraViolet);
+//                }
+//        if (clientData.oxygen!=0){
+//                    DataStr += QString("Oxygen Content【蒸发（mm）】: %1\n" ).arg(clientData.oxygen);
+//                }
+//        if (clientData.pm1!=0){
+//                    DataStr += QString("PM 1.0 (ug/m3):  %1\n" ).arg(clientData.pm1);
+//                }
+//        if (clientData.pm25!=0){
+//                    DataStr += QString("PM 2.5 (ug/m3):  %1\n" ).arg(clientData.pm25);
+//                }
+//        if (clientData.pm10!=0){
+//                    DataStr += QString("PM 10 (ug/m3):  %1\n" ).arg(clientData.pm10);
+//                }
+//        if (clientData.CO2!=0){
+//                    DataStr += QString("CO2【二氧化碳】:  %1\n" ).arg(clientData.CO2);
+//                }
+//        if (clientData.VOC!=0){
+//                    DataStr += QString("VOC【甲醛】:  %1\n" ).arg(clientData.VOC);
+//                }
+//        if (clientData.PolarVoltP!=0){
+//                    DataStr += QString("Polar Voltage Positive【极板正电压（V）】:  %1\n" ).arg(clientData.PolarVoltP);
+//                }
+//        if (clientData.PolarVoltN!=0){
+//                    DataStr += QString("Polar Voltage Negative【极板正电压（V）】:  %1\n" ).arg(clientData.PolarVoltN);
+//                }
+//        if (clientData.TubeTempL!=0){
+//                    DataStr += QString("Tube Temperature Left【左管温度（℃）】:  %1\n" ).arg(clientData.TubeTempL);
+//                }
+//        if (clientData.TubeTempR!=0){
+//                    DataStr += QString("Tube Temperature Right【右管温度（℃）】:  %1\n" ).arg(clientData.TubeTempR);
+//                }
+//        if (clientData.RPML!=0){
+//                    DataStr += QString("Fan Speed Left【左风扇转速（转/s）】:  %1\n" ).arg(clientData.RPML);
+//                }
+//        if (clientData.RPMR!=0){
+//                    DataStr += QString("Fan Speed Right【右风扇转速（转/s）】:  %1\n" ).arg(clientData.RPMR);
+//                }
+//        if (clientData.fanOnIonCountN!=0){
+//                    DataStr += QString("Fan On Negative Ion Count 【开风机负离子采集数】:  %1\n" ).arg(clientData.fanOnIonCountN);
+//                }
+//        if (clientData.fanOffIonCountN!=0){
+//                    DataStr += QString("Fan Off Negative Ion Count 【关风机负离子采集数】:  %1\n" ).arg(clientData.fanOffIonCountN);
+//                }
+//        if (clientData.fanOnIonCountP!=0){
+//                    DataStr += QString("Fan On Positive Ion Count 【开风机正离子采集数】:  %1\n" ).arg(clientData.fanOnIonCountP);
+//                }
+//        if (clientData.fanOffIonCountP!=0){
+//                    DataStr += QString("Fan Off Positive Ion Count 【关风机正离子采集数】:  %1\n" ).arg(clientData.fanOffIonCountP);
+//                }
+//        if (clientData.interval!=0){
+//                    DataStr += QString("Interval【帧标识】:  %1\n" ).arg(clientData.interval);
+//                }
+//        if (clientData.elementCount!=0){
+//                    DataStr += QString("Element Count【观测要素】:  %1\n" ).arg(clientData.elementCount);
+//                }
+//        if (clientData.statusCount!=0){
+//                    DataStr += QString("Status Count【状态要素】:  %1\n" ).arg(clientData.statusCount);
+//                }
+
+        emit outputMessage(DataStr);
+    }
 }
 
 void AClient::writeDataLog(const QString &fileName, const ClientData &data)
@@ -976,19 +917,19 @@ void AClient::writeDataLog(const QString &fileName, const ClientData &data)
     QString dataStr = QString("%1, %2, %3, %4, %5, %6, %7, %8, %9, %10, %11, %12, %13, %14, %15\n")
                             .arg(m_ClientId)
                             .arg(currentTime)
-                            .arg(data.temperature)
-                            .arg(data.humidity)
-                            .arg(data.nIon)
-                            .arg(data.pIon)
-                            .arg(data.windDirection)
-                            .arg(data.windSpeed)
-                            .arg(data.rainfall)
-                            .arg(data.pressure)
-                            .arg(data.ultraViolet)
-                            .arg(data.oxygen)
-                            .arg(data.pm1)
-                            .arg(data.pm25)
-                            .arg(data.pm10);
+                            .arg(m_ClientData.getData(ClientData::eTemperature).toDouble())
+                            .arg(m_ClientData.getData(ClientData::eHumidity).toDouble())
+                            .arg(m_ClientData.getData(ClientData::eNIon).toInt())
+                            .arg(m_ClientData.getData(ClientData::ePIon).toInt())
+                            .arg(m_ClientData.getData(ClientData::eWindDirection).toDouble())
+                            .arg(m_ClientData.getData(ClientData::eWindSpeed).toDouble())
+                            .arg(m_ClientData.getData(ClientData::eRainfall).toDouble())
+                            .arg(m_ClientData.getData(ClientData::ePressure).toDouble())
+                            .arg(m_ClientData.getData(ClientData::eUltraViolet).toDouble())
+                            .arg(m_ClientData.getData(ClientData::eOxygen).toDouble())
+                            .arg(m_ClientData.getData(ClientData::ePm1).toDouble())
+                            .arg(m_ClientData.getData(ClientData::ePm25).toDouble())
+                            .arg(m_ClientData.getData(ClientData::ePm10).toDouble());
 
     if (logFile.open(QFile::WriteOnly|QFile::Append)) {
         stream << dataStr;
@@ -1020,21 +961,6 @@ QString AClient::getClientState() const
         str = "Offline";
 
     return str;
-}
-
-QString AClient::getClientAddress() const
-{
-    QString address = "";
-
-    if(m_ClientType == eTcp) {
-        QTcpSocket *pSocket = qobject_cast<QTcpSocket*>(m_pInputDevice);
-        address = pSocket->peerAddress().toString();
-    } else if (m_ClientType == eSerial) {
-        QSerialPort *pPort = qobject_cast<QSerialPort*>(m_pInputDevice);
-        address = pPort->portName();
-    }
-
-    return address;
 }
 
 QDateTime AClient::getClientConnectTime() const
