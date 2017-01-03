@@ -774,14 +774,15 @@ bool AClient::writeDatabase(const ClientData &data)
             query.prepare("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度)"
                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?);"
                          );
-            query.addBindValue(m_ClientId);
+            query.addBindValue(m_ClientData.getData(ClientData::eStationID));
+            query.addBindValue(m_ClientData.getData(ClientData::eDeviceID));
             query.addBindValue(m_ClientData.getData(ClientData::eClientDate));
             query.addBindValue(QVariant(QVariant::Int));
             query.addBindValue(QVariant(QVariant::Int));
             query.addBindValue(m_ClientData.getData(ClientData::eNIon));
             query.addBindValue(m_ClientData.getData(ClientData::eHumidity));
             query.addBindValue(m_ClientData.getData(ClientData::eTemperature));
-            query.addBindValue(m_ClientData.getData(ClientData::ePIon));
+            //query.addBindValue(m_ClientData.getData(ClientData::ePIon));
         }
 
         result = query.exec();
