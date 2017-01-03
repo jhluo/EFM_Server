@@ -944,7 +944,10 @@ void AClient::writeRawLog(const QString &fileName, const QByteArray &rawData)
 
     if (rawFile.open(QFile::WriteOnly|QFile::Append)) {
         QString rawStr;
-        stream << rawStr.append(rawData.toHex() + "\n");
+        if(m_ClientVersion == eVersion1 || m_ClientVersion == eVersion2)
+            stream << rawStr.append(rawData.toHex() + "\n");
+        else
+            stream << rawStr.append(rawData + "\n");
         rawFile.close();
     }
 }

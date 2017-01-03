@@ -3,6 +3,7 @@
 #include "TcpClient.h"
 #include "Misc/Logger.h"
 #include "Misc/AppSettings.h"
+#include <QThread>
 
 TcpClient::TcpClient(QTcpSocket *pSocket, QObject *pParent)
     : AClient(pParent),
