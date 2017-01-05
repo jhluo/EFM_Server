@@ -446,7 +446,7 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
     QString ASA_Str = "";
     if(indexOfASA != -1) {  //-1 is the case that "ASA" cannot not be found in the sentence
         ASA_Str = newData.mid(indexOfASA+4, newData.indexOf(",", indexOfASA+4)-(indexOfASA+4));
-        m_ClientData.setData(ClientData::eNIon, ASA_Str.toInt());
+        m_ClientData.setData(ClientData::eNIon, ASA_Str);
     }
 
     QString AAA5_Str = "";
@@ -458,7 +458,7 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
     QString ADA5_Str = "";
     if(indexOfADA5 != -1) {  //-1 is the case that "ASA" cannot not be found in the sentence
         ADA5_Str = newData.mid(indexOfADA5+5, newData.indexOf(",", indexOfADA5+5)-(indexOfADA5+5));
-        m_ClientData.setData(ClientData::eHumidity, ADA5_Str.toInt());
+        m_ClientData.setData(ClientData::eHumidity, ADA5_Str);
     }
 
     QString ASB_Str = "";

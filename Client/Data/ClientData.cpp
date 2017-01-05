@@ -36,6 +36,15 @@ void ClientData::validateData(eDataId id, const QVariant &value, bool &ok)
             ok = true;
     break;
 
+    case eNIon:
+        if(value.toInt()<25000 && value.toInt()>5)
+            ok = true;
+    break;
+
+    case ePIon:
+        if(value.toInt()<25000 && value.toInt()>5)
+            ok = true;
+    break;
 
     default:
         //set it for now until all IDs are checked
