@@ -173,6 +173,9 @@ void AClient::handleData(const QByteArray &newData)
             m_ClientVersion = eVersion2;
             decodeVersion2Data(m_DataBuffer);
         }
+        else{
+            return;
+        }
     } else if(newData.left(2)=="BG") {
         m_ClientVersion = eVersion3;
         decodeVersion3Data(m_DataBuffer);
