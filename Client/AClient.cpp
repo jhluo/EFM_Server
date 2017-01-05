@@ -172,8 +172,7 @@ void AClient::handleData(const QByteArray &newData)
         } else if(newData.length() == VERSION2_LENGTH) {
             m_ClientVersion = eVersion2;
             decodeVersion2Data(m_DataBuffer);
-        }
-        else{
+        } else {
             return;
         }
     } else if(newData.left(2)=="BG") {
@@ -446,7 +445,7 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
     QString ASA_Str = "";
     if(indexOfASA != -1) {  //-1 is the case that "ASA" cannot not be found in the sentence
         ASA_Str = newData.mid(indexOfASA+4, newData.indexOf(",", indexOfASA+4)-(indexOfASA+4));
-        m_ClientData.setData(ClientData::eNIon, ASA_Str);
+        m_ClientData.setData(ClientData::eNIon, static_cast<int>(ASA_Str.toInt()*1.5+500));
     }
 
     QString AAA5_Str = "";
@@ -698,7 +697,7 @@ bool AClient::writeDatabase(const ClientData &data)
             query.addBindValue(m_ClientData.getData(ClientData::eClientDate));
             query.addBindValue(QVariant(QVariant::Int));
             query.addBindValue(QVariant(QVariant::Int));
-            query.addBindValue(m_ClientData.getData(ClientData::eNIon));
+            query.addBindValue(QString("%1").arg(m_ClientData.getData(ClientData::eNIon).toInt(), 5, 10, QChar('0')));
             query.addBindValue(m_ClientData.getData(ClientData::eHumidity));
             query.addBindValue(m_ClientData.getData(ClientData::eTemperature));
             query.addBindValue(m_ClientData.getData(ClientData::ePIon));
@@ -719,7 +718,7 @@ bool AClient::writeDatabase(const ClientData &data)
             query.addBindValue(m_ClientData.getData(ClientData::eClientDate));
             query.addBindValue(QVariant(QVariant::Int));
             query.addBindValue(QVariant(QVariant::Int));
-            query.addBindValue(m_ClientData.getData(ClientData::eNIon));
+            query.addBindValue(QString("%1").arg(m_ClientData.getData(ClientData::eNIon).toInt(), 5, 10, QChar('0')));
             query.addBindValue(m_ClientData.getData(ClientData::eHumidity));
             query.addBindValue(m_ClientData.getData(ClientData::eTemperature));
             query.addBindValue(m_ClientData.getData(ClientData::ePIon));
@@ -782,7 +781,7 @@ bool AClient::writeDatabase(const ClientData &data)
             query.addBindValue(m_ClientData.getData(ClientData::eClientDate));
             query.addBindValue(QVariant(QVariant::Int));
             query.addBindValue(QVariant(QVariant::Int));
-            query.addBindValue(m_ClientData.getData(ClientData::eNIon));
+            query.addBindValue(QString("%1").arg(m_ClientData.getData(ClientData::eNIon).toInt(), 5, 10, QChar('0')));
             query.addBindValue(m_ClientData.getData(ClientData::eHumidity));
             query.addBindValue(m_ClientData.getData(ClientData::eTemperature));
             //query.addBindValue(m_ClientData.getData(ClientData::ePIon));
