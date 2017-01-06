@@ -5,6 +5,7 @@
 #include "Widgets/DataViewer.h"
 #include "Widgets/ClientCommandDialog.h"
 #include "Widgets/SerialSettingsDialog.h"
+#include "Widgets/OffsetSettingsDialog.h"
 #include "Misc/Logger.h"
 #include <QHeaderView>
 #include <QTimer>
@@ -93,6 +94,11 @@ void ClientTableView::showContextMenu(const QPoint& pos) // this is a slot
         connect(pSendCommandAction, SIGNAL(triggered()), this, SLOT(onSendCommandTriggered()));
         pMenu->addAction(pSendCommandAction);
 
+        //send command dialog action
+        QAction *pConfigureAction = new QAction(QString(tr("Configure...")), pMenu);
+        connect(pConfigureAction, SIGNAL(triggered()), this, SLOT(onConfigClientTriggered()));
+        pMenu->addAction(pConfigureAction);
+
         //open data viewer action
         QAction *pMsgViewAction = new QAction(QString(tr("View Data...")), pMenu);
         pMsgViewAction->setCheckable(true);
@@ -116,6 +122,13 @@ void ClientTableView::onSendCommandTriggered()
 {
     //modaless
     ClientCommandDialog dialog(m_pClientList->getClient(selectedIndexes().first().row()), this);
+    dialog.exec();
+}
+
+//open a dialog to configure offset of client
+void ClientTableView::onConfigClientTriggered()
+{
+    OffsetSettingsDialog dialog(m_pClientList->getClient(selectedIndexes().first().row()), this);
     dialog.exec();
 }
 

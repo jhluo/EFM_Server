@@ -1,6 +1,7 @@
 #include "AClient.h"
 #include "Misc/Logger.h"
 #include "Misc/AppSettings.h"
+#include "Misc/OffsetSettings.h"
 #include "QScrollBar"
 #include <QFile>
 #include <QDir>
@@ -235,6 +236,25 @@ void AClient::handleData(const QByteArray &newData)
     m_DataBuffer.clear(); //done decoding, clear the array
 }
 
+QVariant AClient::applyOffset(const QString &clientId, const ClientData::eDataId id, const QVariant &value)
+{
+    OffsetSettings settings;
+    QVariant newValue(value);
+    double base = settings.readBaseOffset(clientId);
+    double multiplier = settings.readMultiplierOffset(clientId);
+
+    switch(id) {
+        case ClientData::eNIon:
+            newValue.setValue(newValue.toDouble()*multiplier + base);
+        break;
+
+        default:
+        break;
+    }
+
+    return newValue;
+}
+
 void AClient::decodeVersion1Data(const QByteArray &dataArray)
 {
     //first we validate the message header
@@ -445,7 +465,8 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
     QString ASA_Str = "";
     if(indexOfASA != -1) {  //-1 is the case that "ASA" cannot not be found in the sentence
         ASA_Str = newData.mid(indexOfASA+4, newData.indexOf(",", indexOfASA+4)-(indexOfASA+4));
-        m_ClientData.setData(ClientData::eNIon, static_cast<int>(ASA_Str.toInt()*1.5+500));
+        int asaValue = applyOffset(m_ClientId, ClientData::eNIon, ASA_Str.toInt()).toInt();
+        m_ClientData.setData(ClientData::eNIon, asaValue);
     }
 
     QString AAA5_Str = "";
@@ -820,9 +841,8 @@ void AClient::writeDataViewer()
         if (!m_ClientData.getData(ClientData::eHumidity).isNull())
             DataStr += QString("Humidity【湿度（%）】:  %1\n" ).arg(m_ClientData.getData(ClientData::eHumidity).toDouble());
 
-//        if (clientData.nIon!=0){
-//                    DataStr += QString("Negative Ion【负离子（个/cm3）】:  %1\n" ).arg(clientData.nIon);
-//                }
+        if (!m_ClientData.getData(ClientData::eNIon).isNull())
+            DataStr += QString("Negative Ion【负离子（个/cm3）】:  %1\n" ).arg(m_ClientData.getData(ClientData::eNIon).toInt());
 //        if (clientData.pIon!=0){
 //                    DataStr += QString("Positive Ion【正离子（个/cm3）】:  %1\n" ).arg(clientData.pIon);
 //                }

@@ -44,7 +44,9 @@ SOURCES += main.cpp\
     Client/SerialClient.cpp \
     Client/TcpClient.cpp \
     Client/Data/ClientData.cpp \
-    Client/Data/tData.cpp
+    Client/Data/tData.cpp \
+    Widgets/OffsetSettingsDialog.cpp \
+    Misc/OffsetSettings.cpp
 
 HEADERS  += mainwindow.h \
     Widgets/MainWindowWidget.h \
@@ -68,9 +70,10 @@ HEADERS  += mainwindow.h \
     Client/AClientList.h \
     Client/SerialClient.h \
     Client/TcpClient.h \
-    Client/ClientData.h \
     Client/Data/ClientData.h \
-    Client/Data/tData.h
+    Client/Data/tData.h \
+    Widgets/OffsetSettingsDialog.h \
+    Misc/OffsetSettings.h
 
 FORMS    += mainwindow.ui
 

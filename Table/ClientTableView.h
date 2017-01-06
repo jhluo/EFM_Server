@@ -27,6 +27,7 @@ signals:
 private slots:
     void showContextMenu(const QPoint&);    
     void onSendCommandTriggered();
+    void onConfigClientTriggered();
     void onMessageViewerToggled(const bool enabled);
     void onShowChartToggled(const bool enabled);
     void onSerialConnectTriggered();

@@ -107,6 +107,9 @@ private:
     void writeRawLog(const QString &fileName, const QByteArray &rawData);
     bool writeDatabase(const ClientData &data);
 
+    //this is used to apply offset values to incoming data
+    QVariant applyOffset(const QString &clientId, const ClientData::eDataId id, const QVariant &value);
+
     QIODevice *m_pInputDevice;
 
     QByteArray m_DataBuffer;

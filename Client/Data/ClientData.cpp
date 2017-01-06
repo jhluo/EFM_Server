@@ -1,4 +1,5 @@
 ﻿#include "ClientData.h"
+#include "Misc/OffsetSettings.h"
 
 ClientData::ClientData(QObject *parent):
     QObject(parent),
@@ -11,12 +12,14 @@ void ClientData::setData(const eDataId id, const QVariant &value)
 {
     bool ok = false;
     validateData(id, value, ok);
+
     if(ok) {
         m_DataList[id].setValue(value);
     } else {
         m_DataList[id].setValue(QVariant());
     }
 }
+
 
 void ClientData::validateData(eDataId id, const QVariant &value, bool &ok)
 {
