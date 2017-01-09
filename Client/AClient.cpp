@@ -306,7 +306,7 @@ void AClient::decodeVersion1Data(const QByteArray &dataArray)
     int minute = dataArray.mid(14,1).toHex().toInt(&ok, 16);
     if(minute>59) minute=0;
     QString dataStr = QString("%1/%2/%3 %4:%5:%6")
-                            .arg(2016)
+                            .arg(2017)
                             .arg(month)
                             .arg(day)
                             .arg(hour)
@@ -802,11 +802,19 @@ bool AClient::writeDatabase(const ClientData &data)
             query.addBindValue(m_ClientData.getData(ClientData::eClientDate));
             query.addBindValue(QVariant(QVariant::Int));
             query.addBindValue(QVariant(QVariant::Int));
-            query.addBindValue(QString("%1").arg(m_ClientData.getData(ClientData::eNIon).toInt(), 5, 10, QChar('0')));
+            query.addBindValue(QVariant(QString("%1").arg(m_ClientData.getData(ClientData::eNIon).toInt(), 6, 10, QChar('0'))));
             query.addBindValue(m_ClientData.getData(ClientData::eHumidity));
             query.addBindValue(m_ClientData.getData(ClientData::eTemperature));
             //query.addBindValue(m_ClientData.getData(ClientData::ePIon));
         }
+
+        qDebug() << "Sataion" << m_ClientData.getData(ClientData::eStationID);
+        qDebug() << "DeviceID" << m_ClientData.getData(ClientData::eDeviceID);
+        qDebug() << "Date" << m_ClientData.getData(ClientData::eClientDate);
+        qDebug() << "Negative Ion" << QVariant(QString("%1").arg(m_ClientData.getData(ClientData::eNIon).toInt(), 6, 10, QChar('0')));
+        qDebug() << "Humidity" << m_ClientData.getData(ClientData::eHumidity);
+        qDebug() << "Temp" << m_ClientData.getData(ClientData::eTemperature);
+        //qDebug() << "Sataion" << m_ClientData.getData(ClientData::eStationID);
 
         result = query.exec();
         if(result==false) {
