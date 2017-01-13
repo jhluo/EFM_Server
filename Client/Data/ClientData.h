@@ -53,7 +53,7 @@ public:
         eRPMR,
         eStatusCode,
         eQualityControl,
-
+        eError,
         eTotal
     };
 
