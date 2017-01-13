@@ -372,6 +372,8 @@ void AClient::decodeVersion2Data(const QByteArray &dataArray)
     m_ClientData.setData(ClientData::ePm25, dataArray.mid(41, 2).toHex().toInt(&ok, 16) / 10);
 
     m_ClientData.setData(ClientData::ePm10, dataArray.mid(43, 2).toHex().toInt(&ok, 16) / 10);
+
+    m_ClientData.setData(ClientData::eError, dataArray.mid(45, 2).toHex().toInt(&ok, 16));
 }
 
 void AClient::decodeVersion3Data(const QByteArray &newData)
@@ -731,6 +733,7 @@ bool AClient::writeDatabase(const ClientData &data)
             query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePm1).toDouble()));
             query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePm25).toDouble()));
             query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePm10).toDouble()));
+            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eError).toInt()));
 
 //            query.addBindValue(m_ClientData.getData(ClientData::eNIon));
 //            //query.addBindValue(QString("%1").arg(m_ClientData.getData(ClientData::eNIon).toInt(), 5, 10, QChar('0')));
@@ -768,6 +771,7 @@ bool AClient::writeDatabase(const ClientData &data)
             query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePm1).toDouble()));
             query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePm25).toDouble()));
             query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePm10).toDouble()));
+            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eError).toInt()));
 
 //            query.addBindValue(m_ClientData.getData(ClientData::eHumidity));
 //            query.addBindValue(m_ClientData.getData(ClientData::eTemperature));
@@ -822,24 +826,144 @@ bool AClient::writeDatabase(const ClientData &data)
 //                    .arg(data.interval)
 //                    .arg(data.deviceID);
 
+//            QString sHumidity;
+//            QVariant Humidity = m_ClientData.getData(ClientData::eHumidity).toInt(), 3, 10, QChar('0');
+//            if(!Humidity.isNull())
+//            {
+//                QString sHumidity = QString::number(Humidity.toInt());
+//            }
+            
+            QString sTubeTempL;
+            QVariant TubeTempL = m_ClientData.getData(ClientData::eTubeTempL);
+            if(!TubeTempL.isNull())
+            {
+                QString sTubeTempL = QString::number(TubeTempL.toDouble());
+            }
+
+            QString sTubeTempR;
+            QVariant TubeTempR = m_ClientData.getData(ClientData::eTubeTempR);
+            if(!TubeTempR.isNull())
+            {
+                QString STubeTempR = QString::number(TubeTempR.toDouble());
+            }
+
+            QString sPolarVoltN;
+            QVariant PolarVoltN = m_ClientData.getData(ClientData::ePolarVoltN);
+            if(!PolarVoltN.isNull())
+            {
+                QString sPolarVoltN = QString::number(PolarVoltN.toDouble());
+            }
+
+            QString sPolarVoltP;
+            QVariant PolarVoltP = m_ClientData.getData(ClientData::ePolarVoltP);
+            if(!PolarVoltP.isNull())
+            {
+                QString sPolarVoltP = QString::number(PolarVoltP.toDouble());
+            }
+            
+            QString sRPML;
+            QVariant RPML = m_ClientData.getData(ClientData::eRPML);
+            if(!RPML.isNull())
+            {
+                QString sRPML = QString::number(RPML.toInt());
+            }
+
+            QString sRPMR;
+            QVariant RPMR = m_ClientData.getData(ClientData::eRPMR);
+            if(!RPMR.isNull())
+            {
+                QString sRPMR = QString::number(RPMR.toInt());
+            }
+
+            QString sFanOffIonCountN;
+            QVariant FanOffIonCountN = m_ClientData.getData(ClientData::eFanOffIonCountN);
+            if(!FanOffIonCountN.isNull())
+            {
+                QString sFanOffIonCountN = QString::number(FanOffIonCountN.toInt());
+            }
+
+            QString sFanOnIonCountN;
+            QVariant FanOnIonCountN = m_ClientData.getData(ClientData::eFanOnIonCountN);
+            if(!FanOnIonCountN.isNull())
+            {
+                QString sFanOnIonCountN = QString::number(FanOnIonCountN.toInt());
+            }
+
+            QString sFanOffIonCountP;
+            QVariant FanOffIonCountP = m_ClientData.getData(ClientData::eFanOffIonCountP);
+            if(!FanOffIonCountP.isNull())
+            {
+                QString sFanOffIonCountP = QString::number(FanOffIonCountP.toInt());
+            }
+
+            QString sFanOnIonCountP;
+            QVariant FanOnIonCountP = m_ClientData.getData(ClientData::eFanOnIonCountP);
+            if(!FanOnIonCountP.isNull())
+            {
+                QString sFanOnIonCountP = QString::number(FanOnIonCountP.toInt());
+            }
+
+            QString sLatitude;
+            QVariant Latitude = m_ClientData.getData(ClientData::eLatitude);
+            if(!Latitude.isNull())
+            {
+                QString sLatitude = QString::number(Latitude.toDouble());
+            }
+
+            QString sLongtitude;
+            QVariant Longtitude = m_ClientData.getData(ClientData::eLongtitude);
+            if(!Longtitude.isNull())
+            {
+                QString sLongtitude = QString::number(Longtitude.toDouble());
+            }
+
+            QString sAltitude;
+            QVariant Altitude = m_ClientData.getData(ClientData::eAltitude);
+            if(!Altitude.isNull())
+            {
+                QString sAltitude = QString::number(Altitude.toDouble());
+            }
+
+            QString sServiceType;
+            QVariant ServiceType = m_ClientData.getData(ClientData::eServiceType);
+            if(!ServiceType.isNull())
+            {
+                QString sServiceType = QString::number(FanOffIonCountP.toInt());
+            }
+
+            QString sDeviceType;
+            QVariant DeviceType = m_ClientData.getData(ClientData::eDeviceType);
+            if(!DeviceType.isNull())
+            {
+                QString sDeviceType = QString::number(DeviceType.toInt());
+            }
+
+            QString sInterval;
+            QVariant Interval = m_ClientData.getData(ClientData::eInterval);
+            if(!Interval.isNull())
+            {
+                QString sInterval = QString::number(Interval.toInt());
+            }
+
+
 
             query.prepare("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数,"
                           "风向, 风速, 雨量, 气压, CO2,  PM25, PM10, 测量室负温度, 测量室正温度, 极板负电压, 极板正电压, 风扇负转速,"
                           "风扇正转速, 关风机采集数, 开风机采集数, 关风机正离子, 开风机正离子, 经度, 纬度, 海拔高度, 服务类型, 设备标识,"
                           "帧标识, 设备标识码)"
-                               "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,? ?,?,?,?,?,?,?,?,?,?,?,?,?);"
+                               "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"
                          );
             query.addBindValue(m_ClientData.getData(ClientData::eStationID).toString());
             query.addBindValue(m_ClientData.getData(ClientData::eDeviceID).toString());
             query.addBindValue(m_ClientData.getData(ClientData::eClientDate));
             query.addBindValue(QVariant(QVariant::Int));
             query.addBindValue(QVariant(QVariant::Int));
-            query.addBindValue(QString("%1").arg(m_ClientData.getData(ClientData::eNIon).toInt(), 6, 10, QChar('0')));
-            query.addBindValue(QString("%1").arg(m_ClientData.getData(ClientData::eHumidity).toInt(), 3, 10, QChar('0')));
+            query.addBindValue(QVariant(QString("%1").arg(m_ClientData.getData(ClientData::eNIon).toInt(), 6, 10, QChar('0'))));
+            query.addBindValue(QVariant(QString("%1").arg(m_ClientData.getData(ClientData::eHumidity).toInt(), 3, 10, QChar('0'))));
             //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eHumidity).toDouble()));
             query.addBindValue(QString::number(m_ClientData.getData(ClientData::eTemperature).toDouble()));
             query.addBindValue(QString("%1").arg(m_ClientData.getData(ClientData::ePIon).toInt(), 6, 10, QChar('0')));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eWindDirection).toInt()));
+            query.addBindValue(QVariant(QString::number(m_ClientData.getData(ClientData::eWindDirection).toInt())));
             query.addBindValue(QString::number(m_ClientData.getData(ClientData::eWindSpeed).toDouble()));
             query.addBindValue(QString::number(m_ClientData.getData(ClientData::eRainfall).toInt()));
             query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePressure).toDouble()));
@@ -847,22 +971,40 @@ bool AClient::writeDatabase(const ClientData &data)
             //query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePm1).toInt()));
             query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePm25).toInt()));
             query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePm10).toInt()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eTubeTempL).toDouble()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eTubeTempR).toDouble()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePolarVoltN).toDouble()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePolarVoltP).toDouble()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eRPML).toInt()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eRPMR).toInt()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eFanOffIonCountN).toInt()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eFanOnIonCountN).toInt()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eFanOffIonCountP).toInt()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eFanOnIonCountP).toInt()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eLatitude).toDouble()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eLongtitude).toDouble()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eAltitude).toDouble()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eServiceType).toInt()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eDeviceType).toInt()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eInterval).toInt()));
+
+
+            query.addBindValue(QVariant(QString(sTubeTempL)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eTubeTempL).toDouble()));
+            query.addBindValue(QVariant(QString(sTubeTempR)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eTubeTempR).toDouble()));
+            query.addBindValue(QVariant(QString(sPolarVoltN)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePolarVoltN).toDouble()));
+            query.addBindValue(QVariant(QString(sPolarVoltP)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePolarVoltP).toDouble()));
+           // query.addBindValue(QString::number(m_ClientData.getData(ClientData::eRPML).toInt()));
+            query.addBindValue(QVariant(QString(sRPML)));
+            query.addBindValue(QVariant(QString(sRPMR)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eRPMR).toInt()));
+            query.addBindValue(QVariant(QString(sFanOffIonCountN)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eFanOffIonCountN).toInt()));
+            query.addBindValue(QVariant(QString(sFanOnIonCountN)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eFanOnIonCountN).toInt()));
+            query.addBindValue(QVariant(QString(sFanOffIonCountP)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eFanOffIonCountP).toInt()));
+            query.addBindValue(QVariant(QString(sFanOnIonCountP)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eFanOnIonCountP).toInt()));
+            query.addBindValue(QVariant(QString(sLatitude)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eLatitude).toDouble()));
+            query.addBindValue(QVariant(QString(sLongtitude)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eLongtitude).toDouble()));
+            query.addBindValue(QVariant(QString(sAltitude)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eAltitude).toDouble()));
+            query.addBindValue(QVariant(QString(sServiceType)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eServiceType).toInt()));
+            query.addBindValue(QVariant(QString(sDeviceType)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eDeviceType).toInt()));
+            query.addBindValue(QVariant(QString(sInterval)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eInterval).toInt()));
             query.addBindValue(QString::number(m_ClientData.getData(ClientData::eDeviceID).toInt()));
             //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eVOC).toInt()));
 
@@ -873,14 +1015,18 @@ bool AClient::writeDatabase(const ClientData &data)
 
         }
 
-//        qDebug() << "Sataion" << m_ClientData.getData(ClientData::eStationID);
-//        qDebug() << "DeviceID" << m_ClientData.getData(ClientData::eDeviceID);
-//        qDebug() << "Date" << m_ClientData.getData(ClientData::eClientDate);
+        qDebug() << "Sataion" << m_ClientData.getData(ClientData::eStationID);
+        qDebug() << "DeviceID" << m_ClientData.getData(ClientData::eDeviceID);
+        qDebug() << "Date" << m_ClientData.getData(ClientData::eClientDate);
 //        qDebug() << "Negative Ion" << QVariant(QString("%1").arg(m_ClientData.getData(ClientData::eNIon).toInt(), 6, 10, QChar('0')));
 //        qDebug() << "Humidity" << QString("%1").arg(m_ClientData.getData(ClientData::eHumidity).toInt(), 3, 10, QChar('0'));
 //        //qDebug() << "Temp" << m_ClientData.getData(ClientData::eTemperature);
 //        qDebug() << "Temp" << QVariant(QString::number(m_ClientData.getData(ClientData::eTemperature).toDouble()));
 //        //qDebug() << "Sataion" << m_ClientData.getData(ClientData::eStationID);
+        qDebug() << "Device ID" << m_ClientData.getData(ClientData::eDeviceID).toInt();
+        qDebug() << "Wind Direction" << QVariant(QString::number(m_ClientData.getData(ClientData::eWindDirection).toInt()));
+        qDebug() << "Wind Speed" << m_ClientData.getData(ClientData::eWindSpeed).toDouble();
+        
 
         result = query.exec();
         if(result==false) {
