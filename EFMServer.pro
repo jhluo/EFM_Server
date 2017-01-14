@@ -9,7 +9,7 @@ QT       += widgets core gui sql serialport
 greaterThan(QT_MAJOR_VERSION, 4): QT += network charts
 
 TARGET = EFMServer
-VERSION = 2.0.0
+VERSION = 2.1.0
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 TEMPLATE = app
@@ -46,7 +46,9 @@ SOURCES += main.cpp\
     Client/Data/ClientData.cpp \
     Client/Data/tData.cpp \
     Widgets/OffsetSettingsDialog.cpp \
-    Misc/OffsetSettings.cpp
+    Misc/OffsetSettings.cpp \
+    Table/DataTableModel.cpp \
+    Table/DataTableView.cpp
 
 HEADERS  += mainwindow.h \
     Widgets/MainWindowWidget.h \
@@ -73,7 +75,9 @@ HEADERS  += mainwindow.h \
     Client/Data/ClientData.h \
     Client/Data/tData.h \
     Widgets/OffsetSettingsDialog.h \
-    Misc/OffsetSettings.h
+    Misc/OffsetSettings.h \
+    Table/DataTableModel.h \
+    Table/DataTableView.h
 
 FORMS    += mainwindow.ui
 
