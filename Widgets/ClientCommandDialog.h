@@ -19,7 +19,25 @@ public:
         eReset,
         eSetId,
         eSetLimit,
-        eSetMultiplier
+        eSetMultiplier,
+        eSetCom,
+        eAutoCheck,
+        eHelp,
+        eQz,
+        eSt,
+        eDi,
+        eId,
+        eLat,
+        eLong,
+        eDate,
+        eTime,
+        eDateTime,
+        eFtd,
+        eDown,
+        eReadData,
+        eSetComWay,
+
+        eTotalNumber
     };
 
     explicit ClientCommandDialog(AClient *pClient, QWidget *parent = 0);

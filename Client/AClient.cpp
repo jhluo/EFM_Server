@@ -12,7 +12,7 @@
 
 #define DATA_TIMEOUT 60000 * 1//swith to no data state after 2 minutes
 #define CLIENT_TIMEOUT 60000 * 2 //disconnect the client if there's no data after 5 minutes
-#define COMMAND_ACK_TIMEOUT 10000    //give 10 seconds for client to reply
+#define COMMAND_ACK_TIMEOUT 3000    //give 3 seconds for client to reply
 
 #define VERSION1_LENGTH 37  //length in bytes for fixed length messages
 #define VERSION2_LENGTH 50
