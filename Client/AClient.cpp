@@ -832,7 +832,48 @@ bool AClient::writeDatabase(const ClientData &data)
 //            {
 //                QString sHumidity = QString::number(Humidity.toInt());
 //            }
-            
+            QString sWindDirection;
+            QVariant WindDirection = m_ClientData.getData(ClientData::eWindDirection);
+            if(!WindDirection.isNull())
+            {
+                QString sWindDirection = QString::number(WindDirection.toInt());
+            }
+
+            QString sWindSpeed;
+            QVariant WindSpeed = m_ClientData.getData(ClientData::eWindSpeed);
+            if(!WindSpeed.isNull())
+            {
+                QString sWindSpeed = QString::number(WindSpeed.toInt());
+            }
+
+            QString sPm25;
+            QVariant Pm25 = m_ClientData.getData(ClientData::ePm25);
+            if(!Pm25.isNull())
+            {
+                QString sPm25 = QString::number(Pm25.toInt());
+            }
+
+            QString sPm10;
+            QVariant Pm10 = m_ClientData.getData(ClientData::ePm10);
+            if(!Pm10.isNull())
+            {
+                QString sPm10 = QString::number(Pm10.toInt());
+            }
+
+            QString sRainfall;
+            QVariant Rainfall = m_ClientData.getData(ClientData::eRainfall);
+            if(!Rainfall.isNull())
+            {
+                QString sRainfall = QString::number(Rainfall.toInt());
+            }
+
+            QString sPressure;
+            QVariant Pressure = m_ClientData.getData(ClientData::ePressure);
+            if(!Pressure.isNull())
+            {
+                QString sPressure = QString::number(Pressure.toDouble());
+            }
+
             QString sTubeTempL;
             QVariant TubeTempL = m_ClientData.getData(ClientData::eTubeTempL);
             if(!TubeTempL.isNull())
@@ -948,10 +989,10 @@ bool AClient::writeDatabase(const ClientData &data)
 
 
             query.prepare("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数,"
-                          "风向, 风速, 雨量, 气压, CO2,  PM25, PM10, 测量室负温度, 测量室正温度, 极板负电压, 极板正电压, 风扇负转速,"
+                          "风向, 风速, 雨量, 气压, PM25, PM10, 测量室负温度, 测量室正温度, 极板负电压, 极板正电压, 风扇负转速,"
                           "风扇正转速, 关风机采集数, 开风机采集数, 关风机正离子, 开风机正离子, 经度, 纬度, 海拔高度, 服务类型, 设备标识,"
                           "帧标识, 设备标识码)"
-                               "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"
+                               "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"
                          );
             query.addBindValue(m_ClientData.getData(ClientData::eStationID).toString());
             query.addBindValue(m_ClientData.getData(ClientData::eDeviceID).toString());
@@ -963,14 +1004,20 @@ bool AClient::writeDatabase(const ClientData &data)
             //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eHumidity).toDouble()));
             query.addBindValue(QString::number(m_ClientData.getData(ClientData::eTemperature).toDouble()));
             query.addBindValue(QString("%1").arg(m_ClientData.getData(ClientData::ePIon).toInt(), 6, 10, QChar('0')));
-            query.addBindValue(QVariant(QString::number(m_ClientData.getData(ClientData::eWindDirection).toInt())));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eWindSpeed).toDouble()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eRainfall).toInt()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePressure).toDouble()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::eCO2).toInt()));
+            query.addBindValue(QVariant(QString(sWindDirection)));
+            //query.addBindValue(QVariant(QString::number(m_ClientData.getData(ClientData::eWindDirection).toInt())));
+            query.addBindValue(QVariant(QString(sWindSpeed)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eWindSpeed).toDouble()));
+            query.addBindValue(QVariant(QString(sRainfall)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eRainfall).toInt()));
+            query.addBindValue(QVariant(QString(sPressure)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePressure).toDouble()));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::eCO2).toInt()));
             //query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePm1).toInt()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePm25).toInt()));
-            query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePm10).toInt()));
+            query.addBindValue(QVariant(QString(sPm25)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePm25).toInt()));
+            query.addBindValue(QVariant(QString(sPm10)));
+            //query.addBindValue(QString::number(m_ClientData.getData(ClientData::ePm10).toInt()));
 
 
             query.addBindValue(QVariant(QString(sTubeTempL)));
