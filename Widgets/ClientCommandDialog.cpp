@@ -10,7 +10,7 @@ ClientCommandDialog::ClientCommandDialog(AClient *pClient, QWidget *parent) :
     QDialog(parent),
     m_pClient(pClient)
 {
-    connect(this, SIGNAL(writeCommand(QString)), m_pClient, SLOT(sendData(QString)));
+    connect(this, SIGNAL(writeCommand(QString)), m_pClient, SLOT(sendCommand(QString)));
     connect(m_pClient, SIGNAL(bytesSent(int)), this, SLOT(onCommandSent(int)));
     connect(m_pClient, SIGNAL(clientAcknowledge(bool)), this, SLOT(onCommandAcknowledged(bool)));
 
@@ -93,15 +93,21 @@ void ClientCommandDialog::onCommandComboChanged()
         {
             QDateTime currentDateTime = QDateTime::currentDateTime();
             QDate currentDate = currentDateTime.date();
-            QTime currentTime = currentDateTime.time();
+            QString dateYear = currentDateTime.date().toString("yy");
+            QString dateMonth = currentDateTime.date().toString("MM");
+            QString dateDay = currentDateTime.date().toString("dd");
+            QString timeHour = currentDateTime.time().toString("hh");
+            QString timeMinute = currentDateTime.time().toString("mm");
+            QString timeSecond = currentDateTime.time().toString("ss");
             QString command=QString("dxsj02:\"%1.%2.%3.%4.%5.%6.%7\"")
-                    .arg(currentDate.year()-2000)
-                    .arg(currentDate.month())
-                    .arg(currentDate.day())
+                    .arg(dateYear)
+                    .arg(dateMonth)
+                    .arg(dateDay)
                     .arg(currentDate.dayOfWeek())
-                    .arg(currentTime.hour())
-                    .arg(currentTime.minute())
-                    .arg(currentTime.second());
+                    .arg(timeHour)
+                    .arg(timeMinute)
+                    .arg(timeSecond);
+
             m_pCommandEdit->setText(command);
 
             QString description = "设置设备的时间。\n";
