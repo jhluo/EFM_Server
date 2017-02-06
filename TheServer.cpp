@@ -41,19 +41,19 @@ void TheServer::startServer()
     }
 
     //Test the database
-    QSqlDatabase db = QSqlDatabase::addDatabase("QODBC");
-    QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
-            .arg(settings.readDatabaseSettings("host", "").toString())
-            .arg(settings.readDatabaseSettings("DbName", "").toString())
-            .arg(settings.readDatabaseSettings("user", "").toString())
-            .arg(settings.readDatabaseSettings("password", "").toString());
+//    QSqlDatabase db = QSqlDatabase::addDatabase("QODBC");
+//    QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
+//            .arg(settings.readDatabaseSettings("host", "").toString())
+//            .arg(settings.readDatabaseSettings("DbName", "").toString())
+//            .arg(settings.readDatabaseSettings("user", "").toString())
+//            .arg(settings.readDatabaseSettings("password", "").toString());
 
-    db.setDatabaseName(dsn);
-    if(!db.open()) {
-        LOG_SYS("Failed to connect to database! Go to Settings->Database Settings to configure your database settings");
-    } else {
-        LOG_SYS("Database connection is ready.");
-    }
+//    db.setDatabaseName(dsn);
+//    if(!db.open()) {
+//        LOG_SYS("Failed to connect to database! Go to Settings->Database Settings to configure your database settings");
+//    } else {
+//        LOG_SYS("Database connection is ready.");
+//    }
 }
 
 void TheServer::shutdownServer()

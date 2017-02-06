@@ -8,7 +8,6 @@
 #include "Widgets/OffsetSettingsDialog.h"
 #include "Misc/Logger.h"
 #include <QHeaderView>
-#include <QTimer>
 #include <QAction>
 #include <QInputEvent>
 #include <QMenu>

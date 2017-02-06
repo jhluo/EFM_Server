@@ -156,8 +156,9 @@ void AClient::handleData(const QByteArray &newData)
            && result == "setok")
             ok = true;
 
-        emit clientAcknowledge(ok);
         m_pCommandAckTimer->stop();
+        emit clientAcknowledge(ok);
+
 
         return;
     }
@@ -212,7 +213,17 @@ void AClient::handleData(const QByteArray &newData)
         if(!QDir("log").exists())
             QDir().mkdir("log");
 
-        QString fileName = "log//" + m_ClientId + "_log.csv";
+        QString fileName="";
+        QString stationIdStr = QString::number(m_ClientData.getData(ClientData::eStationID).toInt());
+        fileName += stationIdStr+"_";
+        QString deviceIdStr = m_ClientData.getData(ClientData::eDeviceID).toString();
+        fileName += deviceIdStr+"_";
+        fileName += "Value_";
+        QDateTime currTime;
+        QString timeStr = currTime.currentDateTime().toString("yyyyMMddHH");
+        fileName += timeStr;
+
+        fileName = "log//" + fileName + ".txt";
         writeDataLog(fileName, m_ClientData);
     }
 
