@@ -135,29 +135,29 @@ void AClient::sendCommand(const QString &data)
     //qDebug() << QString("%1 bytes in buffer, %2 bytes are written").arg(data.toLocal8Bit().size()).arg(bytes);
     emit bytesSent(bytes);
 
-    int indexColon = data.indexOf(":");
-    int commandNum = data.mid(4, indexColon-4).toInt();
-    m_lastCommandSent = commandNum;
-    m_pCommandAckTimer->start();
+//    int indexColon = data.indexOf(":");
+//    int commandNum = data.mid(4, indexColon-4).toInt();
+//    m_lastCommandSent = commandNum;
+//    m_pCommandAckTimer->start();
 }
 
 void AClient::handleData(const QByteArray &newData)
 {
     //handle command acknowledgement first, then return
     if(newData.left(3) == "ack") {
-        qDebug() << "Ack:  " << newData;
-        bool ok = false;
-        int commandNum = newData.mid(3, 2).toInt();
-        QString id = newData.mid(6, 4);
-        QString result = newData.right(5);
+//        qDebug() << "Ack:  " << newData;
+//        bool ok = false;
+//        int commandNum = newData.mid(3, 2).toInt();
+//        QString id = newData.mid(6, 4);
+//        QString result = newData.right(5);
 
-        if(commandNum == m_lastCommandSent
-           && id == m_ClientId
-           && result == "setok")
-            ok = true;
+//        if(commandNum == m_lastCommandSent
+//           && id == m_ClientId
+//           && result == "setok")
+//            ok = true;
 
-        m_pCommandAckTimer->stop();
-        emit clientAcknowledge(ok);
+//        m_pCommandAckTimer->stop();
+//        emit clientAcknowledge(ok);
 
 
         return;
@@ -714,18 +714,17 @@ bool AClient::writeDatabase(const ClientData &data)
     QString connectionName = QString::number((int)(thread()->currentThreadId()));
     if(!QSqlDatabase::contains(connectionName)) {
         db = QSqlDatabase::addDatabase("QODBC", connectionName);
+        QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
+
+                .arg(settings.readDatabaseSettings("host", "").toString())
+                .arg(settings.readDatabaseSettings("DbName", "").toString())
+                .arg(settings.readDatabaseSettings("user", "").toString())
+                .arg(settings.readDatabaseSettings("password", "").toString());
+
+        db.setDatabaseName(dsn);
     } else {
         db = QSqlDatabase::database(connectionName);
     }
-
-    QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
-
-            .arg(settings.readDatabaseSettings("host", "").toString())
-            .arg(settings.readDatabaseSettings("DbName", "").toString())
-            .arg(settings.readDatabaseSettings("user", "").toString())
-            .arg(settings.readDatabaseSettings("password", "").toString());
-
-    db.setDatabaseName(dsn);
 
     if(db.open()) {
         QSqlQuery query(db);
