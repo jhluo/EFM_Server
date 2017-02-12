@@ -1,3 +1,5 @@
 *.o
 debug/*
 release/*
+UnitTest/UnitTest/googletest/*
+UnitTest/UnitTest/googlemock/*
