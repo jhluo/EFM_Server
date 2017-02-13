@@ -15,7 +15,7 @@ public:
     TheServer(QObject *pParent = 0);
     ~TheServer();
 
-    void startServer();
+    void startServer(const QString &host="127.0.0.1", const int port=5101);
     void shutdownServer();
 
     //add client from serial port connection
@@ -33,7 +33,10 @@ public slots:
 
 
 private slots:
+    //add Tcpip Client
     void onNewTcpClientConnected();
+
+
     void onTcpClientDisconnected();
     void onClientIDAssigned();
 };

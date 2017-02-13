@@ -83,3 +83,18 @@ FORMS    += mainwindow.ui
 
 RESOURCES += \
     resource.qrc
+
+test {
+    message(Test build)
+    QT += testlib
+    TARGET = UnitTests
+
+    SOURCES -= main.cpp
+
+    HEADERS += UnitTest/testserver.h
+
+    SOURCES += UnitTest/testserver.cpp
+    SOURCES += UnitTest/main.cpp
+} else {
+    message(Normal build)
+}

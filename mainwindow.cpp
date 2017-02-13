@@ -71,9 +71,11 @@ bool MainWindow::validateApp(const QString &key)
         }
 
         //start server is not already started
-        if(!m_pServer->isListening())
-            m_pServer->startServer();
-
+        if(!m_pServer->isListening()) {
+            QString host = settings.readServerSettings("host", "127.0.0.1").toString();
+            int port = settings.readServerSettings("port", "5101").toInt();
+            m_pServer->startServer(host, port);
+        }
         return true;
     } else if (key != ""){
         LOG_SYS(QString(tr("Product key is invalid.")));

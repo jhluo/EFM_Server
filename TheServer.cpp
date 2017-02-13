@@ -19,15 +19,11 @@ TheServer::~TheServer()
 
 }
 
-void TheServer::startServer()
+void TheServer::startServer(const QString &host, const int port)
 {
-    /*hardcoded to localhost and port 5101, this can be made more flexible
-        by creating a server settings dialog */
-    AppSettings settings;
     QHostAddress addr;
-    addr.setAddress(settings.readServerSettings("host", "127.0.0.1").toString());
+    addr.setAddress(host);
     addr.toIPv4Address();
-    quint16 port = settings.readServerSettings("port", "5101").toInt();
 
     if (!this->listen(addr, port)) {
         LOG_SYS(QString("Unable to start the server: %1.").arg(this->errorString()));
