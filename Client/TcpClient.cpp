@@ -51,22 +51,6 @@ void TcpClient::onSocketDisconnected()
 
     m_TimeOfDisconnect = QDateTime::currentDateTime();
 
-    //remove the database connection for this thread
-    //AppSettings settings;
-    QSqlDatabase db;
-//    QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
-//            .arg(settings.readDatabaseSettings("host", "").toString())
-//            .arg(settings.readDatabaseSettings("DbName", "").toString())
-//            .arg(settings.readDatabaseSettings("user", "").toString())
-//            .arg(settings.readDatabaseSettings("password", "").toString());
-//    db.setDatabaseName(dsn);
-
-    QString connectionName = QString::number((int)(thread()->currentThreadId()));
-
-    if(db.contains(connectionName)) {
-        db.removeDatabase(connectionName);
-    }
-
     //emit signal to notify model
     emit clientDataChanged();
 

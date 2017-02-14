@@ -661,8 +661,10 @@ bool AClient::writeDatabase(const ClientData &data)
     AppSettings settings;
     QSqlDatabase db;
 
-    QString connectionName = QString::number((int)(thread()->currentThreadId()));
-    if(!QSqlDatabase::contains(connectionName)) {
+    //QString connectionName = QString::number((int)(thread()->currentThreadId()));
+    QString connectionName = m_ClientId;
+
+    if(!db.contains(connectionName)) {
         db = QSqlDatabase::addDatabase("QODBC", connectionName);
         QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
 
@@ -1047,6 +1049,8 @@ bool AClient::writeDatabase(const ClientData &data)
         }
 
         db.close();
+    } else {
+        qDebug() << "Database failed to open in AClient::writeToDatabase\n";
     }
 
 

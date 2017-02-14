@@ -126,6 +126,13 @@ void TheServer::onTcpClientDisconnected()
             break;
         }
     }
+
+    QSqlDatabase db;
+    QString connectionName = pClient->getClientId();
+
+    if(db.contains(connectionName)) {
+        db.removeDatabase(connectionName);
+    }
 }
 
 //this is needed to get rid of dead clients with the same ID
