@@ -665,6 +665,7 @@ bool AClient::writeDatabase(const ClientData &data)
     //QString connectionName = QString::number((int)(thread()->currentThreadId()));
     QString connectionName = m_ClientId;
 
+
     if(!db.contains(connectionName)) {
         db = QSqlDatabase::addDatabase("QODBC", connectionName);
         QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
@@ -676,6 +677,7 @@ bool AClient::writeDatabase(const ClientData &data)
 
         db.setDatabaseName(dsn);
     } else {
+        qDebug() << db.connectionNames();
         db = QSqlDatabase::database(connectionName);
     }
 

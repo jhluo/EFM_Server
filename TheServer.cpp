@@ -120,6 +120,7 @@ void TheServer::onTcpClientDisconnected()
 
     Q_ASSERT(pClient!=NULL);
 
+    pClient->thread()->quit();
 //    QSqlDatabase db;
 //    QString connectionName = pClient->getClientId();
 
@@ -135,8 +136,6 @@ void TheServer::onTcpClientDisconnected()
             break;
         }
     }
-
-    pClient->thread()->quit();
 }
 
 //this is needed to get rid of dead clients with the same ID

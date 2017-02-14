@@ -27,7 +27,7 @@ tData::tData(const tData &data) :
 
 tData::~tData()
 {
-    m_DataTimer.stop();
+    //m_DataTimer.stop();
 }
 
 void tData::setValue(const QVariant &value)
@@ -35,8 +35,9 @@ void tData::setValue(const QVariant &value)
     m_DataValue = value;
 
     if (value.isValid()) {
-        m_DataTimer.stop();
-        m_DataTimer.start();
+        //m_DataTimer.stop();
+        //m_DataTimer.start();
+        ;
     }
 }
 
