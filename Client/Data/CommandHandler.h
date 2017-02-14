@@ -16,7 +16,7 @@ public:
     void processCommand(const QString &command);
 
 private:
-    QTimer m_AckTimer;
+    QTimer *m_pAckTimer;
 
 private slots:
     void onAckTimeout();

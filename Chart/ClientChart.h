@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QChartView>
 #include <QtCharts>
-#include <QTimer>
 
 class AClient;
 
@@ -26,7 +25,6 @@ private:
     AClient *m_pClient;
     QChart *m_pChart;
     QLineSeries *m_pDataSeries;
-    QTimer m_UpdateTimer;
     bool m_CenterChart;
 
     //these are used for mouse dragging

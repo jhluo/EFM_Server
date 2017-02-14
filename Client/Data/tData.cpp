@@ -8,8 +8,9 @@ tData::tData(QObject *pParent) :
     m_DataValue = QVariant();
 
     //time out the data
-    m_DataTimer.setInterval(DATA_TIMEOUT);
-    connect(&m_DataTimer, SIGNAL(timeout()), this, SLOT(onDataTimeout()));
+    m_pDataTimer = new QTimer(this);
+    m_pDataTimer->setInterval(DATA_TIMEOUT);
+    connect(m_pDataTimer, SIGNAL(timeout()), this, SLOT(onDataTimeout()));
 }
 
 tData::tData(const QVariant &value, QObject *pParent) :
@@ -20,7 +21,7 @@ tData::tData(const QVariant &value, QObject *pParent) :
 
 //copy constructor
 tData::tData(const tData &data) :
-    QObject(data.parent())
+    tData(data.parent())
 {
     this->setValue(data.value());
 }
@@ -35,9 +36,8 @@ void tData::setValue(const QVariant &value)
     m_DataValue = value;
 
     if (value.isValid()) {
-        //m_DataTimer.stop();
-        //m_DataTimer.start();
-        ;
+        m_pDataTimer->stop();
+        m_pDataTimer->start();
     }
 }
 

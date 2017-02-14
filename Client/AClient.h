@@ -84,9 +84,9 @@ protected:
     void decodeVersion3Data(const QByteArray &dataArray);
 
     void writeDataViewer();
-    void writeDataLog(const QString &fileName, const ClientData &data);
+    void writeDataLog(const QString &fileName);
     void writeRawLog(const QString &fileName, const QByteArray &rawData);
-    bool writeDatabase(const ClientData &data);
+    bool writeDatabase();
 
     //this is used to apply offset values to incoming data
     QVariant applyOffset(const QString &clientId, const ClientData::eDataId id, const QVariant &value);
@@ -106,7 +106,7 @@ protected:
     eClientVersion m_ClientVersion;
 
     //container of client data
-    ClientData m_ClientData;
+    ClientData *m_pClientData;
 
     //object that take care of command communications
     CommandHandler *m_pCommandHandler;

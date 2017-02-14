@@ -13,7 +13,7 @@ void ClientData::setData(const eDataId id, const QVariant &value)
     validateData(id, value, ok);
 
     if(ok) {
-        tData data(value);
+        tData data(value, this);
         m_DataMap.insert(id, data);
     }
 }

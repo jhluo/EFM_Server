@@ -24,13 +24,13 @@ public:
     //overloaded to check two clients as equivalent
     inline void operator=(const tData &rhs){
         m_DataValue = rhs.value();
-        m_DataTimer.stop();
-        m_DataTimer.start();
+        m_pDataTimer->stop();
+        m_pDataTimer->start();
     }
 
 private:
     QVariant m_DataValue;
-    QTimer m_DataTimer;
+    QTimer *m_pDataTimer;
 
 private slots:
     void onDataTimeout();
