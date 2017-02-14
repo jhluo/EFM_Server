@@ -106,7 +106,6 @@ void TheServer::onNewTcpClientConnected()
 
     //stop the thread and clean up when pClient is disconnected
     connect(pClient, SIGNAL(clientIDAssigned()), this, SLOT(onClientIDAssigned()));
-    connect(pClient, SIGNAL(clientDisconnected()), pClientThread, SLOT(quit()));
     connect(pClientThread, SIGNAL(finished()), pClientThread, SLOT(deleteLater()));
     connect(pClient, SIGNAL(clientDisconnected()), this, SLOT(onTcpClientDisconnected()));
 
@@ -118,13 +117,15 @@ void TheServer::onNewTcpClientConnected()
 void TheServer::onTcpClientDisconnected()
 {
     TcpClient* pClient = static_cast<TcpClient*>(QObject::sender());
-    if(pClient == NULL) return;
-    QSqlDatabase db;
-    QString connectionName = pClient->getClientId();
 
-    if(db.contains(connectionName)) {
-        db.removeDatabase(connectionName);
-    }
+    Q_ASSERT(pClient!=NULL);
+
+//    QSqlDatabase db;
+//    QString connectionName = pClient->getClientId();
+
+//    if(db.contains(connectionName)) {
+//        db.removeDatabase(connectionName);
+//    }
 
     //If this client was connected without ever giving an id, just remove it from list
     for(int i=0; i<m_pClientList->size(); i++) {
@@ -134,6 +135,8 @@ void TheServer::onTcpClientDisconnected()
             break;
         }
     }
+
+    pClient->thread()->quit();
 }
 
 //this is needed to get rid of dead clients with the same ID

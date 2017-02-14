@@ -659,6 +659,7 @@ bool AClient::writeDatabase(const ClientData &data)
     bool result = false;
 
     AppSettings settings;
+
     QSqlDatabase db;
 
     //QString connectionName = QString::number((int)(thread()->currentThreadId()));
