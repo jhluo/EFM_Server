@@ -118,6 +118,14 @@ void TheServer::onNewTcpClientConnected()
 void TheServer::onTcpClientDisconnected()
 {
     TcpClient* pClient = static_cast<TcpClient*>(QObject::sender());
+    if(pClient == NULL) return;
+    QSqlDatabase db;
+    QString connectionName = pClient->getClientId();
+
+    if(db.contains(connectionName)) {
+        db.removeDatabase(connectionName);
+    }
+
     //If this client was connected without ever giving an id, just remove it from list
     for(int i=0; i<m_pClientList->size(); i++) {
         if(m_pClientList->getClient(i)->getClientAddress() == pClient->getClientAddress()
@@ -125,13 +133,6 @@ void TheServer::onTcpClientDisconnected()
             m_pClientList->removeClient(i);
             break;
         }
-    }
-
-    QSqlDatabase db;
-    QString connectionName = pClient->getClientId();
-
-    if(db.contains(connectionName)) {
-        db.removeDatabase(connectionName);
     }
 }
 

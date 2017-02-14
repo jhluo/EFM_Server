@@ -79,6 +79,8 @@ QVariant ClientTableModel::data(const QModelIndex &index, int role) const
                 return "Offline";
             else if(m_pClientList->getClient(row)->getClientState()==AClient::eNoData)
                 return "No Data";
+            else if(m_pClientList->getClient(row)->getClientState()==AClient::eUnknownState)
+                return "Pending...";
             else
                 return "Online";
         }
