@@ -15,7 +15,6 @@ TcpClient::TcpClient(QTcpSocket *pSocket, QObject *pParent)
 
     //tcp client will connect immediately so we do these here, serial client we delay till COM port connects
     m_TimeOfConnect = QDateTime::currentDateTime();
-    m_pDataStarvedTimer->start();
 }
 
 TcpClient::~TcpClient()
@@ -26,7 +25,7 @@ TcpClient::~TcpClient()
 void TcpClient::disconnectClient()
 {
     m_pSocket->disconnectFromHost();
-    m_pClientDisconnectTimer->stop();
+    m_pDataTimer->stop();
 }
 
 QString TcpClient::getClientAddress() const
@@ -44,15 +43,11 @@ void TcpClient::onSocketDisconnected()
 {
     emit error(QString("Client %1 at %2 disconnected").arg(m_ClientId).arg(getClientAddress()));
 
-    if(m_pDataStarvedTimer->isActive()) {
-        m_pDataStarvedTimer->stop();
-    }
-
-    if(m_pCommandAckTimer->isActive()) {
-        m_pCommandAckTimer->stop();
-    }
-
-    m_ClientState = eOffline;
+    //if client never got an ID, set it back to unknown state
+    if(m_ClientId == "Unknown")
+        m_ClientState = eUnknownState;
+    else
+        m_ClientState = eOffline;
 
     m_TimeOfDisconnect = QDateTime::currentDateTime();
 

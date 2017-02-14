@@ -22,6 +22,7 @@ public:
     void addSerialClient(QSerialPort *pPort);
 
     AClientList *getClientList() {return m_pClientList;}
+    int getClientCount() const;
 
 signals:
 
@@ -35,8 +36,6 @@ public slots:
 private slots:
     //add Tcpip Client
     void onNewTcpClientConnected();
-
-
     void onTcpClientDisconnected();
     void onClientIDAssigned();
 };

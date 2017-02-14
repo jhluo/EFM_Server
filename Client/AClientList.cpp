@@ -60,15 +60,15 @@ void AClientList::removeAll()
 
     for(int i=0; i<m_ClientList.size(); i++){
         AClient* pClient = m_ClientList.at(i);
-        if(pClient->getClientState()=="Online") {
+        if(pClient->getClientState()==AClient::eOnline) {
             //use invokemethod to interact with object in different thread
             QMetaObject::invokeMethod(pClient, "disconnectClient", Qt::BlockingQueuedConnection);
+
+            //no need to delete because disconnect will cause deletion
             //delete pClient->thread();
-            delete pClient;
+            //delete pClient;
         }
     }
-
-    m_ClientList.clear();
 }
 
 void AClientList::sort(const int column, Qt::SortOrder order)

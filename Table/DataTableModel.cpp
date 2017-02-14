@@ -83,11 +83,11 @@ QVariant DataTableModel::data(const QModelIndex &index, int role) const
     if(role == Qt::BackgroundRole)
     {
         if (col==2) {
-            QString state = m_pClientList->getClient(row)->getClientState();
-            if(state == "Offline") {
+            AClient::eClientState state = m_pClientList->getClient(row)->getClientState();
+            if(state == AClient::eOffline) {
                 QBrush background(QColor(255, 0, 0));
                 return background;
-            } else if(state == "No Data") {
+            } else if(state == AClient::eNoData) {
                 QBrush background(QColor(245, 245, 100));
                 return background;
             } else {

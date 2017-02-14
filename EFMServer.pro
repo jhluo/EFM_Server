@@ -48,7 +48,8 @@ SOURCES += main.cpp\
     Widgets/OffsetSettingsDialog.cpp \
     Misc/OffsetSettings.cpp \
     Table/DataTableModel.cpp \
-    Table/DataTableView.cpp
+    Table/DataTableView.cpp \
+    Client/Data/CommandHandler.cpp
 
 HEADERS  += mainwindow.h \
     Widgets/MainWindowWidget.h \
@@ -77,7 +78,8 @@ HEADERS  += mainwindow.h \
     Widgets/OffsetSettingsDialog.h \
     Misc/OffsetSettings.h \
     Table/DataTableModel.h \
-    Table/DataTableView.h
+    Table/DataTableView.h \
+    Client/Data/CommandHandler.h
 
 FORMS    += mainwindow.ui
 

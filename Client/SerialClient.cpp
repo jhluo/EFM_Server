@@ -19,7 +19,7 @@ void SerialClient::connectClient()
             m_ClientState = eNoData;
             m_TimeOfConnect = QDateTime::currentDateTime();
             m_TimeOfDisconnect = QDateTime();
-            m_pDataStarvedTimer->start();
+            m_pDataTimer->start();
             emit clientDataChanged();
     } else {
         emit error(m_pPort->errorString());
@@ -31,7 +31,7 @@ void SerialClient::disconnectClient()
     m_pPort->close();
     m_ClientState = eOffline;
     m_TimeOfDisconnect = QDateTime::currentDateTime();
-    m_pDataStarvedTimer->stop();
+    m_pDataTimer->stop();
     emit clientDataChanged();
 }
 

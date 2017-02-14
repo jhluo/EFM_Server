@@ -16,6 +16,8 @@ public:
 
     QString getClientAddress() const;
 
+    bool isSerial() const {return true;}
+
 private:
     QSerialPort *m_pPort;
 

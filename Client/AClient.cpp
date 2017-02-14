@@ -10,40 +10,29 @@
 #include <QSqlQuery>
 #include <QSqlError>
 
-#define DATA_TIMEOUT 60000 * 1//swith to no data state after 2 minutes
-#define CLIENT_TIMEOUT 60000 * 2 //disconnect the client if there's no data after 5 minutes
-#define COMMAND_ACK_TIMEOUT 3000    //give 3 seconds for client to reply
+#define TIMER_INTERVAL 60000 * 2 //timer timeout interval
 
 #define VERSION1_LENGTH 37  //length in bytes for fixed length messages
 #define VERSION2_LENGTH 50
 
 AClient::AClient(QObject *pParent)
     : QObject(pParent),
-      m_ClientId("Unknown"),
-      m_lastCommandSent(0),
       m_pInputDevice(NULL),
+      m_ClientId("Unknown"),
+      m_pCommandHandler(NULL),
       m_pDataViewer(NULL),
       m_ShowChart(false)
 {
-    m_DataBuffer.clear();
+    m_ClientState = eUnknownState;
 
-    m_ClientState = eOffline;
+    m_ClientType = eUnknownType;
 
-    m_ClientType = eUnknown;
+    m_pCommandHandler = new CommandHandler(this);
 
-    //Time out the client if stop sending data
-    m_pDataStarvedTimer = new QTimer(this);
-    m_pDataStarvedTimer->setInterval(DATA_TIMEOUT);
-    connect(m_pDataStarvedTimer, SIGNAL(timeout()), this, SLOT(onDataTimeout()));
-
-    m_pClientDisconnectTimer = new QTimer(this);
-    m_pClientDisconnectTimer->setInterval(CLIENT_TIMEOUT);
-    connect(m_pClientDisconnectTimer, SIGNAL(timeout()), this, SLOT(disconnectClient()));
-
-    //Command acknowledgement timer
-    m_pCommandAckTimer = new QTimer(this);
-    m_pCommandAckTimer->setInterval(COMMAND_ACK_TIMEOUT);
-    connect(m_pCommandAckTimer, SIGNAL(timeout()), this, SLOT(onCommandAckTimeout()));
+    //Timer to keep track of state of client
+    m_pDataTimer = new QTimer(this);
+    m_pDataTimer->setInterval(TIMER_INTERVAL);
+    connect(m_pDataTimer, SIGNAL(timeout()), this, SLOT(onDataTimeout()));
 
     //send message to a logger
     connect(this, SIGNAL(error(QString)), Logger::getInstance(), SLOT(write(QString)));
@@ -51,10 +40,7 @@ AClient::AClient(QObject *pParent)
 
 AClient::~AClient()
 {
-    m_pDataStarvedTimer->stop();
-    m_pClientDisconnectTimer->stop();
-    m_pCommandAckTimer->stop();
-    m_DataBuffer.clear();
+    m_pDataTimer->stop();
 }
 
 void AClient::setDataSource(QIODevice *pInputDevice, const eClientType &type)
@@ -74,16 +60,6 @@ void AClient::registerDataViewer(QTextEdit *pTextEdit)
         connect(this, SIGNAL(outputMessage(QString)), m_pDataViewer, SLOT(append(QString)));
 }
 
-void AClient::connectClient()
-{
-
-}
-
-void AClient::disconnectClient()
-{
-
-}
-
 void AClient::setSerialConnect(const bool on)
 {
     if(m_ClientType == eSerial) {
@@ -91,7 +67,7 @@ void AClient::setSerialConnect(const bool on)
             if(m_pInputDevice->open(QIODevice::ReadWrite)) {
                     m_ClientState = eNoData;
                     m_TimeOfConnect = QDateTime::currentDateTime();
-                    m_pDataStarvedTimer->start();
+                    m_pDataTimer->start();
                     emit clientDataChanged();
             } else {
                 qDebug() << m_pInputDevice->errorString();
@@ -100,7 +76,7 @@ void AClient::setSerialConnect(const bool on)
             m_pInputDevice->close();
             m_ClientState = eOffline;
             m_TimeOfDisconnect = QDateTime::currentDateTime();
-            m_pDataStarvedTimer->stop();
+            m_pDataTimer->stop();
             emit clientDataChanged();
         }
     }
@@ -108,32 +84,29 @@ void AClient::setSerialConnect(const bool on)
 
 void AClient::onDataReceived()
 {
-    //got data, refresh data timer
-    if(m_pDataStarvedTimer->isActive())
-        m_pDataStarvedTimer->stop();
-
-    if(m_pClientDisconnectTimer->isActive())
-        m_pClientDisconnectTimer->stop();
-
-    m_ClientState = eOnline;
-
     //read the incoming data
     QByteArray newData = m_pInputDevice->readAll();
 
     if(newData.isEmpty())
         return;
+    else if(newData.left(3) == "ack") {
+        m_pCommandHandler->processCommand(newData);
 
-    handleData(newData);
-
-    //start timer again awaiting for next packet
-    m_pDataStarvedTimer->start();
+        qDebug() << "Ack:  " << newData;
+    } else {
+        //got data, refresh data timer
+        m_pDataTimer->stop();
+        handleData(newData);
+        //start timer again awaiting for next packet
+        m_pDataTimer->start();
+    }
 }
 
 void AClient::sendCommand(const QString &data)
 {
-    int bytes = m_pInputDevice->write(data.toLocal8Bit());
+    m_pCommandHandler->sendCommand(m_pInputDevice, data.toLocal8Bit());
+
     //qDebug() << QString("%1 bytes in buffer, %2 bytes are written").arg(data.toLocal8Bit().size()).arg(bytes);
-    emit bytesSent(bytes);
 
 //    int indexColon = data.indexOf(":");
 //    int commandNum = data.mid(4, indexColon-4).toInt();
@@ -143,46 +116,27 @@ void AClient::sendCommand(const QString &data)
 
 void AClient::handleData(const QByteArray &newData)
 {
-    //handle command acknowledgement first, then return
-    if(newData.left(3) == "ack") {
-//        qDebug() << "Ack:  " << newData;
-//        bool ok = false;
-//        int commandNum = newData.mid(3, 2).toInt();
-//        QString id = newData.mid(6, 4);
-//        QString result = newData.right(5);
-
-//        if(commandNum == m_lastCommandSent
-//           && id == m_ClientId
-//           && result == "setok")
-//            ok = true;
-
-//        m_pCommandAckTimer->stop();
-//        emit clientAcknowledge(ok);
-
-
-        return;
-    }
-
-    m_DataBuffer.clear();
-    m_DataBuffer.append(newData);
-
     //verison 1 & 2
     if(newData.left(2)==QString("JH").toLocal8Bit()) {
         if(newData.length() == VERSION1_LENGTH) {
             m_ClientVersion = eVersion1;
-            decodeVersion1Data(m_DataBuffer);
+            decodeVersion1Data(newData);
         } else if(newData.length() == VERSION2_LENGTH) {
             m_ClientVersion = eVersion2;
-            decodeVersion2Data(m_DataBuffer);
+            decodeVersion2Data(newData);
         } else {
             return;
         }
+
     } else if(newData.left(2)=="BG") {
         m_ClientVersion = eVersion3;
-        decodeVersion3Data(m_DataBuffer);
+        decodeVersion3Data(newData);
     } else {
         return;
     }
+
+    //got legit data, refresh state
+    m_ClientState = eOnline;
 
     //emits signal for chart dialog
     emit receivedData(QDateTime::currentDateTime(), m_ClientData.getData(ClientData::eNIon).toInt());
@@ -233,7 +187,7 @@ void AClient::handleData(const QByteArray &newData)
             QDir().mkdir("log");
 
         QString fileName = "log//" + m_ClientId + "_raw.txt";
-        writeRawLog(fileName, m_DataBuffer);
+        writeRawLog(fileName, newData);
     }
 
     //try to connect to database, only if write to database enabled
@@ -242,9 +196,6 @@ void AClient::handleData(const QByteArray &newData)
             emit error(QString("Client %1 failed to write to database.").arg(m_ClientId));
         }
     }
-
-
-    m_DataBuffer.clear(); //done decoding, clear the array
 }
 
 QVariant AClient::applyOffset(const QString &clientId, const ClientData::eDataId id, const QVariant &value)
@@ -690,18 +641,17 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
 //disconnect the client when no data is being sent
 void AClient::onDataTimeout()
 {
-    m_pDataStarvedTimer->stop();
-    m_pClientDisconnectTimer->start();
-    m_ClientState = eNoData;
+    //first time it times out, set state to no data
+    if(m_ClientState == eOnline) {
+        m_ClientState = eNoData;
+    } else if (m_ClientState == eNoData) {
+        //second time it times out, it's a dead client and disconnect it
+        disconnectClient();
+        m_pDataTimer->stop();
+    }
+
     //emit signal to notify model
     emit clientDataChanged();
-}
-
-//throw message when client did not ack command
-void AClient::onCommandAckTimeout()
-{
-    m_pCommandAckTimer->stop();
-    emit error(QString(tr("Client %1 did not receive command.  Please retry.")).arg(m_ClientId));
 }
 
 bool AClient::writeDatabase(const ClientData &data)
@@ -1335,32 +1285,27 @@ void AClient::writeRawLog(const QString &fileName, const QByteArray &rawData)
     }
 }
 
-QString AClient::getClientState() const
-{
-    QString str = "";
+//AClient::eClientState AClient::getClientState() const
+//{
+//    QString str = "";
 
-    if(m_ClientState == eOnline)
-        str = "Online";
-    else if(m_ClientState == eNoData)
-        str = "No Data";
-    else if(m_ClientState == eOffline)
-        str = "Offline";
+//    if(m_ClientState == eOnline)
+//        str = "Online";
+//    else if(m_ClientState == eNoData)
+//        str = "No Data";
+//    else if(m_ClientState == eOffline)
+//        str = "Offline";
 
-    return str;
-}
+//    return str;
+//}
 
-QDateTime AClient::getClientConnectTime() const
-{
-    return m_TimeOfConnect;
-}
+//QString AClient::getClientDisconnectTime() const
+//{
+//    if(!m_TimeOfDisconnect.isValid())
+//        return "";
 
-QString AClient::getClientDisconnectTime() const
-{
-    if(!m_TimeOfDisconnect.isValid())
-        return "";
-
-    return m_TimeOfDisconnect.toString(QString("yyyy/MM/dd hh:mm:ss"));
-}
+//    return m_TimeOfDisconnect.toString(QString("yyyy/MM/dd hh:mm:ss"));
+//}
 
 QString AClient::getClientUpTime() const
 {

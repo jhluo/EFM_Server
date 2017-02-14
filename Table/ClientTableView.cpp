@@ -76,13 +76,13 @@ void ClientTableView::showContextMenu(const QPoint& pos) // this is a slot
         //add a connect/disconnect option for serial client
         if(pCurrentClient->getClientType()==AClient::eSerial) {
             QAction *pConnectAction = new QAction(pMenu);
-            if(pCurrentClient->getClientState()=="Offline") pConnectAction->setText(tr("Connect"));
+            if(pCurrentClient->getClientState()==AClient::eOffline) pConnectAction->setText(tr("Connect"));
             else pConnectAction->setText(tr("Disconnect"));
             connect(pConnectAction, SIGNAL(triggered()), this, SLOT(onSerialConnectTriggered()));
             pMenu->addAction(pConnectAction);
 
             QAction *pEditAction = new QAction(tr("Edit"), pMenu);
-            if(pCurrentClient->getClientState()=="Offline") pEditAction->setEnabled(true);
+            if(pCurrentClient->getClientState()==AClient::eOffline) pEditAction->setEnabled(true);
             else pEditAction->setEnabled(false);
             connect(pEditAction, SIGNAL(triggered()), this, SLOT(onSerialEditTriggered()));
             pMenu->addAction(pEditAction);
@@ -170,7 +170,7 @@ void ClientTableView::onShowChartToggled(const bool enabled)
 void ClientTableView::onSerialConnectTriggered()
 {
     AClient *pCurrentClient = m_pClientList->getClient(selectedIndexes().first().row());
-    if(pCurrentClient->getClientState()=="Offline") {
+    if(pCurrentClient->getClientState()==AClient::eOffline) {
         QMetaObject::invokeMethod(pCurrentClient, "connectClient", Qt::QueuedConnection);
     } else {
         QMetaObject::invokeMethod(pCurrentClient, "disconnectClient", Qt::QueuedConnection);

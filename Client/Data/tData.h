@@ -10,12 +10,23 @@ class tData : public QObject
 
 public:
     explicit tData(QObject *pParent=0);
+    tData(const QVariant &value, QObject *pParent=0);
+
+    //copy constructor
     tData(const tData &data);
+
     ~tData();
 
     void setValue(const QVariant &value);
 
     QVariant value() const {return m_DataValue;}
+
+    //overloaded to check two clients as equivalent
+    inline void operator=(const tData &rhs){
+        m_DataValue = rhs.value();
+        m_DataTimer.stop();
+        m_DataTimer.start();
+    }
 
 private:
     QVariant m_DataValue;

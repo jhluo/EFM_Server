@@ -21,6 +21,7 @@ signals:
     //void error(QTcpSocket::SocketError socketerror);
 
 public slots:
+    Q_INVOKABLE void connectClient(){;}
     Q_INVOKABLE void disconnectClient();
 
 private slots:

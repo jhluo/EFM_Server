@@ -2,8 +2,7 @@
 #include "Misc/OffsetSettings.h"
 
 ClientData::ClientData(QObject *parent):
-    QObject(parent),
-    m_DataList(eTotal)
+    QObject(parent)
 {
 
 }
@@ -14,14 +13,13 @@ void ClientData::setData(const eDataId id, const QVariant &value)
     validateData(id, value, ok);
 
     if(ok) {
-        m_DataList[id].setValue(value);
-    } else {
-        m_DataList[id].setValue(QVariant());
+        tData data(value);
+        m_DataMap.insert(id, data);
     }
 }
 
 
-void ClientData::validateData(eDataId id, const QVariant &value, bool &ok)
+void ClientData::validateData(const eDataId id, const QVariant &value, bool &ok)
 {
     switch(id) {
     case eClientDate:
@@ -58,14 +56,14 @@ void ClientData::validateData(eDataId id, const QVariant &value, bool &ok)
 
 QVariant ClientData::getData(const eDataId &id) const
 {
-    if(m_DataList[id].value().isNull() || !m_DataList[id].value().isValid()) {
-        if(m_DataList[id].value().type()==QVariant::Int)
-            return QVariant(QVariant::Int);
-        if(m_DataList[id].value().type()==QVariant::Double)
-            return QVariant(QVariant::Double);
-        if(m_DataList[id].value().type()==QVariant::String)
-            return QVariant(QVariant::String);
-    }
+//    if(m_DataMap[id].value().isNull() || !m_DataMap[id].value().isValid()) {
+//        if(m_DataMap[id].value().type()==QVariant::Int)
+//            return QVariant(QVariant::Int);
+//        if(m_DataMap[id].value().type()==QVariant::Double)
+//            return QVariant(QVariant::Double);
+//        if(m_DataMap[id].value().type()==QVariant::String)
+//            return QVariant(QVariant::String);
+//    }
 
-    return m_DataList[id].value();
+    return m_DataMap.value(id).value();
 }

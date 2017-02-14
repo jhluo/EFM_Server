@@ -107,6 +107,7 @@ void DatabaseSettingsDialog::onTestConnection()
             QMessageBox::Ok);
         db.close();
     }
+    db.removeDatabase("dbDialog");
 }
 
 void DatabaseSettingsDialog::accept()

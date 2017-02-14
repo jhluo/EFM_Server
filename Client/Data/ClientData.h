@@ -2,7 +2,7 @@
 
 #include <QObject>
 #include <QVariant>
-#include <QVector>
+#include <QMap>
 #include "tData.h"
 
 class ClientData : public QObject
@@ -11,7 +11,8 @@ class ClientData : public QObject
 
 public:
     enum eDataId {
-        eClientDate = 0,
+        eClientId = 0,
+        eClientDate,
         eTemperature,
         eHumidity,
         eNIon,
@@ -54,6 +55,7 @@ public:
         eStatusCode,
         eQualityControl,
         eError,
+
         eTotal
     };
 
@@ -67,7 +69,7 @@ signals:
 public slots:
 
 private:
-    QVector<tData> m_DataList;
-    void validateData(eDataId id, const QVariant &value, bool &ok);
+    QMap<eDataId, tData> m_DataMap;
+    void validateData(const eDataId id, const QVariant &value, bool &ok);
 };
 

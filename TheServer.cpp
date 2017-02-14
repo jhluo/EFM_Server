@@ -11,6 +11,7 @@ TheServer::TheServer(QObject *pParent)
     : QTcpServer(pParent)
 {
     m_pClientList = new AClientList(this);
+
     connect(this, SIGNAL(newConnection()), this, SLOT(onNewTcpClientConnected()));
 }
 
@@ -58,6 +59,7 @@ void TheServer::shutdownServer()
 
     //remove all clients and close the server
     m_pClientList->removeAll();
+
     this->close();
 }
 
@@ -80,6 +82,11 @@ void TheServer::addSerialClient(QSerialPort *pPort)
     pClientThread->start();
 
     m_pClientList->addClient(pClient);
+}
+
+int TheServer::getClientCount() const
+{
+    return m_pClientList->size();
 }
 
 //for adding tcp client
@@ -113,16 +120,15 @@ void TheServer::onTcpClientDisconnected()
     TcpClient* pClient = static_cast<TcpClient*>(QObject::sender());
     //If this client was connected without ever giving an id, just remove it from list
     for(int i=0; i<m_pClientList->size(); i++) {
-        if(pClient->getClientId() == "Unknown"
-           && m_pClientList->getClient(i)->getClientId() == pClient->getClientId()
-           && m_pClientList->getClient(i)->getClientAddress() == pClient->getClientAddress()
-           && m_pClientList->getClient(i)->getClientState() == "Offline") {
+        if(m_pClientList->getClient(i)->getClientAddress() == pClient->getClientAddress()
+           && m_pClientList->getClient(i)->getClientState() == AClient::eUnknownState) {
             m_pClientList->removeClient(i);
             break;
         }
     }
 }
 
+//this is needed to get rid of dead clients with the same ID
 void TheServer::onClientIDAssigned()
 {
     AClient* pClient = static_cast<AClient*>(QObject::sender());
@@ -132,8 +138,9 @@ void TheServer::onClientIDAssigned()
         if(m_pClientList->getClient(i)->getClientId() == pClient->getClientId()) {
             //if there was one that's previously connected but offline, remove it
             AClient* pOldClient = m_pClientList->getClient(i);
-            if(pOldClient->getClientState() == "Offline") {
-                //delete pOldClient->thread();
+            if(pOldClient->getClientState() == AClient::eOffline) {
+                //remove all dead clients in the list with same id
+                //can't use ...->removeClient(i) because list with shrink as we remove
                 m_pClientList->removeAClient(pOldClient);
             } else {
                 //count how many identical device
