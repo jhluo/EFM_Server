@@ -664,8 +664,8 @@ bool AClient::writeDatabase()
 
     QSqlDatabase db;
 
-    //QString connectionName = QString::number((int)(thread()->currentThreadId()));
-    QString connectionName = m_ClientId;
+    QString connectionName = QString::number((int)(thread()->currentThreadId()));
+    //QString connectionName = m_ClientId;
 
 
     if(!db.contains(connectionName)) {
@@ -745,18 +745,18 @@ bool AClient::writeDatabase()
             query.addBindValue(QString::number(m_pClientData->getData(ClientData::ePm10).toDouble()));
             query.addBindValue(QString::number(m_pClientData->getData(ClientData::eError).toInt()));
 
-//            query.addBindValue(m_ClientData.getData(ClientData::eHumidity));
-//            query.addBindValue(m_ClientData.getData(ClientData::eTemperature));
-//            query.addBindValue(m_ClientData.getData(ClientData::ePIon));
-//            query.addBindValue(m_ClientData.getData(ClientData::eWindDirection));
-//            query.addBindValue(m_ClientData.getData(ClientData::eWindSpeed));
-//            query.addBindValue(m_ClientData.getData(ClientData::eRainfall));
-//            query.addBindValue(m_ClientData.getData(ClientData::ePressure));
-//            query.addBindValue(m_ClientData.getData(ClientData::eUltraViolet));
-//            query.addBindValue(m_ClientData.getData(ClientData::eOxygen));
-//            query.addBindValue(m_ClientData.getData(ClientData::ePm1));
-//            query.addBindValue(m_ClientData.getData(ClientData::ePm25));
-//            query.addBindValue(m_ClientData.getData(ClientData::ePm10));
+//            query.addBindValue(m_pClientData->getData(ClientData::eHumidity));
+//            query.addBindValue(m_pClientData->getData(ClientData::eTemperature));
+//            query.addBindValue(m_pClientData->getData(ClientData::ePIon));
+//            query.addBindValue(m_pClientData->getData(ClientData::eWindDirection));
+//            query.addBindValue(m_pClientData->getData(ClientData::eWindSpeed));
+//            query.addBindValue(m_pClientData->getData(ClientData::eRainfall));
+//            query.addBindValue(m_pClientData->getData(ClientData::ePressure));
+//            query.addBindValue(m_pClientData->getData(ClientData::eUltraViolet));
+//            query.addBindValue(m_pClientData->getData(ClientData::eOxygen));
+//            query.addBindValue(m_pClientData->getData(ClientData::ePm1));
+//            query.addBindValue(m_pClientData->getData(ClientData::ePm25));
+//            query.addBindValue(m_pClientData->getData(ClientData::ePm10));
             query.addBindValue(QVariant(QVariant::String));
         } else if (m_ClientVersion == eVersion3) {
 //            queryStr = QString("INSERT INTO 分钟资料 (区站号, SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, CO2, PM1, PM25, PM10, 测量室负温度, 测量室正温度, "

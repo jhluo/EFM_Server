@@ -121,12 +121,13 @@ void TheServer::onTcpClientDisconnected()
     Q_ASSERT(pClient!=NULL);
 
     pClient->thread()->quit();
-//    QSqlDatabase db;
+    QSqlDatabase db;
 //    QString connectionName = pClient->getClientId();
+    QString connectionName = QString::number((int)(thread()->currentThreadId()));
 
-//    if(db.contains(connectionName)) {
-//        db.removeDatabase(connectionName);
-//    }
+    if(db.contains(connectionName)) {
+        db.removeDatabase(connectionName);
+    }
 
     //If this client was connected without ever giving an id, just remove it from list
     for(int i=0; i<m_pClientList->size(); i++) {
