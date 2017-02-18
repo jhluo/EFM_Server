@@ -106,7 +106,7 @@ void TheServer::onNewTcpClientConnected()
 
     //stop the thread and clean up when pClient is disconnected
     connect(pClient, SIGNAL(clientIDAssigned()), this, SLOT(onClientIDAssigned()));
-    connect(pClientThread, SIGNAL(finished()), pClientThread, SLOT(deleteLater()));
+    //connect(pClientThread, SIGNAL(finished()), pClientThread, SLOT(deleteLater()));
     connect(pClient, SIGNAL(clientDisconnected()), this, SLOT(onTcpClientDisconnected()));
 
     pClientThread->start();
@@ -119,15 +119,15 @@ void TheServer::onTcpClientDisconnected()
     TcpClient* pClient = static_cast<TcpClient*>(QObject::sender());
 
     Q_ASSERT(pClient!=NULL);
-    //quit thread, then delete object
-    pClient->thread()->quit();
 
     //If this client was connected without ever giving an id, just remove it from list
     for(int i=0; i<m_pClientList->size(); i++) {
         if(m_pClientList->getClient(i)->getClientAddress() == pClient->getClientAddress()
            && m_pClientList->getClient(i)->getClientState() == AClient::eUnknownState) {
             //remove client will delete the AClient object
+            QThread *pThread = pClient->thread();
             m_pClientList->removeClient(i);
+            pThread->deleteLater();
             break;
         }
     }
@@ -143,10 +143,14 @@ void TheServer::onClientIDAssigned()
         if(m_pClientList->getClient(i)->getClientId() == pClient->getClientId()) {
             //if there was one that's previously connected but offline, remove it
             AClient* pOldClient = m_pClientList->getClient(i);
-            if(pOldClient->getClientState() == AClient::eOffline) {
+            if(pOldClient->getClientState() == AClient::eOffline
+               && pOldClient->getClientId == pClient->getClientId()) {
                 //remove all dead clients in the list with same id
                 //can't use ...->removeClient(i) because list with shrink as we remove
-                m_pClientList->removeAClient(pOldClient);
+                //m_pClientList->removeAClient(pOldClient);
+                QThread *pThread = pOldClient->thread();
+                m_pClientList->removeClient(i);
+                pThread->deleteLater();
             } else {
                 //count how many identical device
                 count++;

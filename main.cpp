@@ -11,10 +11,6 @@ int main(int argc, char *argv[])
     translator.load("EFMServer_ch");
     a.installTranslator(&translator);
 
-    //not needed
-    //qApp->addLibraryPath( qApp->applicationDirPath() + "/sqldrivers");
-    //qApp->addLibraryPath( qApp->applicationDirPath() + "/plugins/sqldrivers");
-
     MainWindow w;
     w.show();
 

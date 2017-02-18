@@ -253,7 +253,7 @@ void AClient::decodeVersion1Data(const QByteArray &dataArray)
         createDatabaseConnection();
         emit clientIDAssigned();
 
-        //send an initial command to calibrate date    
+        //send an initial command to calibrate date
         QDateTime currentDateTime = QDateTime::currentDateTime();
         QDate currentDate = currentDateTime.date();
         QString dateYear = currentDateTime.date().toString("yy");
@@ -669,7 +669,6 @@ void AClient::onDataTimeout()
     } else if (m_ClientState == eNoData) {
         //second time it times out, it's a dead client and disconnect it
         disconnectClient();
-        m_pDataTimer->stop();
     }
 
     //emit signal to notify model
@@ -870,7 +869,7 @@ bool AClient::writeDatabase()
             {
                 QString sPolarVoltP = QString::number(PolarVoltP.toDouble());
             }
-            
+
             QString sRPML;
             QVariant RPML = m_pClientData->getData(ClientData::eRPML);
             if(!RPML.isNull())
@@ -1042,7 +1041,7 @@ bool AClient::writeDatabase()
 //        qDebug() << "Device ID" << m_pClientData->getData(ClientData::eDeviceID).toInt();
 //        qDebug() << "Wind Direction" << QVariant(QString::number(m_pClientData->getData(ClientData::eWindDirection).toInt()));
 //        qDebug() << "Wind Speed" << m_pClientData->getData(ClientData::eWindSpeed).toDouble();
-        
+
 
         result = query.exec();
         if(result==false) {

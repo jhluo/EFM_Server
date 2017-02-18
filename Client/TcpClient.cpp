@@ -24,8 +24,27 @@ TcpClient::~TcpClient()
 
 void TcpClient::disconnectClient()
 {
-    m_pSocket->disconnectFromHost();
+    if(m_pSocket->isOpen())
+        m_pSocket->disconnectFromHost();
+
+    //if client never got an ID, set it back to unknown state
+    if(m_ClientId == "Unknown")
+        m_ClientState = eUnknownState;
+    else
+        m_ClientState = eOffline;
+
+    m_TimeOfDisconnect = QDateTime::currentDateTime();
+
     m_pDataTimer->stop();
+
+    m_pClientData->clear();
+
+    //remove database connection
+    if(!m_DbConnectionName.isEmpty())
+        QSqlDatabase::removeDatabase(m_DbConnectionName);
+
+    //end the thread
+    this->thread()->quit();
 }
 
 QString TcpClient::getClientAddress() const
@@ -44,19 +63,7 @@ void TcpClient::onSocketDisconnected()
 {
     emit error(QString("Client %1 at %2 disconnected").arg(m_ClientId).arg(getClientAddress()));
 
-    //if client never got an ID, set it back to unknown state
-    if(m_ClientId == "Unknown")
-        m_ClientState = eUnknownState;
-    else
-        m_ClientState = eOffline;
-
-    m_TimeOfDisconnect = QDateTime::currentDateTime();
-
-    m_pDataTimer->stop();
-
-    //remove database connection
-    if(!m_DbConnectionName.isEmpty())
-        QSqlDatabase::removeDatabase(m_DbConnectionName);
+    disconnectClient();
 
     //emit signal to notify model
     emit clientDataChanged();
@@ -65,8 +72,6 @@ void TcpClient::onSocketDisconnected()
     emit clientDisconnected();
 
     /*
-    //end the thread
-    this->thread()->quit();
     if(!this->thread()->wait(2000)) //Wait until it actually has terminated (max. 3 sec)
     {
         this->thread()->terminate(); //Thread didn't exit in time, probably deadlocked, terminate it!

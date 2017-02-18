@@ -64,12 +64,15 @@ public:
     void setData(const eDataId id, const QVariant &value);
     QVariant getData(const eDataId &id) const;
 
+    void removeData(const eDataId id);
+    void clear();
+
 signals:
 
 public slots:
 
 private:
-    QMap<eDataId, tData> m_DataMap;
+    QMap<eDataId, tData*> m_DataMap;
     void validateData(const eDataId id, const QVariant &value, bool &ok);
 };
 

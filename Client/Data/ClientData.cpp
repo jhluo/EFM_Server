@@ -1,5 +1,6 @@
 ﻿#include "ClientData.h"
 #include "Misc/OffsetSettings.h"
+#include <algorithm>
 
 ClientData::ClientData(QObject *parent):
     QObject(parent)
@@ -13,8 +14,8 @@ void ClientData::setData(const eDataId id, const QVariant &value)
     validateData(id, value, ok);
 
     if(ok) {
-        tData data(value, this);
-        m_DataMap.insert(id, data);
+        tData *pData = new tData(value, this);
+        m_DataMap.insert(id, pData);
     }
 }
 
@@ -65,5 +66,16 @@ QVariant ClientData::getData(const eDataId &id) const
 //            return QVariant(QVariant::String);
 //    }
 
-    return m_DataMap.value(id).value();
+    return m_DataMap.value(id)->value();
+}
+
+void ClientData::removeData(const eDataId id)
+{
+    m_DataMap.remove(id);
+}
+
+void ClientData::clear()
+{
+    qDeleteAll(m_DataMap.begin(), m_DataMap.end());
+    m_DataMap.clear();
 }
