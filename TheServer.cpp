@@ -71,7 +71,7 @@ void TheServer::addSerialClient(QSerialPort *pPort)
 
     SerialClient *pClient = new SerialClient(pPort);
 
-    QThread *pClientThread = new QThread(this);
+    QThread *pClientThread = new QThread();
 
     pClient->moveToThread(pClientThread);
 
@@ -100,8 +100,8 @@ void TheServer::onNewTcpClientConnected()
 
     TcpClient *pClient = new TcpClient(pSocket);
 
-    QThread *pClientThread = new QThread(this);
-
+    //needs to create thread first then create database in order to get correct thread ID
+    QThread *pClientThread = new QThread();
     pClient->moveToThread(pClientThread);
 
     //stop the thread and clean up when pClient is disconnected
@@ -119,20 +119,14 @@ void TheServer::onTcpClientDisconnected()
     TcpClient* pClient = static_cast<TcpClient*>(QObject::sender());
 
     Q_ASSERT(pClient!=NULL);
-
+    //quit thread, then delete object
     pClient->thread()->quit();
-    QSqlDatabase db;
-//    QString connectionName = pClient->getClientId();
-    QString connectionName = QString::number((int)(thread()->currentThreadId()));
-
-    if(db.contains(connectionName)) {
-        db.removeDatabase(connectionName);
-    }
 
     //If this client was connected without ever giving an id, just remove it from list
     for(int i=0; i<m_pClientList->size(); i++) {
         if(m_pClientList->getClient(i)->getClientAddress() == pClient->getClientAddress()
            && m_pClientList->getClient(i)->getClientState() == AClient::eUnknownState) {
+            //remove client will delete the AClient object
             m_pClientList->removeClient(i);
             break;
         }

@@ -6,9 +6,9 @@
 #include <QFile>
 #include <QDir>
 #include <QThread>
-#include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QEvent>
 
 #define TIMER_INTERVAL 60000 * 2 //timer timeout interval
 
@@ -17,6 +17,7 @@
 
 AClient::AClient(QObject *pParent)
     : QObject(pParent),
+      m_DbConnectionName(""),
       m_pInputDevice(NULL),
       m_ClientId("Unknown"),
       m_pCommandHandler(NULL),
@@ -42,7 +43,24 @@ AClient::AClient(QObject *pParent)
 
 AClient::~AClient()
 {
-    m_pDataTimer->stop();
+
+}
+
+void AClient::createDatabaseConnection()
+{
+    AppSettings settings;
+
+    m_DbConnectionName = this->getClientId()+this->getClientAddress();
+
+    m_Database = QSqlDatabase::addDatabase("QODBC", m_DbConnectionName);
+    QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
+
+            .arg(settings.readDatabaseSettings("host", "").toString())
+            .arg(settings.readDatabaseSettings("DbName", "").toString())
+            .arg(settings.readDatabaseSettings("user", "").toString())
+            .arg(settings.readDatabaseSettings("password", "").toString());
+
+    m_Database.setDatabaseName(dsn);
 }
 
 void AClient::setDataSource(QIODevice *pInputDevice, const eClientType &type)
@@ -232,6 +250,7 @@ void AClient::decodeVersion1Data(const QByteArray &dataArray)
     if(m_ClientId == "Unknown") {//this is the first packet we get in this client, so tell server a new client has connected
         //this line is needed so that the slot knows what the ID is
         m_ClientId = QString::number(dataArray.mid(5, 2).toHex().toInt(&ok, 16));
+        createDatabaseConnection();
         emit clientIDAssigned();
 
         //send an initial command to calibrate date    
@@ -360,6 +379,7 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
     if(m_ClientId == "Unknown") {//this is the first packet we get in this client, so tell server a new client has connected
         //this line is needed so that the slot knows what the ID is
         m_ClientId = clientID;
+        createDatabaseConnection();
         emit clientIDAssigned();
 
         //send an initial command to calibrate date
@@ -660,31 +680,8 @@ bool AClient::writeDatabase()
 {
     bool result = false;
 
-    AppSettings settings;
-
-    QSqlDatabase db;
-
-    QString connectionName = QString::number((int)(thread()->currentThreadId()));
-    //QString connectionName = m_ClientId;
-
-
-    if(!db.contains(connectionName)) {
-        db = QSqlDatabase::addDatabase("QODBC", connectionName);
-        QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
-
-                .arg(settings.readDatabaseSettings("host", "").toString())
-                .arg(settings.readDatabaseSettings("DbName", "").toString())
-                .arg(settings.readDatabaseSettings("user", "").toString())
-                .arg(settings.readDatabaseSettings("password", "").toString());
-
-        db.setDatabaseName(dsn);
-    } else {
-        qDebug() << db.connectionNames();
-        db = QSqlDatabase::database(connectionName);
-    }
-
-    if(db.open()) {
-        QSqlQuery query(db);
+    if(m_Database.open()) {
+        QSqlQuery query(m_Database);
         if(m_ClientVersion == eVersion1) {
             query.prepare("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, 紫外线, 氧气含量, PM1, PM25, PM10, 错误标志)"
                           "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
@@ -1034,17 +1031,17 @@ bool AClient::writeDatabase()
 
         }
 
-        qDebug() << "Sataion" << m_pClientData->getData(ClientData::eStationID);
-        qDebug() << "DeviceID" << m_pClientData->getData(ClientData::eDeviceID);
-        qDebug() << "Date" << m_pClientData->getData(ClientData::eClientDate);
+//        qDebug() << "Sataion" << m_pClientData->getData(ClientData::eStationID);
+//        qDebug() << "DeviceID" << m_pClientData->getData(ClientData::eDeviceID);
+//        qDebug() << "Date" << m_pClientData->getData(ClientData::eClientDate);
 //        qDebug() << "Negative Ion" << QVariant(QString("%1").arg(m_ClientData.getData(ClientData::eNIon).toInt(), 6, 10, QChar('0')));
 //        qDebug() << "Humidity" << QString("%1").arg(m_ClientData.getData(ClientData::eHumidity).toInt(), 3, 10, QChar('0'));
 //        //qDebug() << "Temp" << m_ClientData.getData(ClientData::eTemperature);
 //        qDebug() << "Temp" << QVariant(QString::number(m_ClientData.getData(ClientData::eTemperature).toDouble()));
 //        //qDebug() << "Sataion" << m_ClientData.getData(ClientData::eStationID);
-        qDebug() << "Device ID" << m_pClientData->getData(ClientData::eDeviceID).toInt();
-        qDebug() << "Wind Direction" << QVariant(QString::number(m_pClientData->getData(ClientData::eWindDirection).toInt()));
-        qDebug() << "Wind Speed" << m_pClientData->getData(ClientData::eWindSpeed).toDouble();
+//        qDebug() << "Device ID" << m_pClientData->getData(ClientData::eDeviceID).toInt();
+//        qDebug() << "Wind Direction" << QVariant(QString::number(m_pClientData->getData(ClientData::eWindDirection).toInt()));
+//        qDebug() << "Wind Speed" << m_pClientData->getData(ClientData::eWindSpeed).toDouble();
         
 
         result = query.exec();
@@ -1053,7 +1050,8 @@ bool AClient::writeDatabase()
             qDebug() << query.lastError().text();
         }
 
-        db.close();
+        //this caused debugger to load/unload sql modules repeatedly
+        //m_Database.close();
     } else {
         qDebug() << "Database failed to open in AClient::writeToDatabase\n";
     }

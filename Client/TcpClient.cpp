@@ -33,7 +33,8 @@ QString TcpClient::getClientAddress() const
     QString ip = "";
 
     if(m_pSocket != NULL) {
-        ip = m_pSocket->peerAddress().toString();
+        ip = m_pSocket->peerAddress().toString() +
+                ":" + QString::number(m_pSocket->peerPort());
     }
 
     return ip;
@@ -50,6 +51,12 @@ void TcpClient::onSocketDisconnected()
         m_ClientState = eOffline;
 
     m_TimeOfDisconnect = QDateTime::currentDateTime();
+
+    m_pDataTimer->stop();
+
+    //remove database connection
+    if(!m_DbConnectionName.isEmpty())
+        QSqlDatabase::removeDatabase(m_DbConnectionName);
 
     //emit signal to notify model
     emit clientDataChanged();

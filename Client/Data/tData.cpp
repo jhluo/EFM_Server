@@ -28,7 +28,7 @@ tData::tData(const tData &data) :
 
 tData::~tData()
 {
-    //m_DataTimer.stop();
+    //m_pDataTimer->stop();
 }
 
 void tData::setValue(const QVariant &value)

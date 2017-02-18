@@ -9,6 +9,7 @@
 #include <QDateTime>
 #include <QTextEdit>
 #include <QHostAddress>
+#include <QSqlDatabase>
 #include "Data/ClientData.h"
 #include "Data/CommandHandler.h"
 
@@ -59,8 +60,6 @@ public:
     QDateTime getClientConnectTime() const {return m_TimeOfConnect;}
     QDateTime getClientDisconnectTime() const {return m_TimeOfDisconnect;}
 
-    //QString getClientDisconnectTime() const;
-
     //return how long the client has been up in number of seconds;
     QString getClientUpTime() const;
 
@@ -74,6 +73,8 @@ public:
                 && this->getClientAddress() == rhs.getClientAddress()
                 && this->getClientState() == rhs.getClientState() );
     }
+
+    void createDatabaseConnection();
 
 protected:
     void setDataSource(QIODevice *pInputDevice, const eClientType &type);
@@ -90,6 +91,10 @@ protected:
 
     //this is used to apply offset values to incoming data
     QVariant applyOffset(const QString &clientId, const ClientData::eDataId id, const QVariant &value);
+
+    //database connection
+    QSqlDatabase m_Database;
+    QString m_DbConnectionName;
 
     //data input channel
     QIODevice *m_pInputDevice;
@@ -133,7 +138,6 @@ signals:
     void clientIDAssigned();
     void clientDisconnected();
     void clientDataChanged();
-
 
     //signals chart to draw update, only send negative Ion count for now
     void receivedData(const QDateTime &time, const int nIon);
