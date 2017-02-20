@@ -276,6 +276,7 @@ void AClient::decodeVersion1Data(const QByteArray &dataArray)
     }
 
     m_ClientId = QString::number(dataArray.mid(5, 2).toHex().toInt(&ok, 16));
+    m_pClientData->setData(ClientData::eStationID, m_ClientId);
 
     int msgCount = dataArray.mid(7, 2).toHex().toInt(&ok, 16);
     Q_UNUSED(msgCount);

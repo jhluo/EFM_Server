@@ -22,8 +22,6 @@ ServerSettingsDialog::ServerSettingsDialog(TheServer *pServer, QWidget *pParent)
 
 void ServerSettingsDialog::createActions()
 {
-    AppSettings settings;
-
     m_pHostEdit = new QLineEdit(this);
     m_pPortEdit = new QLineEdit(this);
 
@@ -66,7 +64,10 @@ void ServerSettingsDialog::onRestartServer()
 {    
     saveSettings();
     m_pServer->shutdownServer();
-    m_pServer->startServer();
+    AppSettings settings;
+
+    m_pServer->startServer(settings.readServerSettings("host", "127.0.0.1").toString(),
+                           settings.readServerSettings("port", 5101).toInt());
 }
 
 void ServerSettingsDialog::accept()

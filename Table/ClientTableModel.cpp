@@ -69,30 +69,33 @@ QVariant ClientTableModel::data(const QModelIndex &index, int role) const
 {
     int row = index.row();
     int col = index.column();
+    AClient *pClient = m_pClientList->getClient(row);
+
+    if(pClient==NULL) return QVariant();
 
     if (role == Qt::DisplayRole)
     {
-        if(col == 0) return m_pClientList->getClient(row)->getClientId();
-        if(col == 1) return m_pClientList->getClient(row)->getClientAddress();
+        if(col == 0) return pClient->getClientId();
+        if(col == 1) return pClient->getClientAddress();
         if(col == 2) {
-            if(m_pClientList->getClient(row)->getClientState()==AClient::eOffline)
+            if(pClient->getClientState()==AClient::eOffline)
                 return "Offline";
-            else if(m_pClientList->getClient(row)->getClientState()==AClient::eNoData)
+            else if(pClient->getClientState()==AClient::eNoData)
                 return "No Data";
-            else if(m_pClientList->getClient(row)->getClientState()==AClient::eUnknownState)
+            else if(pClient->getClientState()==AClient::eUnknownState)
                 return "Pending...";
             else
                 return "Online";
         }
-        if(col == 3) return m_pClientList->getClient(row)->getClientConnectTime();
-        if(col == 4) return m_pClientList->getClient(row)->getClientDisconnectTime();
-        if(col == 5) return m_pClientList->getClient(row)->getClientUpTime();
+        if(col == 3) return pClient->getClientConnectTime();
+        if(col == 4) return pClient->getClientDisconnectTime();
+        if(col == 5) return pClient->getClientUpTime();
     }
 
     if(role == Qt::BackgroundRole)
     {
         if (col==2) {
-            AClient::eClientState state = m_pClientList->getClient(row)->getClientState();
+            AClient::eClientState state = pClient->getClientState();
             if(state == AClient::eOffline) {
                 QBrush background(QColor(255, 0, 0));
                 return background;

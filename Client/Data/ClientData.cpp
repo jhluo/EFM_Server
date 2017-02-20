@@ -14,8 +14,13 @@ void ClientData::setData(const eDataId id, const QVariant &value)
     validateData(id, value, ok);
 
     if(ok) {
-        tData *pData = new tData(value, this);
-        m_DataMap.insert(id, pData);
+        tData *pData = m_DataMap.value(id);
+        if(pData == NULL) {
+            pData = new tData(value, this);
+            m_DataMap.insert(id, pData);
+        } else {
+            pData->setValue(value);
+        }
     }
 }
 
@@ -65,8 +70,9 @@ QVariant ClientData::getData(const eDataId &id) const
 //        if(m_DataMap[id].value().type()==QVariant::String)
 //            return QVariant(QVariant::String);
 //    }
-
-    return m_DataMap.value(id)->value();
+    if(m_DataMap.value(id)==NULL)
+        return QVariant();
+    else return m_DataMap.value(id)->value();
 }
 
 void ClientData::removeData(const eDataId id)

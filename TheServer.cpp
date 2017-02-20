@@ -144,7 +144,7 @@ void TheServer::onClientIDAssigned()
             //if there was one that's previously connected but offline, remove it
             AClient* pOldClient = m_pClientList->getClient(i);
             if(pOldClient->getClientState() == AClient::eOffline
-               && pOldClient->getClientId == pClient->getClientId()) {
+               && pOldClient->getClientId() == pClient->getClientId()) {
                 //remove all dead clients in the list with same id
                 //can't use ...->removeClient(i) because list with shrink as we remove
                 //m_pClientList->removeAClient(pOldClient);
