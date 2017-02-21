@@ -3,14 +3,14 @@
 #include <QAbstractTableModel>
 #include <Client/AClient.h>
 
-class AClientList;
+class TheServer;
 
 class ClientTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 
 public:
-    ClientTableModel(QObject *pParent = 0);
+    ClientTableModel(TheServer *pServer, QObject *pParent = 0);
     ~ClientTableModel();
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE ;
@@ -20,12 +20,11 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
 
     void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
-    void setClientList(AClientList *pClientList);
 
 private:
     //How often we update the table
     QTimer *m_pUpdateTimer;
-    AClientList *m_pClientList;
+    TheServer *m_pServer;
 
 private slots:
     void onUpdateTimer();

@@ -1,11 +1,16 @@
 #include "ClientTableModel.h"
-#include "Client/AClientList.h"
+#include "TheServer.h"
 
 #define UPDATE_INTERVAL 1000
 
-ClientTableModel::ClientTableModel(QObject *pParent)
-    : QAbstractTableModel(pParent)
+ClientTableModel::ClientTableModel(TheServer *pServer, QObject *pParent)
+    : QAbstractTableModel(pParent),
+      m_pServer(pServer)
 {
+    connect(m_pServer, SIGNAL(clientAdded()), this, SLOT(onNewClientAdded()), Qt::QueuedConnection);
+    connect(m_pServer, SIGNAL(clientRemoved(int)), this, SLOT(onClientRemoved(int)), Qt::QueuedConnection);
+    connect(m_pServer, SIGNAL(clientDataChanged(int)), this, SLOT(onClientDataUpdated(int)), Qt::QueuedConnection);
+
     //set up how often the table update
     m_pUpdateTimer = new QTimer(this);
     m_pUpdateTimer->setInterval(UPDATE_INTERVAL);
@@ -18,17 +23,10 @@ ClientTableModel::~ClientTableModel()
 
 }
 
-void ClientTableModel::setClientList(AClientList *pClientList)
-{
-    m_pClientList = pClientList;
-    connect(m_pClientList, SIGNAL(clientAdded()), this, SLOT(onNewClientAdded()), Qt::QueuedConnection);
-    connect(m_pClientList, SIGNAL(clientRemoved(int)), this, SLOT(onClientRemoved(int)), Qt::QueuedConnection);
-    connect(m_pClientList, SIGNAL(clientDataChanged(int)), this, SLOT(onClientDataUpdated(int)), Qt::QueuedConnection);
-}
 
 int ClientTableModel::rowCount(const QModelIndex & /*parent*/) const
 {
-   return m_pClientList->size();
+   return m_pServer->getClientCount();
 }
 
 int ClientTableModel::columnCount(const QModelIndex & /*parent*/) const
@@ -69,7 +67,7 @@ QVariant ClientTableModel::data(const QModelIndex &index, int role) const
 {
     int row = index.row();
     int col = index.column();
-    AClient *pClient = m_pClientList->getClient(row);
+    AClient *pClient = m_pServer->getClient(row);
 
     if(pClient==NULL) return QVariant();
 
@@ -114,7 +112,7 @@ QVariant ClientTableModel::data(const QModelIndex &index, int role) const
 
 void ClientTableModel::sort(int column, Qt::SortOrder order)
 {
-    m_pClientList->sort(column, order);
+    m_pServer->sortClients(column, order);
 
     //refresh the entire table
     QModelIndex topLeft = createIndex(0,0);

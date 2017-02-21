@@ -36,7 +36,7 @@ MainWindowWidget::~MainWindowWidget()
 
 void MainWindowWidget::createLayout()
 {
-    m_pClientTable = new ClientTableView(m_pServer->getClientList(), this);
+    m_pClientTable = new ClientTableView(m_pServer, this);
     //create chart dialog in the background
     m_pChartDialog = new ChartDialog(this);
     //connect signal to add tabs to the widget

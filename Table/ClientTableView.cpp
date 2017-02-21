@@ -1,7 +1,6 @@
 #include "ClientTableView.h"
 #include "TheServer.h"
 #include "Client/AClient.h"
-#include "Client/AClientList.h"
 #include "Widgets/DataViewer.h"
 #include "Widgets/ClientCommandDialog.h"
 #include "Widgets/SerialSettingsDialog.h"
@@ -12,14 +11,13 @@
 #include <QInputEvent>
 #include <QMenu>
 
-ClientTableView::ClientTableView(AClientList *pClientList, QWidget *pParent)
+ClientTableView::ClientTableView(TheServer *pServer, QWidget *pParent)
     : QTableView(pParent),
-      m_pClientList(pClientList)
+      m_pServer(pServer)
 {
     setupTable();
 
-    m_pClientTableModel = new ClientTableModel(this);
-    m_pClientTableModel->setClientList(pClientList);
+    m_pClientTableModel = new ClientTableModel(pServer, this);
 
     //this add sorting
     //QSortFilterProxyModel *proxyModel = new QSortFilterProxyModel(this);
@@ -71,7 +69,7 @@ void ClientTableView::showContextMenu(const QPoint& pos) // this is a slot
     //make sure there is someting to be selected
     if(this->model()->rowCount() != 0 && !selectedIndexes().isEmpty()) {
         QMenu *pMenu = new QMenu(this);
-        AClient *pCurrentClient = m_pClientList->getClient(selectedIndexes().first().row());
+        AClient *pCurrentClient = m_pServer->getClient(selectedIndexes().first().row());
 
         //add a connect/disconnect option for serial client
         if(pCurrentClient->getClientType()==AClient::eSerial) {
@@ -101,14 +99,14 @@ void ClientTableView::showContextMenu(const QPoint& pos) // this is a slot
         //open data viewer action
         QAction *pMsgViewAction = new QAction(QString(tr("View Data...")), pMenu);
         pMsgViewAction->setCheckable(true);
-        pMsgViewAction->setChecked(m_pClientList->getClient(selectedIndexes().first().row())->getDataViewer() != NULL);
+        pMsgViewAction->setChecked(pCurrentClient->getDataViewer() != NULL);
         connect(pMsgViewAction, SIGNAL(toggled(bool)), this, SLOT(onMessageViewerToggled(bool)));
         pMenu->addAction(pMsgViewAction);
 
         //add action to toggle show client in chart dialog
         QAction *pShowChartAction = new QAction(QString(tr("Show Chart")), pMenu);
         pShowChartAction->setCheckable(true);
-        pShowChartAction->setChecked(m_pClientList->getClient(selectedIndexes().first().row())->getShowChart());
+        pShowChartAction->setChecked(pCurrentClient->getShowChart());
         connect(pShowChartAction, SIGNAL(toggled(bool)), this, SLOT(onShowChartToggled(bool)));
         pMenu->addAction(pShowChartAction);
 
@@ -120,14 +118,14 @@ void ClientTableView::showContextMenu(const QPoint& pos) // this is a slot
 void ClientTableView::onSendCommandTriggered()
 {
     //modaless
-    ClientCommandDialog dialog(m_pClientList->getClient(selectedIndexes().first().row()), this);
+    ClientCommandDialog dialog(m_pServer->getClient(selectedIndexes().first().row()), this);
     dialog.exec();
 }
 
 //open a dialog to configure offset of client
 void ClientTableView::onConfigClientTriggered()
 {
-    OffsetSettingsDialog dialog(m_pClientList->getClient(selectedIndexes().first().row()), this);
+    OffsetSettingsDialog dialog(m_pServer->getClient(selectedIndexes().first().row()), this);
     dialog.exec();
 }
 
@@ -141,7 +139,7 @@ void ClientTableView::onMessageViewerToggled(const bool enabled)
     //viewer.exec();
 
     //modal
-    AClient* pSelectedClient = m_pClientList->getClient(selectedIndexes().first().row());
+    AClient* pSelectedClient = m_pServer->getClient(selectedIndexes().first().row());
 
     if(enabled) {
         if(pSelectedClient->getDataViewer() == NULL) {
@@ -161,7 +159,7 @@ void ClientTableView::onMessageViewerToggled(const bool enabled)
 //This tells the GUI to add this client to the chart dialog
 void ClientTableView::onShowChartToggled(const bool enabled)
 {
-    AClient *pClient = m_pClientList->getClient(selectedIndexes().first().row());
+    AClient *pClient = m_pServer->getClient(selectedIndexes().first().row());
     pClient->setShowChart(enabled);
     emit showChart(enabled, pClient);
 }
@@ -169,7 +167,7 @@ void ClientTableView::onShowChartToggled(const bool enabled)
 //for connecting serial client
 void ClientTableView::onSerialConnectTriggered()
 {
-    AClient *pCurrentClient = m_pClientList->getClient(selectedIndexes().first().row());
+    AClient *pCurrentClient = m_pServer->getClient(selectedIndexes().first().row());
     if(pCurrentClient->getClientState()==AClient::eOffline) {
         QMetaObject::invokeMethod(pCurrentClient, "connectClient", Qt::QueuedConnection);
     } else {
@@ -179,7 +177,7 @@ void ClientTableView::onSerialConnectTriggered()
 
 void ClientTableView::onSerialEditTriggered()
 {
-    AClient *pCurrentClient = m_pClientList->getClient(selectedIndexes().first().row());
+    AClient *pCurrentClient = m_pServer->getClient(selectedIndexes().first().row());
     SerialSettingsDialog dialog(qobject_cast<QSerialPort*>(pCurrentClient->getInputDevice()), this);
     dialog.exec();
 

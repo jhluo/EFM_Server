@@ -4,14 +4,14 @@
 #include "ClientTableModel.h"
 
 class AClient;
-class AClientList;
+class TheServer;
 
 class ClientTableView : public QTableView
 {
     Q_OBJECT
 
 public:
-    ClientTableView(AClientList *pClientList, QWidget *pParent = 0);
+    ClientTableView(TheServer *pServer, QWidget *pParent = 0);
     ~ClientTableView();
 
 private:
@@ -19,7 +19,7 @@ private:
     void mousePressEvent(QMouseEvent *event);
 
     ClientTableModel *m_pClientTableModel;
-    AClientList *m_pClientList;
+    TheServer *m_pServer;
 
 signals:
     void showChart(const bool enabled, AClient *pClient);

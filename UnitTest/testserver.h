@@ -18,6 +18,7 @@ private slots:
 
     void testStartup();
     void testShutdown();
+    void testConnection();
 
 private:
     TheServer *m_pServer;

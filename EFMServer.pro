@@ -40,15 +40,12 @@ SOURCES += main.cpp\
     Table/ClientTableModel.cpp \
     Table/ClientTableView.cpp \
     Client/AClient.cpp \
-    Client/AClientList.cpp \
     Client/SerialClient.cpp \
     Client/TcpClient.cpp \
     Client/Data/ClientData.cpp \
     Client/Data/tData.cpp \
     Widgets/OffsetSettingsDialog.cpp \
     Misc/OffsetSettings.cpp \
-    Table/DataTableModel.cpp \
-    Table/DataTableView.cpp \
     Client/Data/CommandHandler.cpp
 
 HEADERS  += mainwindow.h \
@@ -70,15 +67,12 @@ HEADERS  += mainwindow.h \
     Table/ClientTableModel.h \
     Table/ClientTableView.h \
     Client/AClient.h \
-    Client/AClientList.h \
     Client/SerialClient.h \
     Client/TcpClient.h \
     Client/Data/ClientData.h \
     Client/Data/tData.h \
     Widgets/OffsetSettingsDialog.h \
     Misc/OffsetSettings.h \
-    Table/DataTableModel.h \
-    Table/DataTableView.h \
     Client/Data/CommandHandler.h
 
 FORMS    += mainwindow.ui
