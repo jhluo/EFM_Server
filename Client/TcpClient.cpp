@@ -40,6 +40,8 @@ void TcpClient::disconnectClient()
     m_pClientData->clear();
 
     //remove database connection
+    //if(m_Database.isOpen())
+    //    m_Database.close();
     if(!m_DbConnectionName.isEmpty())
         QSqlDatabase::removeDatabase(m_DbConnectionName);
 

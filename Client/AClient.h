@@ -18,7 +18,6 @@ class AClient : public QObject
     Q_OBJECT
 
 public:
-
     //possible state of a client
     enum eClientState {
         eOnline,
@@ -63,6 +62,9 @@ public:
     //return how long the client has been up in number of seconds;
     QString getClientUpTime() const;
 
+    //get data based on ID, returns whether it's valid
+    QVariant getClientData(ClientData::eDataId id, bool &valid);
+
     //whether to show chart
     void setShowChart(const bool enabled);
     bool getShowChart() const {return m_ShowChart;}
@@ -93,7 +95,7 @@ protected:
     QVariant applyOffset(const QString &clientId, const ClientData::eDataId id, const QVariant &value);
 
     //database connection
-    QSqlDatabase m_Database;
+    //QSqlDatabase m_Database;
     QString m_DbConnectionName;
 
     //data input channel
@@ -155,6 +157,8 @@ public slots:
 
     //slots that turns a serial port off and on
     void setSerialConnect(const bool on);
+
+    void onServerShutdown();
 
 private slots:
     void onDataReceived();

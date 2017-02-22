@@ -75,6 +75,12 @@ HEADERS  += mainwindow.h \
     Misc/OffsetSettings.h \
     Client/Data/CommandHandler.h
 
+SOURCES -= UnitTest/testServer.cpp \
+            UnitTest/testTcpClient.cpp
+
+HEADERS -= UnitTest/testServer.h \
+            UnitTest/testTcpClient.h
+
 FORMS    += mainwindow.ui
 
 RESOURCES += \
@@ -87,10 +93,13 @@ test {
 
     SOURCES -= main.cpp
 
-    HEADERS += UnitTest/testserver.h
+    HEADERS += UnitTest/testServer.h \
+        UnitTest/testTcpClient.h
 
-    SOURCES += UnitTest/testserver.cpp
-    SOURCES += UnitTest/main.cpp
+    SOURCES += UnitTest/testServer.cpp \
+        UnitTest/testTcpClient.cpp \
+        UnitTest/main.cpp
+
 } else {
     message(Normal build)
 }

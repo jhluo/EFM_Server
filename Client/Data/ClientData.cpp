@@ -82,6 +82,8 @@ void ClientData::removeData(const eDataId id)
 
 void ClientData::clear()
 {
-    qDeleteAll(m_DataMap.begin(), m_DataMap.end());
-    m_DataMap.clear();
+    if(m_DataMap.size() > 0) {
+        qDeleteAll(m_DataMap.begin(), m_DataMap.end());
+        m_DataMap.clear();
+    }
 }

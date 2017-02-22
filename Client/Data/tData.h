@@ -21,7 +21,7 @@ public:
 
     QVariant value() const {return m_DataValue;}
 
-    //overloaded to check two clients as equivalent
+    //overloaded assignment
     inline void operator=(const tData &rhs){
         m_DataValue = rhs.value();
         m_pDataTimer->stop();

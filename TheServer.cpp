@@ -60,7 +60,7 @@ void TheServer::shutdownServer()
 
     //remove all clients and close the server
     //m_pClientList->removeAll();
-    m_ClientList.clear();
+    emit serverShutdown();
     this->close();
 }
 
@@ -157,6 +157,7 @@ void TheServer::onNewTcpClientConnected()
             .arg(pSocket->peerPort()));
 
     TcpClient *pClient = new TcpClient(pSocket);
+    connect(this, SIGNAL(serverShutdown()), pClient, SLOT(onServerShutdown()));
 
     addClient(pClient);
 }

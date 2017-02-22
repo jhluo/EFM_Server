@@ -52,7 +52,7 @@ void AClient::createDatabaseConnection()
 
     m_DbConnectionName = this->getClientId()+this->getClientAddress();
 
-    m_Database = QSqlDatabase::addDatabase("QODBC", m_DbConnectionName);
+    QSqlDatabase db = QSqlDatabase::addDatabase("QODBC", m_DbConnectionName);
     QString dsn = QString("Driver={sql server};server=%1;database=%2;uid=%3;pwd=%4;")
 
             .arg(settings.readDatabaseSettings("host", "").toString())
@@ -60,7 +60,7 @@ void AClient::createDatabaseConnection()
             .arg(settings.readDatabaseSettings("user", "").toString())
             .arg(settings.readDatabaseSettings("password", "").toString());
 
-    m_Database.setDatabaseName(dsn);
+    db.setDatabaseName(dsn);
 }
 
 void AClient::setDataSource(QIODevice *pInputDevice, const eClientType &type)
@@ -247,9 +247,11 @@ void AClient::decodeVersion1Data(const QByteArray &dataArray)
     }
 
     bool ok = false;
-    if(m_ClientId == "Unknown") {//this is the first packet we get in this client, so tell server a new client has connected
+    QString id = QString::number(dataArray.mid(5, 2).toHex().toInt(&ok, 16));
+    //ancknowledge whenever a new id is assigned
+    if(m_ClientId != id) {
         //this line is needed so that the slot knows what the ID is
-        m_ClientId = QString::number(dataArray.mid(5, 2).toHex().toInt(&ok, 16));
+        m_ClientId = id;
         createDatabaseConnection();
         emit clientIDAssigned();
 
@@ -275,7 +277,6 @@ void AClient::decodeVersion1Data(const QByteArray &dataArray)
         //qDebug() <<command;
     }
 
-    m_ClientId = QString::number(dataArray.mid(5, 2).toHex().toInt(&ok, 16));
     m_pClientData->setData(ClientData::eStationID, m_ClientId);
 
     int msgCount = dataArray.mid(7, 2).toHex().toInt(&ok, 16);
@@ -667,21 +668,27 @@ void AClient::onDataTimeout()
     //first time it times out, set state to no data
     if(m_ClientState == eOnline) {
         m_ClientState = eNoData;
-    } else if (m_ClientState == eNoData) {
+    } /*else if (m_ClientState == eNoData) {
         //second time it times out, it's a dead client and disconnect it
         disconnectClient();
-    }
+    }*/
 
     //emit signal to notify model
+    emit clientDataChanged();
+}
+
+void AClient::onServerShutdown()
+{
+    disconnectClient();
     emit clientDataChanged();
 }
 
 bool AClient::writeDatabase()
 {
     bool result = false;
-
-    if(m_Database.open()) {
-        QSqlQuery query(m_Database);
+    QSqlDatabase db = QSqlDatabase::database(m_DbConnectionName);
+    if(db.open()) {
+        QSqlQuery query(db);
         if(m_ClientVersion == eVersion1) {
             query.prepare("INSERT INTO 分钟资料 (SationID, data_date, data_hour, data_Min, 浓度, 湿度, 温度, 正离子数, 风向, 风速, 雨量, 气压, 紫外线, 氧气含量, PM1, PM25, PM10, 错误标志)"
                           "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
@@ -1338,6 +1345,19 @@ QString AClient::getClientUpTime() const
     int minute = minSec / 60;
 
     return QString("%1 hr %2 min").arg(hour).arg(minute);
+}
+
+QVariant AClient::getClientData(ClientData::eDataId id, bool &valid)
+{
+    QVariant var = m_pClientData->getData(id);
+
+    if(var.isValid()) {
+        valid = true;
+        return var;
+    } else {
+        valid = false;
+        return QVariant();
+    }
 }
 
 double AClient::convertToDecimal(const QByteArray &highByte, const QByteArray &lowByte)

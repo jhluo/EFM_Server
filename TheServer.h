@@ -33,6 +33,8 @@ signals:
     void clientAdded();
     void clientRemoved(const int index);
     void clientDataChanged(const int index);
+    void serverShutdown();
+
 private:
     //all client connections are added to this list
     //AClientList *m_pClientList;
