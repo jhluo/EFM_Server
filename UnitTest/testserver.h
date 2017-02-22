@@ -16,9 +16,10 @@ private slots:
     void init();
     void cleanup();
 
+    //Actual test cases
     void testStartup();
     void testShutdown();
-    void testConnection();
+    void testTcpConnections();
 
 private:
     TheServer *m_pServer;
