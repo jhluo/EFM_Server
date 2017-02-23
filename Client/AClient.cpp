@@ -668,10 +668,10 @@ void AClient::onDataTimeout()
     //first time it times out, set state to no data
     if(m_ClientState == eOnline) {
         m_ClientState = eNoData;
-    } /*else if (m_ClientState == eNoData) {
+    } else if (m_ClientState == eNoData) {
         //second time it times out, it's a dead client and disconnect it
         disconnectClient();
-    }*/
+    }
 
     //emit signal to notify model
     emit clientDataChanged();

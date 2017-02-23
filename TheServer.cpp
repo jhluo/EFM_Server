@@ -72,6 +72,7 @@ void TheServer::addClient(AClient *pClient)
 
     //stop the thread and clean up when pClient is disconnected
     connect(pClient, SIGNAL(clientIDAssigned()), this, SLOT(onClientIDAssigned()));
+    connect(this, SIGNAL(serverShutdown()), pClient, SLOT(onServerShutdown()));
     //connect(pClientThread, SIGNAL(finished()), pClientThread, SLOT(deleteLater()));
     connect(pClient, SIGNAL(clientDisconnected()), this, SLOT(onClientDisconnected()));
 
@@ -98,9 +99,10 @@ void TheServer::removeClient(AClient *pClient)
 
     if(index != -1) {
         AClient* pClient = m_ClientList[index];
+        if(pClient==NULL) return;
         //remove client will delete the AClient object
         QThread *pThread = pClient->thread();
-        delete m_ClientList[index];
+        delete pClient;
         m_ClientList.remove(index);
         emit clientRemoved(index);
         pThread->deleteLater();
@@ -157,8 +159,6 @@ void TheServer::onNewTcpClientConnected()
             .arg(pSocket->peerPort()));
 
     TcpClient *pClient = new TcpClient(pSocket);
-    connect(this, SIGNAL(serverShutdown()), pClient, SLOT(onServerShutdown()));
-
     addClient(pClient);
 }
 
