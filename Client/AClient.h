@@ -13,9 +13,6 @@
 #include "Data/ClientData.h"
 #include "Data/CommandHandler.h"
 
-#define VERSION1_LENGTH 37  //length in bytes for fixed length messages
-#define VERSION2_LENGTH 50
-
 class AClient : public QObject
 {
     Q_OBJECT

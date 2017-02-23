@@ -3,6 +3,7 @@
 #include "TheServer.h"
 #include "Client/TcpClient.h"
 #include "Client/SerialClient.h"
+//#include "Client/AClientList.h"
 #include "Client/AClient.h"
 #include "Misc/Logger.h"
 #include "Misc/AppSettings.h"
@@ -150,35 +151,15 @@ AClient* TheServer::getClient(const int index) const
 void TheServer::onNewTcpClientConnected()
 {
     QTcpSocket *pSocket = this->nextPendingConnection();
-    connect(pSocket, SIGNAL(readyRead()), this, SLOT(onIoReadyRead()));
 
     //a new client has connected, we want to create a new client object and put it into its own thread
     LOG_SYS(QString("New client from %1 at port %2 has connected").arg(pSocket->peerAddress().toString())
             .arg(pSocket->peerPort()));
-}
 
-void TheServer::onIoReadyRead()
-{
-    QTcpSocket* pSocket = static_cast<QTcpSocket*>(QObject::sender());
-    if(pSocket == NULL) return;
+    TcpClient *pClient = new TcpClient(pSocket);
+    connect(this, SIGNAL(serverShutdown()), pClient, SLOT(onServerShutdown()));
 
-    //read the incoming data
-    QByteArray newData = pSocket->readAll();
-
-    if(newData.isEmpty())
-        return;
-
-    //if the data fits the profile, create new clients
-    if((newData.left(2)==QString("JH").toLocal8Bit() && newData.length() == VERSION1_LENGTH)
-        || (newData.left(2)==QString("JH").toLocal8Bit() && newData.length() == VERSION2_LENGTH)
-        || (newData.left(2)=="BG")
-       ) {
-        disconnect(pSocket, SIGNAL(readyRead()), this, SLOT(onIoReadyRead()));
-        TcpClient *pClient = new TcpClient(pSocket);
-        connect(this, SIGNAL(serverShutdown()), pClient, SLOT(onServerShutdown()));
-
-        addClient(pClient);
-    }
+    addClient(pClient);
 }
 
 void TheServer::onClientDisconnected()

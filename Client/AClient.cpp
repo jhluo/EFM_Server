@@ -12,6 +12,9 @@
 
 #define TIMER_INTERVAL 60000 * 2 //timer timeout interval
 
+#define VERSION1_LENGTH 37  //length in bytes for fixed length messages
+#define VERSION2_LENGTH 50
+
 AClient::AClient(QObject *pParent)
     : QObject(pParent),
       m_DbConnectionName(""),
@@ -665,10 +668,10 @@ void AClient::onDataTimeout()
     //first time it times out, set state to no data
     if(m_ClientState == eOnline) {
         m_ClientState = eNoData;
-    } else if (m_ClientState == eNoData) {
+    } /*else if (m_ClientState == eNoData) {
         //second time it times out, it's a dead client and disconnect it
         disconnectClient();
-    }
+    }*/
 
     //emit signal to notify model
     emit clientDataChanged();

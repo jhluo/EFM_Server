@@ -5,6 +5,7 @@
 #include <QTcpServer>
 #include <QSerialPort>
 
+//class AClientList;
 class AClient;
 
 class TheServer : public QTcpServer
@@ -47,7 +48,6 @@ private slots:
     void onNewTcpClientConnected();
     void onClientDisconnected();
     void onClientIDAssigned();
-    void onIoReadyRead();
 };
 
 #endif // THESERVER_H
