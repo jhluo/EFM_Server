@@ -2,10 +2,9 @@
 #include "Misc/Logger.h"
 
 SerialClient::SerialClient(QSerialPort *pPort, QObject *pParent)
-    : AClient(pParent),
-      m_pPort(pPort)
+    : AClient(pPort, pParent)
 {
-    setDataSource(m_pPort, eSerial);
+    //setDataSource(m_pPort, eSerial);
 }
 
 SerialClient::~SerialClient()

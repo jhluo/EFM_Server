@@ -15,7 +15,7 @@ public:
     QString getClientAddress() const;
 
 private:
-    QTcpSocket *m_pSocket;
+    //QTcpSocket *m_pSocket;
 
 signals:
     //void error(QTcpSocket::SocketError socketerror);

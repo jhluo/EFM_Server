@@ -15,20 +15,20 @@
 #define VERSION1_LENGTH 37  //length in bytes for fixed length messages
 #define VERSION2_LENGTH 50
 
-AClient::AClient(QObject *pParent)
+AClient::AClient(QIODevice *pDevice, QObject *pParent)
     : QObject(pParent),
       m_DbConnectionName(""),
-      m_pInputDevice(NULL),
+      m_pInputDevice(pDevice),
+      m_ClientType(eUnknownType),
       m_ClientId("Unknown"),
+      m_ClientState(eUnknownState),
       m_pCommandHandler(NULL),
       m_pDataViewer(NULL),
       m_ShowChart(false)
 {
-    m_ClientState = eUnknownState;
+    m_pInputDevice->setParent(this);
 
     m_pClientData = new ClientData(this);
-
-    m_ClientType = eUnknownType;
 
     m_pCommandHandler = new CommandHandler(this);
 
@@ -36,9 +36,12 @@ AClient::AClient(QObject *pParent)
     m_pDataTimer = new QTimer(this);
     m_pDataTimer->setInterval(TIMER_INTERVAL);
     connect(m_pDataTimer, SIGNAL(timeout()), this, SLOT(onDataTimeout()));
+    m_pDataTimer->start();
 
     //send message to a logger
     connect(this, SIGNAL(error(QString)), Logger::getInstance(), SLOT(write(QString)));
+
+    connect(m_pInputDevice, SIGNAL(readyRead()), this, SLOT(onDataReceived()));
 }
 
 AClient::~AClient()
@@ -63,15 +66,14 @@ void AClient::createDatabaseConnection()
     db.setDatabaseName(dsn);
 }
 
-void AClient::setDataSource(QIODevice *pInputDevice, const eClientType &type)
-{
-    //assign the socket to this client and connnect the slots
-    m_pInputDevice = pInputDevice;
-    m_pInputDevice->setParent(this);
-    m_ClientType = type;
+//void AClient::setDataSource(QIODevice *pInputDevice, const eClientType &type)
+//{
+//    //assign the socket to this client and connnect the slots
+//    m_pInputDevice = pInputDevice;
+//    m_ClientType = type;
 
-    connect(m_pInputDevice, SIGNAL(readyRead()), this, SLOT(onDataReceived()));
-}
+//    connect(m_pInputDevice, SIGNAL(readyRead()), this, SLOT(onDataReceived()));
+//}
 
 void AClient::registerDataViewer(QTextEdit *pTextEdit)
 {
@@ -114,11 +116,7 @@ void AClient::onDataReceived()
 
         qDebug() << "Ack:  " << newData;
     } else {
-        //got data, refresh data timer
-        m_pDataTimer->stop();
         handleData(newData);
-        //start timer again awaiting for next packet
-        m_pDataTimer->start();
     }
 }
 
@@ -155,7 +153,9 @@ void AClient::handleData(const QByteArray &newData)
         return;
     }
 
-    //got legit data, refresh state
+    //got legit data, refresh state and data timer
+    m_pDataTimer->stop();
+    m_pDataTimer->start();
     m_ClientState = eOnline;
 
     //emits signal for chart dialog
@@ -668,7 +668,8 @@ void AClient::onDataTimeout()
     //first time it times out, set state to no data
     if(m_ClientState == eOnline) {
         m_ClientState = eNoData;
-    } else if (m_ClientState == eNoData) {
+    } else if (m_ClientState == eNoData
+               || m_ClientState == eUnknownState) {
         //second time it times out, it's a dead client and disconnect it
         disconnectClient();
     }

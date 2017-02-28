@@ -38,7 +38,7 @@ public:
         eVersion3
     };
 
-    AClient(QObject *pParent = 0);
+    AClient(QIODevice *pDevice, QObject *pParent = 0);
     virtual ~AClient();
 
     QIODevice *getInputDevice() {return m_pInputDevice;}
@@ -79,7 +79,7 @@ public:
     void createDatabaseConnection();
 
 protected:
-    void setDataSource(QIODevice *pInputDevice, const eClientType &type);
+    //void setDataSource(QIODevice *pInputDevice, const eClientType &type);
 
     void handleData(const QByteArray &newData);
     void decodeVersion1Data(const QByteArray &dataArray);
