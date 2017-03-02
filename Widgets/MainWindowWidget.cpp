@@ -18,6 +18,7 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QMessageBox>
+#include <QPointer>
 
 MainWindowWidget::MainWindowWidget(TheServer *pApp, QWidget *parent)
     : QWidget(parent),
@@ -136,7 +137,7 @@ void MainWindowWidget::onRawLoggingChecked(const bool checked)
 
 void MainWindowWidget::onAddSerialPushed()
 {
-    QSerialPort *pSerialPort = new QSerialPort;
+    QPointer<QSerialPort> pSerialPort = new QSerialPort;
     SerialSettingsDialog dialog(pSerialPort, this);
 
     if (dialog.exec() == QDialog::Accepted)  {

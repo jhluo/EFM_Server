@@ -7,15 +7,17 @@ ClientTableModel::ClientTableModel(TheServer *pServer, QObject *pParent)
     : QAbstractTableModel(pParent),
       m_pServer(pServer)
 {
-    connect(m_pServer, SIGNAL(clientAdded()), this, SLOT(onNewClientAdded()), Qt::QueuedConnection);
-    connect(m_pServer, SIGNAL(clientRemoved(int)), this, SLOT(onClientRemoved(int)), Qt::QueuedConnection);
-    connect(m_pServer, SIGNAL(clientDataChanged(int)), this, SLOT(onClientDataUpdated(int)), Qt::QueuedConnection);
+    m_Keys = m_pServer->getClientList();
+
+    connect(m_pServer, SIGNAL(clientAdded(QString)), this, SLOT(onNewClientAdded(QString)), Qt::QueuedConnection);
+    connect(m_pServer, SIGNAL(clientRemoved(QString)), this, SLOT(onClientRemoved(QString)), Qt::QueuedConnection);
+    connect(m_pServer, SIGNAL(clientDataChanged(QString)), this, SLOT(onClientDataUpdated(QString)), Qt::QueuedConnection);
 
     //set up how often the table update
     m_pUpdateTimer = new QTimer(this);
     m_pUpdateTimer->setInterval(UPDATE_INTERVAL);
     connect(m_pUpdateTimer, SIGNAL(timeout()), this, SLOT(onUpdateTimer()));
-    m_pUpdateTimer->start();
+    //m_pUpdateTimer->start();
 }
 
 ClientTableModel::~ClientTableModel()
@@ -26,7 +28,7 @@ ClientTableModel::~ClientTableModel()
 
 int ClientTableModel::rowCount(const QModelIndex & /*parent*/) const
 {
-   return m_pServer->getClientCount();
+   return m_Keys.size();
 }
 
 int ClientTableModel::columnCount(const QModelIndex & /*parent*/) const
@@ -65,9 +67,9 @@ QVariant ClientTableModel::headerData(int section, Qt::Orientation orientation, 
 
 QVariant ClientTableModel::data(const QModelIndex &index, int role) const
 {
-    int row = index.row();
     int col = index.column();
-    AClient *pClient = m_pServer->getClient(row);
+
+    AClient *pClient = m_pServer->getClient(m_Keys.at(index.row()));
 
     if(pClient==NULL) return QVariant();
 
@@ -112,13 +114,23 @@ QVariant ClientTableModel::data(const QModelIndex &index, int role) const
 
 void ClientTableModel::sort(int column, Qt::SortOrder order)
 {
-    m_pServer->sortClients(column, order);
+    //m_pServer->sortClients(column, order);
 
     //refresh the entire table
     QModelIndex topLeft = createIndex(0,0);
     QModelIndex bottomRight = createIndex(rowCount()-1, columnCount()-1);
     //emit a signal to make the view reread identified data
     emit dataChanged(topLeft, bottomRight);
+}
+
+int ClientTableModel::indexOf(const QString &key) const
+{
+    return m_Keys.indexOf(key);
+}
+
+QString ClientTableModel::keyAt(const int index) const
+{
+    return m_Keys.at(index);
 }
 
 void ClientTableModel::onUpdateTimer()
@@ -130,8 +142,9 @@ void ClientTableModel::onUpdateTimer()
     emit dataChanged(topLeft, bottomRight);
 }
 
-void ClientTableModel::onNewClientAdded()
+void ClientTableModel::onNewClientAdded(const QString &key)
 {
+    m_Keys.append(key);
     //insert a row at the end
     int row = rowCount();
     beginInsertRows(QModelIndex(), row, row);
@@ -143,9 +156,10 @@ void ClientTableModel::onNewClientAdded()
     emit dataChanged(topLeft, bottomRight);
 }
 
-void ClientTableModel::onClientRemoved(const int index)
+void ClientTableModel::onClientRemoved(const QString &key)
 {
-    //insert a row at the end
+    int index = m_Keys.indexOf(key);
+    m_Keys.removeAt(index);
     beginRemoveRows(QModelIndex(), index, index);
     removeRow(index);
     endRemoveRows();
@@ -155,8 +169,11 @@ void ClientTableModel::onClientRemoved(const int index)
     emit dataChanged(topLeft, bottomRight);
 }
 
-void ClientTableModel::onClientDataUpdated(const int index)
+void ClientTableModel::onClientDataUpdated(const QString &key)
 {
+    //this one only updates timer
+    int index = m_Keys.indexOf(key);
+
     //we identify the top left cell
     QModelIndex topLeft = createIndex(index,0);
     QModelIndex bottomRight = createIndex(index, columnCount()-2);

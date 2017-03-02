@@ -21,14 +21,18 @@ public:
 
     void sort(int column, Qt::SortOrder order = Qt::AscendingOrder);
 
+    int indexOf(const QString &key) const;
+    QString keyAt(const int index) const;
+
 private:
     //How often we update the table
     QTimer *m_pUpdateTimer;
     TheServer *m_pServer;
+    QStringList m_Keys;
 
 private slots:
     void onUpdateTimer();
-    void onNewClientAdded();
-    void onClientRemoved(const int index);
-    void onClientDataUpdated(const int index);
+    void onNewClientAdded(const QString &key);
+    void onClientRemoved(const QString &key);
+    void onClientDataUpdated(const QString &key);
 };

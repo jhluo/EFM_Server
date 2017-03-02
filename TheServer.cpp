@@ -1,4 +1,5 @@
 #include <QThread>
+#include <QPointer>
 #include <QSqlDatabase>
 #include "TheServer.h"
 #include "Client/TcpClient.h"
@@ -11,8 +12,7 @@
 TheServer::TheServer(QObject *pParent)
     : QTcpServer(pParent)
 {
-    m_ClientList.clear();
-
+    m_ClientHash.clear();
     connect(this, SIGNAL(newConnection()), this, SLOT(onNewTcpClientConnected()));
 }
 
@@ -58,16 +58,31 @@ void TheServer::shutdownServer()
 {
     LOG_SYS("Stopping all clients and shutting down the server...");
 
-    //remove all clients and close the server
-    //m_pClientList->removeAll();
+    //signals all clients to d/c
     emit serverShutdown();
+
     this->close();
+}
+
+//for adding tcp client
+void TheServer::onNewTcpClientConnected()
+{
+    QPointer<QTcpSocket> pSocket = this->nextPendingConnection();
+
+    //a new client has connected, we want to create a new client object and put it into its own thread
+    LOG_SYS(QString("New client from %1 at port %2 has connected").arg(pSocket->peerAddress().toString())
+            .arg(pSocket->peerPort()));
+
+    QPointer<TcpClient> pClient = new TcpClient(pSocket);
+    addClient(pClient);
+
+    //The client is not added to the hash table until an ID is assigned
 }
 
 void TheServer::addClient(AClient *pClient)
 {
     //needs to create thread first then create database in order to get correct thread ID
-    QThread *pClientThread = new QThread();
+    QPointer<QThread> pClientThread = new QThread();
     pClient->moveToThread(pClientThread);
 
     //stop the thread and clean up when pClient is disconnected
@@ -77,8 +92,6 @@ void TheServer::addClient(AClient *pClient)
     connect(pClient, SIGNAL(clientDisconnected()), this, SLOT(onClientDisconnected()));
 
     pClientThread->start();
-    m_ClientList.append(pClient);
-    emit clientAdded();
 }
 
 //for adding serial client
@@ -94,73 +107,40 @@ void TheServer::addSerialClient(QSerialPort *pPort)
 
 void TheServer::removeClient(AClient *pClient)
 {
-    //If this client was connected without ever giving an id, just remove it from list
-    int index = m_ClientList.indexOf(pClient);
-
-    if(index != -1) {
-        AClient* pClient = m_ClientList[index];
-        if(pClient==NULL) return;
-        //remove client will delete the AClient object
-        QThread *pThread = pClient->thread();
-        delete pClient;
-        m_ClientList.remove(index);
-        emit clientRemoved(index);
-        pThread->deleteLater();
-    }
+    QPointer<QThread> pThread = pClient->thread();
+    pClient->deleteLater();
+    pThread->deleteLater();
 }
 
-void TheServer::sortClients(const int column, Qt::SortOrder order)
-{
+//void TheServer::sortClients(const int column, Qt::SortOrder order)
+//{
 //    qDebug() << "Before sort:\n";
 //    for(int i=0; i<m_ClientList.size(); i++) {
 //        qDebug() << m_ClientList.at(i)->getClientId() << endl;
 //    }
     //QMutexLocker locker(&mMutex);
 
-    if(column == 0) {   //sort by name
-        if(order == Qt::AscendingOrder)
-            std::sort(m_ClientList.begin(), m_ClientList.end(),
-                      [](AClient* a, AClient* b) -> bool { return a->getClientId().toInt() < b->getClientId().toInt(); });
-        else
-            std::sort(m_ClientList.begin(), m_ClientList.end(),
-                      [](AClient* a, AClient* b) -> bool { return a->getClientId().toInt() > b->getClientId().toInt(); });
-    } else if (column == 1) { //sort by source
-        if(order == Qt::AscendingOrder)
-            std::sort(m_ClientList.begin(), m_ClientList.end(),
-                      [](AClient* a, AClient* b) -> bool { return a->getClientAddress() < b->getClientAddress(); });
-        else
-            std::sort(m_ClientList.begin(), m_ClientList.end(),
-                      [](AClient* a, AClient* b) -> bool { return a->getClientAddress() > b->getClientAddress(); });
-    }
+//    if(column == 0) {   //sort by name
+//        if(order == Qt::AscendingOrder)
+//            std::sort(m_ClientHash.begin(), m_ClientHash.end(),
+//                      [](AClient* a, AClient* b) -> bool { return a->getClientId().toInt() < b->getClientId().toInt(); });
+//        else
+//            std::sort(m_ClientHash.begin(), m_ClientHash.end(),
+//                      [](AClient* a, AClient* b) -> bool { return a->getClientId().toInt() > b->getClientId().toInt(); });
+//    } else if (column == 1) { //sort by source
+//        if(order == Qt::AscendingOrder)
+//            std::sort(m_ClientHash.begin(), m_ClientHash.end(),
+//                      [](AClient* a, AClient* b) -> bool { return a->getClientAddress() < b->getClientAddress(); });
+//        else
+//            std::sort(m_ClientHash.begin(), m_ClientHash.end(),
+//                      [](AClient* a, AClient* b) -> bool { return a->getClientAddress() > b->getClientAddress(); });
+//    }
 
 //    qDebug() << "After sort:\n";
 //    for(int i=0; i<m_ClientList.size(); i++) {
 //        qDebug() << m_ClientList.at(i)->getClientId() << endl;
 //    }
-}
-
-int TheServer::getClientCount() const
-{
-    return m_ClientList.size();
-}
-
-AClient* TheServer::getClient(const int index) const
-{
-    return m_ClientList.at(index);
-}
-
-//for adding tcp client
-void TheServer::onNewTcpClientConnected()
-{
-    QTcpSocket *pSocket = this->nextPendingConnection();
-
-    //a new client has connected, we want to create a new client object and put it into its own thread
-    LOG_SYS(QString("New client from %1 at port %2 has connected").arg(pSocket->peerAddress().toString())
-            .arg(pSocket->peerPort()));
-
-    TcpClient *pClient = new TcpClient(pSocket);
-    addClient(pClient);
-}
+//}
 
 void TheServer::onClientDisconnected()
 {
@@ -170,6 +150,7 @@ void TheServer::onClientDisconnected()
 
     //If this client was connected without ever giving an id, just remove it from list
     if(pClient->getClientState() == AClient::eUnknownState) {
+        //no need to remove from hash because an unknown client is never added there
         removeClient(pClient);
     }
 }
@@ -178,13 +159,28 @@ void TheServer::onClientDisconnected()
 void TheServer::onClientIDAssigned()
 {
     AClient* pClient = static_cast<AClient*>(QObject::sender());
-    //check to see if there is already a client with the same id
-    for(int i=0; i<m_ClientList.size(); i++) {
-        if(m_ClientList.at(i)->getClientId() == pClient->getClientId()) {
-            //if there was one that's previously connected but offline, remove it
-            AClient* pOldClient = m_ClientList.at(i);
-            if(pOldClient->getClientState() == AClient::eOffline)
-                removeClient(pOldClient);
-        }
+
+    QString key = pClient->getClientId();
+    if(m_ClientHash.contains(key)) {
+        QPointer<AClient> pOldClient = m_ClientHash.take(key);
+        removeClient(pOldClient);
+        emit clientRemoved(key);
     }
+    m_ClientHash.insert(key, pClient);
+    emit clientAdded(key);
+}
+
+int TheServer::getClientCount() const
+{
+    return m_ClientHash.size();
+}
+
+QStringList TheServer::getClientList() const
+{
+    return m_ClientHash.keys();
+}
+
+AClient *TheServer::getClient(const QString &key) const
+{
+    return m_ClientHash.value(key);
 }
