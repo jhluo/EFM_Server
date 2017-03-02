@@ -17,7 +17,7 @@ ClientTableModel::ClientTableModel(TheServer *pServer, QObject *pParent)
     m_pUpdateTimer = new QTimer(this);
     m_pUpdateTimer->setInterval(UPDATE_INTERVAL);
     connect(m_pUpdateTimer, SIGNAL(timeout()), this, SLOT(onUpdateTimer()));
-    //m_pUpdateTimer->start();
+    m_pUpdateTimer->start();
 }
 
 ClientTableModel::~ClientTableModel()
