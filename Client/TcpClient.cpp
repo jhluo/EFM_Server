@@ -91,14 +91,14 @@ void TcpClient::onSocketDisconnected()
     if(!m_DbConnectionName.isEmpty())
         QSqlDatabase::removeDatabase(m_DbConnectionName);
 
-    //end the thread
-    this->thread()->quit();
-
     //emit signal to notify model
     emit clientDataChanged();
 
-    //emit signal to notify model
-    emit clientDisconnected();
+    //end the thread
+    this->thread()->quit();
+
+    //emit signal to server
+    //emit clientDisconnected();
 
     /*
     if(!this->thread()->wait(2000)) //Wait until it actually has terminated (max. 3 sec)

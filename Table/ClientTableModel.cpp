@@ -115,6 +115,7 @@ QVariant ClientTableModel::data(const QModelIndex &index, int role) const
 void ClientTableModel::sort(int column, Qt::SortOrder order)
 {
     //m_pServer->sortClients(column, order);
+    m_Keys.sort();
 
     //refresh the entire table
     QModelIndex topLeft = createIndex(0,0);

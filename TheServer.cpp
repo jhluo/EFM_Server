@@ -70,7 +70,7 @@ void TheServer::onNewTcpClientConnected()
     QPointer<QTcpSocket> pSocket = this->nextPendingConnection();
 
     //a new client has connected, we want to create a new client object and put it into its own thread
-    LOG_SYS(QString("New client from %1 at port %2 has connected").arg(pSocket->peerAddress().toString())
+    LOG_SYS(QString("New client from %1 at port %2 has connected.  Waiting for data...").arg(pSocket->peerAddress().toString())
             .arg(pSocket->peerPort()));
 
     QPointer<TcpClient> pClient = new TcpClient(pSocket);
@@ -87,9 +87,11 @@ void TheServer::addClient(AClient *pClient)
 
     //stop the thread and clean up when pClient is disconnected
     connect(pClient, SIGNAL(clientIDAssigned()), this, SLOT(onClientIDAssigned()));
-    connect(this, SIGNAL(serverShutdown()), pClient, SLOT(onServerShutdown()));
-    //connect(pClientThread, SIGNAL(finished()), pClientThread, SLOT(deleteLater()));
+    connect(pClientThread, SIGNAL(finished()), pClient, SIGNAL(clientDisconnected()));
     connect(pClient, SIGNAL(clientDisconnected()), this, SLOT(onClientDisconnected()));
+    //connect(pClientThread, SIGNAL(finished()), pClientThread, SLOT(deleteLater()));
+    connect(this, SIGNAL(serverShutdown()), pClient, SLOT(onServerShutdown()));
+
 
     pClientThread->start();
 }
@@ -163,7 +165,13 @@ void TheServer::onClientIDAssigned()
     QString key = pClient->getClientId();
     if(m_ClientHash.contains(key)) {
         QPointer<AClient> pOldClient = m_ClientHash.take(key);
-        removeClient(pOldClient);
+        //if the client with the same id is still connected somehow, d/c it
+        if(pOldClient->getClientState()!=AClient::eOffline)
+            QMetaObject::invokeMethod(pOldClient, "disconnectClient", Qt::QueuedConnection);
+        else
+            removeClient(pOldClient);
+        //REVIEW: the logic above needs review
+
         emit clientRemoved(key);
     }
     m_ClientHash.insert(key, pClient);
