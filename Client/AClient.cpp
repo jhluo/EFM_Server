@@ -30,8 +30,6 @@ AClient::AClient(QIODevice *pDevice, QObject *pParent)
 
     m_pClientData = new ClientData(this);
 
-    m_pCommandHandler = new CommandHandler(this);
-
     //Timer to keep track of state of client
     m_pDataTimer = new QTimer(this);
     m_pDataTimer->setInterval(TIMER_INTERVAL);
@@ -113,7 +111,6 @@ void AClient::onDataReceived()
         return;
     else if(newData.left(3) == "ack") {
         m_pCommandHandler->processCommand(newData);
-
         qDebug() << "Ack:  " << newData;
     } else {
         handleData(newData);
@@ -253,6 +250,11 @@ void AClient::decodeVersion1Data(const QByteArray &dataArray)
         //this line is needed so that the slot knows what the ID is
         m_ClientId = id;
         createDatabaseConnection();
+        //create command handling
+        if(m_pCommandHandler==NULL) {
+            m_pCommandHandler = new CommandHandler(m_pInputDevice, m_ClientVersion, this);
+        }
+
         emit clientIDAssigned();
 
         //send an initial command to calibrate date
@@ -382,6 +384,10 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
         //this line is needed so that the slot knows what the ID is
         m_ClientId = clientID;
         createDatabaseConnection();
+        //create command handling
+        if(m_pCommandHandler==NULL) {
+            m_pCommandHandler = new CommandHandler(m_pInputDevice, m_ClientVersion, this);
+        }
         emit clientIDAssigned();
 
         //send an initial command to calibrate date
