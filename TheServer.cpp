@@ -86,11 +86,11 @@ void TheServer::addClient(AClient *pClient)
     pClient->moveToThread(pClientThread);
 
     //stop the thread and clean up when pClient is disconnected
-    connect(pClient, SIGNAL(clientIDAssigned()), this, SLOT(onClientIDAssigned()));
-    connect(pClientThread, SIGNAL(finished()), pClient, SIGNAL(clientDisconnected()));
-    connect(pClient, SIGNAL(clientDisconnected()), this, SLOT(onClientDisconnected()));
+    connect(pClient, SIGNAL(clientIDAssigned()), this, SLOT(onClientIDAssigned()), Qt::QueuedConnection);
+    connect(pClientThread, SIGNAL(finished()), pClient, SIGNAL(clientDisconnected()), Qt::QueuedConnection);
+    connect(pClient, SIGNAL(clientDisconnected()), this, SLOT(onClientDisconnected()), Qt::QueuedConnection);
     //connect(pClientThread, SIGNAL(finished()), pClientThread, SLOT(deleteLater()));
-    connect(this, SIGNAL(serverShutdown()), pClient, SLOT(onServerShutdown()));
+    connect(this, SIGNAL(serverShutdown()), pClient, SLOT(onServerShutdown()), Qt::QueuedConnection);
 
 
     pClientThread->start();
@@ -107,6 +107,7 @@ void TheServer::addSerialClient(QSerialPort *pPort)
     addClient(pClient);
 }
 
+//this may not be needed because we are using guarded pointers
 void TheServer::removeClient(AClient *pClient)
 {
     QPointer<QThread> pThread = pClient->thread();
