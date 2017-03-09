@@ -107,11 +107,8 @@ void AClient::onDataReceived()
     //read the incoming data
     QByteArray newData = m_pInputDevice->readAll();
 
-    if(newData.isEmpty())
+    if(newData.isEmpty()){
         return;
-    else if(newData.left(3) == "ack") {
-        m_pCommandHandler->processCommand(newData);
-        qDebug() << "Ack:  " << newData;
     } else {
         handleData(newData);
     }
@@ -146,7 +143,9 @@ void AClient::handleData(const QByteArray &newData)
     } else if(newData.left(2)=="BG") {
         m_ClientVersion = eVersion3;
         decodeVersion3Data(newData);
-    } else {
+    } else {  //if they are not legit data, then they may be command and ack msg from client
+        m_pCommandHandler->processCommand(newData);
+        qDebug() << "Ack:  " << newData;
         return;
     }
 
@@ -160,19 +159,6 @@ void AClient::handleData(const QByteArray &newData)
 
     //emit signal to notify model
     emit clientDataChanged();
-
-    //reply the client with ack command
-    QDateTime currentDateTime = QDateTime::currentDateTime();
-    QDate currentDate = currentDateTime.date();
-    QTime currentTime = currentDateTime.time();
-    QString command=QString("dxsj32:%1%2%3%4%5")
-            .arg(currentDate.year()-2000)
-            .arg(currentDate.month())
-            .arg(currentDate.day())
-            .arg(currentTime.hour())
-            .arg(currentTime.minute());
-
-    sendCommand(command);
 
     writeDataViewer();
 
@@ -277,6 +263,21 @@ void AClient::decodeVersion1Data(const QByteArray &dataArray)
 
         sendCommand(command);
         //qDebug() <<command;
+    }
+
+    //reply the client with ack command, for ION only (ID > 90000 && < 100000)
+    if(m_ClientId.toInt() < 90000  || m_ClientId.toInt() > 1000000) {
+        QDateTime currentDateTime = QDateTime::currentDateTime();
+        QDate currentDate = currentDateTime.date();
+        QTime currentTime = currentDateTime.time();
+        QString command=QString("dxsj32:%1%2%3%4%5")
+                .arg(currentDate.year()-2000)
+                .arg(currentDate.month())
+                .arg(currentDate.day())
+                .arg(currentTime.hour())
+                .arg(currentTime.minute());
+
+        sendCommand(command);
     }
 
     m_pClientData->setData(ClientData::eStationID, m_ClientId);

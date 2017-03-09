@@ -12,7 +12,7 @@ public:
     explicit CommandHandler(QIODevice* pInput, int version = 0, QObject *pParent=0);
     ~CommandHandler();
 
-    bool sendCommand(QIODevice *pOutputChannel, const QByteArray &command, const bool expectAck=true);
+    bool sendCommand(QIODevice *pOutputChannel, const QByteArray &command, const QString &expectedAck="");
     void processCommand(const QString &command);
 
 private:
@@ -25,6 +25,9 @@ private:
     int m_ClientVersion;
 
     QIODevice* m_pIoDevice;
+
+    bool m_WaitingForReply;
+    QString m_ExpectedAck;
 
 signals:
     void commandAcknowledged(bool ok);
