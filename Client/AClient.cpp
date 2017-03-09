@@ -162,17 +162,17 @@ void AClient::handleData(const QByteArray &newData)
     emit clientDataChanged();
 
     //reply the client with ack command
-//    QDateTime currentDateTime = QDateTime::currentDateTime();
-//    QDate currentDate = currentDateTime.date();
-//    QTime currentTime = currentDateTime.time();
-//    QString command=QString("dxsj32:%1%2%3%4%5")
-//            .arg(currentDate.year()-2000)
-//            .arg(currentDate.month())
-//            .arg(currentDate.day())
-//            .arg(currentTime.hour())
-//            .arg(currentTime.minute());
+    QDateTime currentDateTime = QDateTime::currentDateTime();
+    QDate currentDate = currentDateTime.date();
+    QTime currentTime = currentDateTime.time();
+    QString command=QString("dxsj32:%1%2%3%4%5")
+            .arg(currentDate.year()-2000)
+            .arg(currentDate.month())
+            .arg(currentDate.day())
+            .arg(currentTime.hour())
+            .arg(currentTime.minute());
 
-//    sendCommand(command);
+    sendCommand(command);
 
     writeDataViewer();
 
