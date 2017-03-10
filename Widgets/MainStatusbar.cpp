@@ -14,7 +14,7 @@ MainStatusbar::~MainStatusbar()
 
 void MainStatusbar::createLayout()
 {
-    m_pCompanyLabel = new QLabel("北京依派伟业数码科技有限公司", this);
+    m_pCompanyLabel = new QLabel("北京依派伟业数码科技有限公司 010-82564248", this);
     m_pTimeLabel = new QLabel(this);
 
     this->addWidget(m_pTimeLabel);

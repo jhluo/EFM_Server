@@ -9,7 +9,7 @@ QT       += widgets core gui sql serialport
 greaterThan(QT_MAJOR_VERSION, 4): QT += network charts
 
 TARGET = EFMServer
-VERSION = 2.1.0
+VERSION = 2.2.0
 DEFINES += APP_VERSION=\\\"$$VERSION\\\"
 
 TEMPLATE = app

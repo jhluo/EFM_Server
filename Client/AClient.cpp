@@ -144,9 +144,11 @@ void AClient::handleData(const QByteArray &newData)
         m_ClientVersion = eVersion3;
         decodeVersion3Data(newData);
     } else {  //if they are not legit data, then they may be command and ack msg from client
-        m_pCommandHandler->processCommand(newData);
-        qDebug() << "Ack:  " << newData;
-        return;
+        if(m_pCommandHandler!=NULL){
+            m_pCommandHandler->processCommand(newData);
+            qDebug() << "Ack:  " << newData;
+            return;
+         }
     }
 
     //got legit data, refresh state and data timer
