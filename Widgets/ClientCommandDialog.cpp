@@ -10,10 +10,10 @@ ClientCommandDialog::ClientCommandDialog(AClient *pClient, QWidget *parent) :
     QDialog(parent),
     m_pClient(pClient)
 {
-    connect(this, SIGNAL(writeCommand(QString)), m_pClient, SLOT(sendCommand(QString)));
+    connect(this, SIGNAL(writeCommand(QString, QString)), m_pClient, SLOT(sendCommand(QString, QString)));
     connect(m_pClient, SIGNAL(bytesSent(int)), this, SLOT(onCommandSent(int)));
     connect(m_pClient, SIGNAL(clientAcknowledge(bool)), this, SLOT(onCommandAcknowledged(bool)));
-
+    connect(m_pClient, SIGNAL(clientDisconnected()), this, SLOT(onClientDisconnected()));
     setWindowTitle(QString(tr("Send Client Command")));
     createActions();
 }
@@ -83,7 +83,13 @@ void ClientCommandDialog::createActions()
 
 void ClientCommandDialog::onSendButtonClicked()
 {
-    emit writeCommand(m_pCommandEdit->text()+"\r\n");
+    QString ack = "";
+    if(m_pClient==NULL) return;
+    if(m_pClient->getClientVersion()==AClient::eVersion1 ||
+       m_pClient->getClientVersion()==AClient::eVersion2)
+        ack = "ack";
+
+    emit writeCommand(m_pCommandEdit->text()+"\r\n", ack);
 }
 
 void ClientCommandDialog::onCommandComboChanged()
@@ -401,4 +407,11 @@ void ClientCommandDialog::onCommandAcknowledged(const bool ok)
         m_pResultLabel->setText(QString(tr("Client acknowledge command.")));
     else
         m_pResultLabel->setText(QString(tr("Client could not execute command.  Please retry.")));
+}
+
+void ClientCommandDialog::onClientDisconnected()
+{
+    m_pClient=NULL;
+    m_pResultLabel->setText("Client disconnected. Please close dialog.");
+    m_pSendButton->setDisabled(true);
 }

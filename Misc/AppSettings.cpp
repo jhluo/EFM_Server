@@ -3,9 +3,7 @@
 #include <QDir>
 
 AppSettings::AppSettings(QObject *parent)
-    :QSettings(QSettings::IniFormat,
-               QSettings::UserScope,
-               "EPEX", "IonServer", parent)
+    :QSettings("settings", QSettings::IniFormat, parent)
 {
     setDefaultValues();
 }

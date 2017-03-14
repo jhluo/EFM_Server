@@ -114,9 +114,9 @@ void AClient::onDataReceived()
     }
 }
 
-void AClient::sendCommand(const QString &data)
+void AClient::sendCommand(const QString &data, const QString &ack)
 {
-    m_pCommandHandler->sendCommand(m_pInputDevice, data.toLocal8Bit());
+    m_pCommandHandler->sendCommand(m_pInputDevice, data.toLocal8Bit(), ack);
 
     //qDebug() << QString("%1 bytes in buffer, %2 bytes are written").arg(data.toLocal8Bit().size()).arg(bytes);
 
@@ -130,12 +130,18 @@ void AClient::handleData(const QByteArray &newData)
 {
     //verison 1 & 2
     if(newData.left(2)==QString("JH").toLocal8Bit()) {
-        if(newData.length() == VERSION1_LENGTH) {
+        if((newData.length() % VERSION1_LENGTH) == 0) {
             m_ClientVersion = eVersion1;
-            decodeVersion1Data(newData);
-        } else if(newData.length() == VERSION2_LENGTH) {
+            for(int i=0; i<newData.length(); i+=VERSION1_LENGTH) {
+                QByteArray dataSeg = newData.mid(i, VERSION1_LENGTH);
+                decodeVersion1Data(dataSeg);
+            }
+        } else if((newData.length() % VERSION2_LENGTH) == 0) {
             m_ClientVersion = eVersion2;
-            decodeVersion2Data(newData);
+            for(int i=0; i<newData.length(); i+=VERSION2_LENGTH) {
+                QByteArray dataSeg = newData.mid(i, VERSION2_LENGTH);
+                decodeVersion2Data(dataSeg);
+            }
         } else {
             return;
         }
@@ -144,9 +150,11 @@ void AClient::handleData(const QByteArray &newData)
         m_ClientVersion = eVersion3;
         decodeVersion3Data(newData);
     } else {  //if they are not legit data, then they may be command and ack msg from client
-        m_pCommandHandler->processCommand(newData);
-        qDebug() << "Ack:  " << newData;
-        return;
+        if(m_pCommandHandler!=NULL){
+            m_pCommandHandler->processCommand(newData);
+            qDebug() << "Ack:  " << newData;
+            return;
+         }
     }
 
     //got legit data, refresh state and data timer
@@ -196,7 +204,7 @@ void AClient::handleData(const QByteArray &newData)
     //try to connect to database, only if write to database enabled
     if(settings.readMiscSettings("writeDatabase", true).toBool()) {
         if(!writeDatabase()) {
-            emit error(QString("Client %1 failed to write to database.").arg(m_ClientId));
+            emit error(QString("Client %1 from %2 at port %3 failed to write to database.").arg(m_ClientId).arg(qobject_cast<QTcpSocket*>(m_pInputDevice)->peerAddress().toString()).arg(qobject_cast<QTcpSocket*>(m_pInputDevice)->peerPort()));
         }
     }
 }
@@ -239,6 +247,7 @@ void AClient::decodeVersion1Data(const QByteArray &dataArray)
         //create command handling
         if(m_pCommandHandler==NULL) {
             m_pCommandHandler = new CommandHandler(m_pInputDevice, m_ClientVersion, this);
+            connect(m_pCommandHandler, SIGNAL(commandAcknowledged(bool)), this, SIGNAL(clientAcknowledge(bool)));
         }
 
         emit clientIDAssigned();
@@ -388,6 +397,7 @@ void AClient::decodeVersion3Data(const QByteArray &newData)
         //create command handling
         if(m_pCommandHandler==NULL) {
             m_pCommandHandler = new CommandHandler(m_pInputDevice, m_ClientVersion, this);
+            connect(m_pCommandHandler, SIGNAL(commandAcknowledged(bool)), this, SIGNAL(clientAcknowledge(bool)));
         }
         emit clientIDAssigned();
 

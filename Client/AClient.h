@@ -54,7 +54,7 @@ public:
     virtual QString getClientAddress() const = 0;
     eClientState getClientState() const {return m_ClientState;}
     eClientType getClientType() const {return m_ClientType;}
-
+    eClientVersion getClientVersion() const {return m_ClientVersion;}
     //return time of connection and disconnection
     QDateTime getClientConnectTime() const {return m_TimeOfConnect;}
     QDateTime getClientDisconnectTime() const {return m_TimeOfDisconnect;}
@@ -153,7 +153,7 @@ public slots:
     Q_INVOKABLE virtual void disconnectClient()=0;
 
     //send client commands
-    void sendCommand(const QString &data);
+    void sendCommand(const QString &data, const QString &ack="");
 
     //slots that turns a serial port off and on
     void setSerialConnect(const bool on);

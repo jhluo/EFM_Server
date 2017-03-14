@@ -54,7 +54,7 @@ private:
     AClient *m_pClient;
 
 signals:
-    writeCommand(const QString &data);
+    writeCommand(const QString &data, const QString &ack);
 
 public slots:
 
@@ -64,4 +64,6 @@ private slots:
 
     void onCommandSent(const int bytesWritten);
     void onCommandAcknowledged(const bool ok);
+
+    void onClientDisconnected();
 };

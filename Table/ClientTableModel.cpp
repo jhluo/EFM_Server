@@ -131,6 +131,9 @@ int ClientTableModel::indexOf(const QString &key) const
 
 QString ClientTableModel::keyAt(const int index) const
 {
+    if(m_Keys.size() <= index)
+        return "";
+
     return m_Keys.at(index);
 }
 

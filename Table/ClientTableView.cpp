@@ -119,6 +119,8 @@ void ClientTableView::showContextMenu(const QPoint& pos) // this is a slot
 void ClientTableView::onSendCommandTriggered()
 {
     //modaless
+    if(selectedIndexes().isEmpty()) return;
+
     QString key = m_pClientTableModel->keyAt(selectedIndexes().first().row());
     ClientCommandDialog dialog(m_pServer->getClient(key), this);
     dialog.exec();
